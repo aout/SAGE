@@ -1,0 +1,18 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CF6B0942-1FCD-4334-B250-7364C17C23FD}"
+	ProjectSection(SolutionItems) = preProject
+		Sage3D\glUtils.js = Sage3D\glUtils.js
+		Sage3D\index.html = Sage3D\index.html
+		Sage3D\Program.js = Sage3D\Program.js
+		Sage3D\Root.js = Sage3D\Root.js
+		Sage3D\sage3d.js = Sage3D\sage3d.js
+		Sage3D\webgl-debug.js = Sage3D\webgl-debug.js
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
