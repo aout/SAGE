@@ -169,14 +169,13 @@ Program.prototype.useWhenReady = function() {
 Program.prototype.use = function() {
 	this.webGL.useProgram(this.program);
 	this.status = StatusEnum.SHADER_USING;
-	alert("Sahder OK");
 }
 
 Program.prototype.setUniforms = function(tab) {
 	if (this.status != StatusEnum.SHADER_USING)
 		return false;
 	this.uniforms = tab;
-	for (var i = 0; i < this.uniforms.length(); ++i) {
+	for (var i = 0; i < this.uniforms.length; ++i) {
 		this.uniforms[i].id = this.webGL.getUniformLocation(this.program, this.uniforms[i].name);
 		if (this.uniforms[i].id == -1)
 			continue;
@@ -194,18 +193,21 @@ Program.prototype.setAttributes = function(tab) {
 	if (this.status != StatusEnum.SHADER_USING)
 		return false;
 	this.attributes = tab;
-	for (var i = 0; i < this.attributes.length(); ++i) {
+	for (var i = 0; i < this.attributes.length; ++i) {
 		this.attributes[i].id = this.webGL.getAttribLocation(this.program, this.attributes[i].name);
 		if (this.attributes[i].id == -1)
 			continue;
+		this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, this.attributes[i].buffer);
 		switch (this.attributes[i].type) {
 			case "3f":
-			  this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, this.attributes[i].buffer);
-			  this.webGL.vertexAttribPointer(this.attributes[i].id, 3, gl.FLOAT, false, 0, 0);
-			  this.webGL.enableVertexAttribArray(this.attributes[i].id);
+			  this.webGL.vertexAttribPointer(this.attributes[i].id, 3, this.webGL.FLOAT, false, 0, 0);
+			break;
+			case "2f":
+				this.webGL.vertexAttribPointer(this.attributes[i].id, 2, this.webGL.FLOAT, false, 0, 0);
 			break;
 		}
+		this.webGL.enableVertexAttribArray(this.attributes[i].id);
 	}
-	
+	this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, null);
 	return true;
 }
