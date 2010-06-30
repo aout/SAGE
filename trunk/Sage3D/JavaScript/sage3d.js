@@ -10,19 +10,61 @@ Array.prototype.inArray = function (value) {
 
 function include(fileName) {
 	if (!gIncludedFiles.inArray(fileName))
-	document.write("<script type=\"text/javascript\" src=\"" + fileName + "\"></script>");
+	document.write("<script src=\"JavaScript/" + fileName + "\" type=\"text/javascript\"></script>");
 }
 
 include("Root.js");
 
+var g_cube;
 
 function main() {
-	var root = new Root();
+	var root = Root.getInstance();
 	
-	if (!root.init("viewport", {R: 0, G: 0, B: 0, A: 1}, 1))
+	if (!root.init("viewport"))
 		alert("init failure");
 	else
 		alert("init success");
+
+	g_cube = Primitives.cube();
+	draw();
+	
+	
+}
+
+function draw() {
+	var root = Root.getInstance();
+	var gl = root.getWebGL();
+	var program = root.getDefaultProgram();
+	var cube = g_cube;
+	
+	gl.viewport(0, 0, 800, 600);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		
+	var uniforms = [
+		{name: "uMVMatrix",
+		 type: "Matrix4fv",
+		 value: root.getModelViewMatrix()},
+		{name: "uPMatrix",
+		 type: "Matrix4fv",
+		 value: root.getProjectionMatrix()}
+	];
+	
+	var attibutes = [
+		{name: "aVertexPosition",
+		 type: "3f",
+		 buffer: g_cube.vPosition},
+		{name: "aVertexColor",
+		 type: "4f",
+		 buffer: g_cube.vColors},
+	];
+		
+	program.setUniforms(uniforms);
+	program.setAttributes(attibutes);
+	
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g_cube.vPosition);
+	gl.drawArrays(gl.TRIANGLES, 0, g_cube.vPosition.numItems);
+
+//    gl.drawElements(gl.TRIANGLES, g_cube.indices.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
 /*

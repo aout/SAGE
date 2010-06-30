@@ -99,6 +99,8 @@ Program.prototype.getShaders = function(vertexShader, fragmentShader) {
 	};
 	try {xhr_object.send(null);}
 	catch (e) {
+		var error = e;
+		alert(e.message);
 		this.status = StatusEnum.SHADER_ERROR;
 		this.error = "Could not get vertexShader";
 	}
@@ -199,6 +201,9 @@ Program.prototype.setAttributes = function(tab) {
 			continue;
 		this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, this.attributes[i].buffer);
 		switch (this.attributes[i].type) {
+			case "4f":
+				this.webGL.vertexAttribPointer(this.attributes[i].id, 4, this.webGL.FLOAT, false, 0, 0);
+			break;
 			case "3f":
 			  this.webGL.vertexAttribPointer(this.attributes[i].id, 3, this.webGL.FLOAT, false, 0, 0);
 			break;
