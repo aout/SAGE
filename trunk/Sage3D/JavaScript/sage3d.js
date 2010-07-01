@@ -16,55 +16,84 @@ function include(fileName) {
 include("Root.js");
 
 var g_cube;
+var g_translate;
+var g_texture;
 
 function main() {
 	var root = Root.getInstance();
 	
-	if (!root.init("viewport"))
-		alert("init failure");
-	else
-		alert("init success");
-
+	root.init("viewport", {R: 0.0, G: 0.0, B: 0.0, A: 1.0});
+	
+	g_translate = Matrix.Translation($V([0.0, 0.0, -8.0])).ensure4x4();
 	g_cube = Primitives.cube();
-	draw();
 	
 	
+	g_texture = root.getWebGL().createTexture();
+    g_texture.image = new Image();
+    g_texture.image.onload = onReady;
+    g_texture.image.src = "Resources/Textures/nehe.gif";
 }
 
+function onReady() {
+	
+	var gl = Root.getInstance().getWebGL();
+	
+	gl.bindTexture(gl.TEXTURE_2D, g_texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, g_texture.image, true);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    //gl.bindTexture(gl.TEXTURE_2D, null);
+	
+	setInterval(draw, 12);
+}
+
+var lastTime = 0;
+var rCube = 0;
 function draw() {
 	var root = Root.getInstance();
 	var gl = root.getWebGL();
 	var program = root.getDefaultProgram();
-	var cube = g_cube;
 	
-	gl.viewport(0, 0, 800, 600);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		
+	
+	var timeNow = new Date().getTime();
+    if (lastTime != 0) {
+      var elapsed = timeNow - lastTime;
+      rCube -= (75 * elapsed) / 1000.0;
+    }
+    lastTime = timeNow;
+
+	var modelView = Matrix.I(4);
+	modelView = modelView.x(g_translate);
+	var arad = rCube * Math.PI / 180.0;
+	modelView = modelView.x(Matrix.Rotation(arad, $V([1.0, 1.0, 1.0])).ensure4x4());
+	
 	var uniforms = [
 		{name: "uMVMatrix",
 		 type: "Matrix4fv",
-		 value: root.getModelViewMatrix()},
+		 value: modelView},
 		{name: "uPMatrix",
 		 type: "Matrix4fv",
-		 value: root.getProjectionMatrix()}
+		 value: root.getProjectionMatrix()},
+ 		{name: "uSampler",
+		 type: "1i",
+		 value: 0}
+
 	];
 	
 	var attibutes = [
 		{name: "aVertexPosition",
 		 type: "3f",
-		 buffer: g_cube.vPosition},
-		{name: "aVertexColor",
-		 type: "4f",
-		 buffer: g_cube.vColors},
-	];
+		 buffer: g_cube.aVertexPosition},
+		 {name: "aTextureCoord",
+		 type: "2f",
+		 buffer: g_cube.aTextureCoord}];
 		
 	program.setUniforms(uniforms);
 	program.setAttributes(attibutes);
 	
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g_cube.vPosition);
-	gl.drawArrays(gl.TRIANGLES, 0, g_cube.vPosition.numItems);
-
-//    gl.drawElements(gl.TRIANGLES, g_cube.indices.numItems, gl.UNSIGNED_SHORT, 0);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g_cube.indices);
+	gl.drawElements(gl.TRIANGLES, g_cube.indices.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
 /*
