@@ -76,7 +76,7 @@ Root._Root = function() {
 		if (clearColor != undefined)
 			this._webGL.clearColor(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
 		else
-			this._webGL.clearColor(255, 0, 255, 1);
+			this._webGL.clearColor(1, 0, 1, 1);
 		//clear depth
 		this._webGL.clearDepth((clearDepth != undefined) ? (clearDepth) : (1.0));
 		//do clear
@@ -88,10 +88,10 @@ Root._Root = function() {
 			this._projectionMatrix = makePerspective(45, this._viewPort.width / this._viewPort.height, 0.1, 100.0);
 		//make look at
 		//DEBUG
-		if (lookAt != undefined)
+		/*if (lookAt != undefined)
 			this._modelViewMatrix = makeLookAt(lookAt.ex, lookAt.ey, lookAt.ez, lookAt.cx, lookAt.cy, lookAt.cz, lookAt.ux, lookAt.uy, lookAt.uz);
 		else	
-			this._modelViewMatrix = makeLookAt(0, 1, -5, 0, 1, 0, 0, 1, 0);
+			this._modelViewMatrix = makeLookAt(0, 1, -5, 0, 1, 0, 0, 1, 0);*/
 		
 		this._webGL.enable(this._webGL.DEPTH_TEST);
 	    this._webGL.depthFunc(this._webGL.LEQUAL);

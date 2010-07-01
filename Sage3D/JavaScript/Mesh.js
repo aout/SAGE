@@ -7,8 +7,8 @@ Mesh = function () {
 	//private attributes
 	
 	//public attributes
-	this.vPosition = null;
-	this.vColor = null;
+	this.aVertexPosition = null;
+	this.aTextureCoord = null;
 	this.indices = null;
 	
 	this.BBox = {
@@ -22,10 +22,19 @@ Mesh = function () {
 
 //public methods
 Mesh.prototype.clone = function(mesh) {
+	this.aVertexPosition = mesh.aVertexPosition;
+	this.aTextureCoord = mesh.aTextureCoord;
+	this.indices = mesh.indices;
 	
+	this.BBox.x.min = mesh.BBox.x.min;
+	this.BBox.x.max = mesh.BBox.x.max;
+	this.BBox.y.min = mesh.BBox.y.min;
+	this.BBox.y.max = mesh.BBox.y.max;
+	this.BBox.z.min = mesh.BBox.z.min;
+	this.BBox.z.max = mesh.BBox.z.max;
 }
 
-Mesh.prototype.render = function() {
+Mesh.prototype.render = function(shaderProgram) {
 	
 }
 
@@ -76,42 +85,42 @@ Primitives.cube = function() {
       -1.0,  1.0, -1.0,
     ];
 
-	var colors = [
+	var texCoord = [
 	  // Front face
-      1.0, 0.0, 0.0, 1.0,
-	  1.0, 0.0, 0.0, 1.0,
-	  1.0, 0.0, 0.0, 1.0,
-	  1.0, 0.0, 0.0, 1.0,
-	  
-	  // Back face     
-      1.0, 1.0, 0.0, 1.0,
-	  1.0, 1.0, 0.0, 1.0,
-	  1.0, 1.0, 0.0, 1.0,
-	  1.0, 1.0, 0.0, 1.0,
-	  
-	  // Top face
-      0.0, 1.0, 0.0, 1.0,
-	  0.0, 1.0, 0.0, 1.0,
-	  0.0, 1.0, 0.0, 1.0,
-	  0.0, 1.0, 0.0, 1.0,
-	  
-	  // Bottom face
-      1.0, 0.5, 0.5, 1.0,
-	  1.0, 0.5, 0.5, 1.0,
-	  1.0, 0.5, 0.5, 1.0,
-	  1.0, 0.5, 0.5, 1.0,
-	  
-	  // Right face
-      1.0, 0.0, 1.0, 1.0,
-	  1.0, 0.0, 1.0, 1.0,
-	  1.0, 0.0, 1.0, 1.0,
-	  1.0, 0.0, 1.0, 1.0,
-	  
-	  // Left face
-      0.0, 0.0, 1.0, 1.0,
-	  0.0, 0.0, 1.0, 1.0,
-	  0.0, 0.0, 1.0, 1.0,
-	  0.0, 0.0, 1.0, 1.0,     
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
+
+      // Back face
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
+
+      // Top face
+      0.0, 1.0,
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
+
+      // Bottom face
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
+      1.0, 0.0,
+
+      // Right face
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
+
+      // Left face
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0
     ];
 
 	var indices = [
@@ -125,17 +134,17 @@ Primitives.cube = function() {
 
 	var mesh = new Mesh();
 
-	mesh.vPosition = gl.createBuffer();	
-	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vPosition);
+	mesh.aVertexPosition = gl.createBuffer();	
+	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.aVertexPosition);
     gl.bufferData(gl.ARRAY_BUFFER, new WebGLFloatArray(vertices), gl.STATIC_DRAW);
-    mesh.vPosition.itemSize = 3;
-    mesh.vPosition.numItems = 24;
+    mesh.aVertexPosition.itemSize = 3;
+    mesh.aVertexPosition.numItems = 24;
 	
-	mesh.vColor = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vColor);
-	gl.bufferData(gl.ARRAY_BUFFER, new WebGLFloatArray(colors), gl.STATIC_DRAW);
-    mesh.vColor.itemSize = 4;
-    mesh.vColor.numItems = 24;
+	mesh.aTextureCoord = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.aTextureCoord);
+	gl.bufferData(gl.ARRAY_BUFFER, new WebGLFloatArray(texCoord), gl.STATIC_DRAW);
+    mesh.aTextureCoord.itemSize = 2;
+    mesh.aTextureCoord.numItems = 24;
 	
 	mesh.indices = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indices);

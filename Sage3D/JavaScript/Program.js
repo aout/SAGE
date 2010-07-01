@@ -185,6 +185,9 @@ Program.prototype.setUniforms = function(tab) {
 			case "Matrix4fv":
 				this.webGL.uniformMatrix4fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value.flatten()));
 			break;
+			case "1i":
+				this.webGL.uniform1i(this.uniforms[i].id, this.uniforms[i].value);
+			break;
 		}
 	}
 	
