@@ -164,7 +164,12 @@ ColladaLoader.prototype.parse = function() {
 		return false;
 	}
 
-    var farrays = ['position', 'normal', 'texcoord'];
+    var farrays = ['position', 'texcoord'];
+	var tmpBuffer = 
+	{
+		postion: null,
+		texcoord: null
+	}
     for (var i = 0; i < farrays.length; ++i) {
 		var fname = farrays[i];
 		
@@ -176,15 +181,40 @@ ColladaLoader.prototype.parse = function() {
 		}
 		
 		var count = parseInt(fnode.getAttribute('count'));
-		var data = parseFloatListString(nodeText(fnode));
+		tmpBuffer[fname] = parseFloatListString(nodeText(fnode));
 		
-		if (data.length < count) {
+		if (tmpBuffer[fname].length < count) {
 			this.status = ColladaLoader.StatusEnum.ERROR;
 			this.error = "Attribute " + fname + " expected " + count + " elements but parse only gave " + data.length;
 			return false;
 		}
-		
-		if (fname == "position") {
+
+    }
+
+    var inode = this.getNode(this.xmlFile, '//c:triangles/c:p', meshNode);
+    if (!inode) {
+		this.status = ColladaLoader.StatusEnum.ERROR;
+		this.error = "Missing triangles/p in mesh node";
+		return false;
+    }
+	
+	var tmpPos = new Array();
+	var tmpTexCoord = new Array();
+	var data = parseIntListString(nodeText(inode));
+	npoints = Math.floor(data.length / 3);
+	for (var i = 0; i < npoints; ++i)
+	{
+		tmpPos.push(tmpBuffer.position[data[i * 3]]);
+		//data[i * 3 + 1] = normal;
+		tmpTexCoord.push(tmpBuffer.texcoord[data[i * 3 + 2]]);
+	}
+	
+	//nuke buffertmp
+	tmpBuffer.position = null;
+	tmpBuffer.texcoord = null;
+	tmpBuffer = null;
+	
+		/*if (fname == "position") {
 			var minx = Infinity, miny = Infinity, minz = Infinity;
 			var maxx = -Infinity, maxy = -Infinity, maxz = -Infinity;
 			var npoints = Math.floor(data.length / 3);
@@ -206,27 +236,20 @@ ColladaLoader.prototype.parse = function() {
 				min: { x: minx, y: miny, z: minz },
 				max: { x: maxx, y: maxy, z: maxz }
 			};
-		}
+		}*/
 		
-		this.mesh[fname] = this.webGL.createBuffer();
-		this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, this.mesh[fname]);
-		this.webGL.bufferData(this.webGL.ARRAY_BUFFER, new WebGLFloatArray(data), this.webGL.STATIC_DRAW);
-    }
+	this.mesh[position] = this.webGL.createBuffer();
+	this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, this.mesh[position]);
+	this.webGL.bufferData(this.webGL.ARRAY_BUFFER, new WebGLFloatArray(tmpPos), this.webGL.STATIC_DRAW);
 
-    var inode = this.getNode(this.xmlFile, '//c:triangles/c:p', meshNode);
-    if (!inode) {
-		this.status = ColladaLoader.StatusEnum.ERROR;
-		this.error = "Missing triangles/p in mesh node";
-		return false;
-    }
-	data = parseIntListString(nodeText(inode));
-	this.mesh["indices"] = this.webGL.createBuffer();
-	this.webGL.bindBuffer(this.webGL.ELEMENT_ARRAY_BUFFER, this.mesh["indices"]);
-	this.webGL.bufferData(this.webGL.ELEMENT_ARRAY_BUFFER, new WebGLUnsignedShortArray(data), this.webGL.STREAM_DRAW);
-	this.mesh.numIndices = data.length;
-
-	this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, null);
-
+	this.mesh[texcoord] = this.webGL.createBuffer();
+	this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, this.mesh[texcoord]);
+	this.webGL.bufferData(this.webGL.ARRAY_BUFFER, new WebGLFloatArray(tmpTexCoord), this.webGL.STATIC_DRAW);
+	
+	//nuke other tmpBuffer
+	tmpPos = null;
+	tmpTexCoord = null;
+	
 	var texNode = this.getNode(this.xmlFile, '//c:library_images/c:image[@name="diffuse"]/c:init_from');
 	if (!texNode) {
 		this.status = ColladaLoader.StatusEnum.ERROR;
@@ -267,10 +290,13 @@ ColladaLoader.prototype.createTextureWhenImageLoaded = function() {
 
 ColladaLoader.prototype.createTexture = function() {
 	
+	this.webGL.activeTexture(this.webGL.TEXTURE0);
 	this.texture = this.webGL.createTexture();
 	this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.texture);
-	this.webGL.texImage2D(this.webGL.TEXTURE_2D, 0, flipImage(this.image));
-	this.webGL.generateMipmap(this.webGL.TEXTURE_2D);
+	this.webGL.texImage2D(this.webGL.TEXTURE_2D, 0, this.image, true);
+	this.webGL.texParameteri(this.webGL.TEXTURE_2D, this.webGL.TEXTURE_MAG_FILTER, this.webGL.NEAREST);
+    this.webGL.texParameteri(this.webGL.TEXTURE_2D, this.webGL.TEXTURE_MIN_FILTER, this.webGL.NEAREST);
+
 	this.webGL.bindTexture(this.webGL.TEXTURE_2D, null);
 	
 	this.status = ColladaLoader.StatusEnum.COMPLETE;

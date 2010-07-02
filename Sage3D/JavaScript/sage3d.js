@@ -38,11 +38,11 @@ function onReady() {
 	
 	var gl = Root.getInstance().getWebGL();
 	
+	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, g_texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, g_texture.image, true);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //gl.bindTexture(gl.TEXTURE_2D, null);
 	
 	setInterval(draw, 12);
 }
@@ -96,9 +96,9 @@ function draw() {
 	gl.drawElements(gl.TRIANGLES, g_cube.indices.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
-/*
-function main() {
-	var root = new Root();
+
+/*function main() {
+	var root = new Root.getInstance();
 	
 	if (root.init("viewport", {R: 0, G: 0, B: 0, A: 1}, 1)) {
 		var collada = new ColladaLoader();
