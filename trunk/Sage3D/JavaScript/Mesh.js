@@ -7,10 +7,8 @@ Mesh = function () {
 	//private attributes
 	
 	//public attributes
-	this.aVertexPosition = null;
-	this.aTextureCoord = null;
-	this.indices = null;
-	
+	this.buffers = new Array();
+	this.drawingBuffer = null;
 	this.BBox = {
 		x: { min: -Infinity, max: Infinity },
 		y: { min: -Infinity, max: Infinity },
@@ -22,10 +20,12 @@ Mesh = function () {
 
 //public methods
 Mesh.prototype.clone = function(mesh) {
-	this.aVertexPosition = mesh.aVertexPosition;
-	this.aTextureCoord = mesh.aTextureCoord;
-	this.indices = mesh.indices;
-	
+	this.buffers = null;
+	this.buffers = new Array();
+	for each(var buffer in this.buffers) {
+		this.buffers.push(buffer);
+	}
+
 	this.BBox.x.min = mesh.BBox.x.min;
 	this.BBox.x.max = mesh.BBox.x.max;
 	this.BBox.y.min = mesh.BBox.y.min;
@@ -34,8 +34,110 @@ Mesh.prototype.clone = function(mesh) {
 	this.BBox.z.max = mesh.BBox.z.max;
 }
 
-Mesh.prototype.render = function(shaderProgram) {
-	
+Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems, itemType, itemSize) {
+	var gl = Root.getInstance().getWebGL();
+	// test parametres
+	// vive les langages de script !!!
+	/*if (bufferName != undefined && bufferType != undefined && bufferData != undefined && numItems != undefined && itemType != undefined && itemSize != undefined &&
+		bufferName instanceof String && bufferType instanceof Int && bufferData instanceof Array && numItems instanceof Int && itemType instanceof Int && itemSize instanceof Int &&
+		bufferName.length > 0 && (bufferType == gl.ARRAY_BUFFER || bufferType == gl.ELEMENT_ARRAY_BUFFER) && bufferData.length > 0 && numItems > 0 && (itemSize > 0 && itemSize < 5)) {*/
+		
+		var tmpBuffer;
+		var glArray;
+		
+		switch (itemType) {
+			case gl.FIXED:
+			case gl.BYTE:
+			case gl.UNSIGNED_BYTE:
+			case gl.SHORT:
+				//throw SageNotImplementedException
+				return false;
+				break;
+			case gl.FLOAT:
+				if (bufferType == gl.ELEMENT_ARRAY_BUFFER) {
+					//throw SageBadArgsException;
+					return false;
+				}
+				glArray = new WebGLFloatArray(bufferData);
+				break;
+			case gl.UNSIGNED_SHORT:
+				glArray = new WebGLUnsignedShortArray(bufferData);
+				break;
+			default:
+				//throw SageBadArgsException();
+				return false;
+				break;
+		}
+		
+		tmpBuffer = gl.createBuffer();
+		gl.bindBuffer(bufferType, tmpBuffer);
+	    gl.bufferData(bufferType, glArray, gl.STATIC_DRAW);
+		tmpBuffer.bufferName = bufferName;
+		tmpBuffer.bufferType = bufferType;
+		tmpBuffer.itemType = itemType;
+		tmpBuffer.itemSize = itemSize;
+	    tmpBuffer.numItems = numItems;
+		
+		this.buffers.push(tmpBuffer);
+	/*}
+	else {
+		//throw SageBadArgsException();
+		return false;
+	}*/
+	 return true;
+}
+
+Mesh.prototype.setDrawingBuffer = function(bufferName) {
+	for each (var buffer in this.buffers) {
+		if (buffer.bufferName === bufferName) {
+			this.drawingBuffer = buffer;
+			return true;
+		}
+	}
+	return false;
+}
+
+Mesh.prototype.calcBBox = function(vertices) {
+	var nbPoints = Math.floor(vertices.length / 3);
+	for (var i = 0; i < nbPoints; i += 3) {
+		var x = vertices[i * 3];
+		var y = vertices[i * 3 + 1];
+		var z = vertices[i * 3 + 2];
+		
+		if (i == 0) {
+			this.BBox.x.min = x;
+			this.BBox.x.max = x;
+			this.BBox.y.min = y;
+			this.BBox.y.max = y;
+			this.BBox.z.min = z;
+			this.BBox.z.max = z;
+		}
+		else {
+			this.BBox.x.min = Math.min(this.BBox.x.min, x);
+			this.BBox.x.max = Math.max(this.BBox.x.max, x);
+			this.BBox.y.min = Math.min(this.BBox.y.min, y);
+			this.BBox.y.max = Math.max(this.BBox.y.max, y);
+			this.BBox.z.min = Math.min(this.BBox.z.min, z);
+			this.BBox.z.max = Math.max(this.BBox.z.max, z);
+		}
+	}
+}
+
+Mesh.prototype.draw = function(shaderProgram) {
+	if (this.drawingBuffer != null) {
+		var gl = Root.getInstance().getWebGL();
+		if (shaderProgram == undefined)
+			shaderProgram = Root.getInstance().getDefaultProgram();
+		shaderProgram.use();
+		shaderProgram.setAttributes(this.buffers);
+		gl.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
+		if (this.drawingBuffer.bufferType == gl.ELEMENT_ARRAY_BUFFER) {
+			gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
+		}
+		else if (this.drawingBuffer.bufferType == gl.ARRAY_BUFFER) {
+			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
+		}
+	}
 }
 
 //Primitives namespace
@@ -133,24 +235,12 @@ Primitives.cube = function() {
     ]
 
 	var mesh = new Mesh();
-
-	mesh.aVertexPosition = gl.createBuffer();	
-	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.aVertexPosition);
-    gl.bufferData(gl.ARRAY_BUFFER, new WebGLFloatArray(vertices), gl.STATIC_DRAW);
-    mesh.aVertexPosition.itemSize = 3;
-    mesh.aVertexPosition.numItems = 24;
 	
-	mesh.aTextureCoord = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.aTextureCoord);
-	gl.bufferData(gl.ARRAY_BUFFER, new WebGLFloatArray(texCoord), gl.STATIC_DRAW);
-    mesh.aTextureCoord.itemSize = 2;
-    mesh.aTextureCoord.numItems = 24;
-	
-	mesh.indices = gl.createBuffer();
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indices);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new WebGLUnsignedShortArray(indices), gl.STATIC_DRAW);
-    mesh.indices.itemSize = 1;
-    mesh.indices.numItems = 36;
+	mesh.calcBBox(vertices);
+	mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3);
+	mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2);
+	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1);
+	mesh.setDrawingBuffer("indices");
 	
 	return mesh;
 }

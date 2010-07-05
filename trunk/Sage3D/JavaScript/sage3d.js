@@ -26,24 +26,8 @@ function main() {
 	
 	g_translate = Matrix.Translation($V([0.0, 0.0, -8.0])).ensure4x4();
 	g_cube = Primitives.cube();
-	
-	
-	g_texture = root.getWebGL().createTexture();
-    g_texture.image = new Image();
-    g_texture.image.onload = onReady;
-    g_texture.image.src = "Resources/Textures/nehe.gif";
-}
-
-function onReady() {
-	
-	var gl = Root.getInstance().getWebGL();
-	
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, g_texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, g_texture.image, true);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	
+	g_texture = new Texture();
+	g_texture.load(0, "Resources/Textures/nehe.gif");
 	setInterval(draw, 12);
 }
 
@@ -53,6 +37,9 @@ function draw() {
 	var root = Root.getInstance();
 	var gl = root.getWebGL();
 	var program = root.getDefaultProgram();
+	
+	if (program.status != StatusEnum.SHADER_USING)
+		return;
 	
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
@@ -75,25 +62,11 @@ function draw() {
 		{name: "uPMatrix",
 		 type: "Matrix4fv",
 		 value: root.getProjectionMatrix()},
- 		{name: "uSampler",
-		 type: "1i",
-		 value: 0}
-
 	];
 	
-	var attibutes = [
-		{name: "aVertexPosition",
-		 type: "3f",
-		 buffer: g_cube.aVertexPosition},
-		 {name: "aTextureCoord",
-		 type: "2f",
-		 buffer: g_cube.aTextureCoord}];
-		
 	program.setUniforms(uniforms);
-	program.setAttributes(attibutes);
-	
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g_cube.indices);
-	gl.drawElements(gl.TRIANGLES, g_cube.indices.numItems, gl.UNSIGNED_SHORT, 0);
+	g_texture.active();
+	g_cube.draw();	
 }
 
 

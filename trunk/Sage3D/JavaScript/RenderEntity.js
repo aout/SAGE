@@ -1,13 +1,13 @@
 if (gIncludedFiles == undefined)
 	alert("You must include this file");
 	
-gIncludedFiles.push("RenderElement.js");
+gIncludedFiles.push("RenderEntity.js");
 
 include("Mesh.js");
 include("Texture.js");
 include("Program.js");
 
-RenderElement = function () {
+RenderEntity = function () {
 	//private attributes
 	
 	//private methods
