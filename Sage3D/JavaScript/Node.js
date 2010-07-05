@@ -3,7 +3,7 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("Node.js");
 
-include("RenderElement.js");
+include("RenderEntity.js");
 
 Node = function() {
 
