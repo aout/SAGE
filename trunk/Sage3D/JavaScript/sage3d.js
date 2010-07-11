@@ -1,7 +1,7 @@
 var gIncludedFiles = new Array();
 gIncludedFiles.push("sage3d.js");
 
-Array.prototype.inArray = function (value) {
+gIncludedFiles.inArray = function (value) {
 	for (var i = 0; i < this.length; ++i)
 		if (this[i] === value)
 			return true;
@@ -15,58 +15,55 @@ function include(fileName) {
 
 include("Root.js");
 
-var g_cube;
-var g_translate;
-var g_texture;
-
 function main() {
 	var root = Root.getInstance();
 	
 	root.init("viewport", {R: 0.0, G: 0.0, B: 0.0, A: 1.0});
-	
-	g_translate = Matrix.Translation($V([0.0, 0.0, -8.0])).ensure4x4();
-	g_cube = Primitives.cube();
-	g_texture = new Texture();
-	g_texture.load(0, "Resources/Textures/nehe.gif");
-	setInterval(draw, 12);
+	initScene();
 }
 
-var lastTime = 0;
-var rCube = 0;
+var texture;
+function initScene() {
+	var cube;
+	var entity;
+		
+	cube = Primitives.cube();
+	texture = new Texture();
+	texture.load(0, "Resources/Textures/nehe.gif");
+	
+	entity = new RenderEntity();
+	entity.addTexture(texture);
+	entity.setMesh(cube);
+
+	var rootTransform = Transform.getTransform("root");
+	rootTransform.content.push(entity);
+	rootTransform.translate([0.0, 0.0, -8.0]);
+	
+	setInterval(draw, 12);	
+}
+
+var lastTime = new Date().getTime();
 function draw() {
 	var root = Root.getInstance();
 	var gl = root.getWebGL();
-	var program = root.getDefaultProgram();
+	var rootTransform = Transform.getTransform("root");
 	
-	if (program.status != StatusEnum.SHADER_USING)
-		return;
+	// DEBUG breakpoint when all resources are init
+	//if (root.getDefaultProgram().status != StatusEnum.SHADER_USING || texture.status != Texture.StatusEnum.TEXTURE_READY)
+	//	return;
+	//var dbg_break = true;
+	// END DEBUG
 	
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
 	var timeNow = new Date().getTime();
     if (lastTime != 0) {
       var elapsed = timeNow - lastTime;
-      rCube -= (75 * elapsed) / 1000.0;
     }
     lastTime = timeNow;
 
-	var modelView = Matrix.I(4);
-	modelView = modelView.x(g_translate);
-	var arad = rCube * Math.PI / 180.0;
-	modelView = modelView.x(Matrix.Rotation(arad, $V([1.0, 1.0, 1.0])).ensure4x4());
-	
-	var uniforms = [
-		{name: "uMVMatrix",
-		 type: "Matrix4fv",
-		 value: modelView},
-		{name: "uPMatrix",
-		 type: "Matrix4fv",
-		 value: root.getProjectionMatrix()},
-	];
-	
-	program.setUniforms(uniforms);
-	g_texture.active();
-	g_cube.draw();	
+	rootTransform.rotate((75 * elapsed) / 1000.0, [1.0, 1.0, 1.0]);
+	rootTransform.render();
 }
 
 

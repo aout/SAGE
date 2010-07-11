@@ -12,7 +12,7 @@ Texture = function () {
 	this.image = undefined;
 	this.status = Texture.StatusEnum.TEXTURE_NONE;
 	this.error = "no error";
-}
+};
 
 Texture.StatusEnum = {
 		TEXTURE_NONE: 0,
@@ -47,7 +47,7 @@ Texture.prototype.load = function(unitTexture, url) {
 	};
 	this.image.src = url;
 	return this.status;
-}
+};
 
 Texture.prototype.active = function(shaderProgram) {
 	if (this.status != Texture.StatusEnum.TEXTURE_READY)
@@ -57,7 +57,7 @@ Texture.prototype.active = function(shaderProgram) {
 	shaderProgram.use();
 	this.webGL.activeTexture(this.unitTexture + this.webGL.TEXTURE0);
 	this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.glTexture);
-	shaderProgram.setUniforms({	name: "uSampler",
+	shaderProgram.setUniforms([{	name: "uSampler" + this.unitTexture,
 		 						type: "1i",
-		 						value: this.unitTexture - this.webGL.TEXTURE0	});
-}
+		 						value: this.unitTexture 				}]);
+};

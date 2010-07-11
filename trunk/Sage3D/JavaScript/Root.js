@@ -3,7 +3,7 @@ if (gIncludedFiles == undefined)
 gIncludedFiles.push("Root.js");
 
 include("Program.js");
-include("Node.js");
+include("Transform.js");
 
 //Root Namespace
 Root = {};
@@ -15,13 +15,12 @@ Root.getInstance = function() {
 	if (Root._root === null)
 		Root._root = new Root._Root();
 	return Root._root;
-}
+};
 
 //Root Class
 //TODO: Use the Sage Exception class
 Root._Root = function() {
-	
-	//public attibutes
+
 	this.StatusEnum = 
 	{
 		NONE 			: 0,
@@ -32,20 +31,18 @@ Root._Root = function() {
 		PAUSED			: 5,
 		STOPPED			: 6,
 		ERROR			: 7
-	}
+	};
 
-	//private attributes
-	var _viewPort = null;
-	var _webGL = null;
+	var _viewPort = undefined;
+	var _webGL = undefined;
 	var _status = StatusEnum.NONE;
-	
-	var _modelViewMatrix = null;
-	var _projectionMatrix = null;
-	//var _matrixStack = new Array();
-	
-	var _defaultProgram = null;
-	
-	//public methods
+
+	var _modelViewMatrix = undefined;
+	var _projectionMatrix = undefined;
+
+	var _defaultProgram = undefined;
+
+	this.rootTransform = undefined;
 
 	//Initializes the Root
 	// TODO: Try to catch the parameter within the function and not by arguments
@@ -54,17 +51,17 @@ Root._Root = function() {
 		this._status = StatusEnum.NONE;
 		this._modelViewMatrix = Matrix.I(4);
 		this._projectionMatrix = Matrix.I(4);
-		
+
 		//Set a viewport into the canvas
 		this._viewPort = document.getElementById(canvasId);
-		
+
 		//Check WebGL context
 		if(!this.isWebGLEnabled())
 			return false;
-		
+
 		//set status to LOADING
 		this._status = this.StatusEnum.LOADING;
-		
+
 		//WebGL	initialization!
 		//default shader
 		this._defaultProgram = new Program();
@@ -92,68 +89,44 @@ Root._Root = function() {
 			this._modelViewMatrix = makeLookAt(lookAt.ex, lookAt.ey, lookAt.ez, lookAt.cx, lookAt.cy, lookAt.cz, lookAt.ux, lookAt.uy, lookAt.uz);
 		else	
 			this._modelViewMatrix = makeLookAt(0, 1, -5, 0, 1, 0, 0, 1, 0);*/
-		
+
 		this._webGL.enable(this._webGL.DEPTH_TEST);
-	    this._webGL.depthFunc(this._webGL.LEQUAL);
-		
+		this._webGL.depthFunc(this._webGL.LEQUAL);
+
 		//set status to LOADED
 		this._status = this.StatusEnum.LOADED;
+		
+		this.rootTransform = new Transform(undefined, "root");
 		return true;
-	}
+	};
 
 	this.getWebGL = function() {
 		return this._webGL;
-	}
+	};
 
 	this.getDefaultProgram = function() {
 		return this._defaultProgram;
-	}
+	};
 
 	this.getModelViewMatrix = function() {
 		return this._modelViewMatrix;
-	}
+	};
 
 	this.getProjectionMatrix = function() {
 		return this._projectionMatrix;
-	}
+	};
 
-	/*this.push = function() {
-		this._matrixStack.push(this._modelViewMatrix);
-	}
-	
-	this.pop = function() {
-		if (this._matrixStack.length > 0)
-			this._modelViewMatrix = this._matrixStack.pop();
-	}*/
-	
-	/*
-	this.translate = function (v) {
-	    var m = Matrix.Translation($V([v[0],v[1],v[2]])).ensure4x4();
-		this.modelViewMatrix = this.modelViewMatrix.x(m);
-	}
-	
-	this.rotate = function (ang, v) {
-	    var arad = ang * Math.PI / 180.0;
-	    var m = Matrix.Rotation(arad, $V([v[0], v[1], v[2]])).ensure4x4();
-	    this.modelViewMatrix = this.modelViewMatrix.x(m);
-	}
-	
-	this.scale = function (v) {
-	    var m = Matrix.Diagonal([v[0], v[1], v[2], 1]);
-	   	this.modelViewMatrix = this.modelViewMatrix.x(m);
-	}
-	
-	this.invert = function () {
-	    this.modelViewMatrix = this.modelViewMatrix.inv();
-	}
-	*/
+	this.getRootTransform = function() {
+		return this.rootTransform;
+	};
+
 	this.LookAt = function (lookAt) {
 		var m = makeLookAt(lookAt.ex, lookAt.ey, lookAt.ez, lookAt.cx, lookAt.cy, lookAt.cz, lookAt.ux, lookAt.uy, lookAt.uz);
 		this._modelViewMatrix = this._modelViewMatrix.x(m);
-	}
-	
+	};
+
 	//private methods
-	
+
 	//Check if webGL is currently enabled in the client's browser
 	this.isWebGLEnabled = function()
 	{
@@ -185,5 +158,5 @@ Root._Root = function() {
 			return false;
 		}
 		return true;
-	}	
-}
+	};
+};
