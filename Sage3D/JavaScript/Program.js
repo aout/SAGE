@@ -11,7 +11,7 @@ var StatusEnum =
 	SHADER_READY	: 3,
 	SHADER_USING	: 4,
 	SHADER_ERROR	: 5
-}
+};
 
 Program = function() {
 	this.webGL = null;
@@ -31,19 +31,19 @@ Program = function() {
 	
 	this.status = StatusEnum.NONE;
 	this.error = "No error";
-}
+};
 
 Program.prototype.createAndUse = function(webGL, vertexShader, fragmentShader) {
 	this.create(webGL, vertexShader, fragmentShader);
 	this.useWhenReady();
-}
+};
 
 Program.prototype.create = function(webGL, vertexShader, fragmentShader) {
 	this.webGL = webGL;
 	
 	this.getShaders(vertexShader, fragmentShader);
 	this.compileWhenGet();
-}
+};
 
 Program.prototype.getShaders = function(vertexShader, fragmentShader) {
 	var self = this;
@@ -104,7 +104,7 @@ Program.prototype.getShaders = function(vertexShader, fragmentShader) {
 		this.status = StatusEnum.SHADER_ERROR;
 		this.error = "Could not get vertexShader";
 	}
-}
+};
 
 Program.prototype.compileWhenGet = function() {
 	var self = this;
@@ -116,7 +116,7 @@ Program.prototype.compileWhenGet = function() {
 			window.clearInterval(self.compileInterval);
 		}
 	}, 100);
-}
+};
 
 Program.prototype.compile = function() {
 	this.vertexShader = this.webGL.createShader(this.webGL.VERTEX_SHADER);
@@ -154,7 +154,7 @@ Program.prototype.compile = function() {
     }
 	
 	this.status = StatusEnum.SHADER_READY;
-}
+};
 
 Program.prototype.useWhenReady = function() {
 	var self = this;
@@ -166,14 +166,14 @@ Program.prototype.useWhenReady = function() {
 			window.clearInterval(self.useInterval);
 		}
 	}, 100);
-}
+};
 
 Program.prototype.use = function() {
 	if (this.status == StatusEnum.SHADER_USING || this.status != StatusEnum.SHADER_READY)
 		return this.status;
 	this.webGL.useProgram(this.program);
 	this.status = StatusEnum.SHADER_USING;
-}
+};
 
 Program.prototype.setUniforms = function(tab) {
 	if (this.status != StatusEnum.SHADER_USING)
@@ -194,7 +194,7 @@ Program.prototype.setUniforms = function(tab) {
 	}
 	
 	return true;
-}
+};
 
 Program.prototype.setAttributes = function(buffers) {
 	if (this.status != StatusEnum.SHADER_USING)
@@ -211,4 +211,4 @@ Program.prototype.setAttributes = function(buffers) {
 	}
 	this.webGL.bindBuffer(this.webGL.ARRAY_BUFFER, null);
 	return true;
-}
+};

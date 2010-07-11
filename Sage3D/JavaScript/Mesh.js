@@ -16,7 +16,7 @@ Mesh = function () {
 	}
 	
 	//private methods
-}
+};
 
 //public methods
 Mesh.prototype.clone = function(mesh) {
@@ -32,7 +32,7 @@ Mesh.prototype.clone = function(mesh) {
 	this.BBox.y.max = mesh.BBox.y.max;
 	this.BBox.z.min = mesh.BBox.z.min;
 	this.BBox.z.max = mesh.BBox.z.max;
-}
+};
 
 Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems, itemType, itemSize) {
 	var gl = Root.getInstance().getWebGL();
@@ -85,7 +85,7 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
 		return false;
 	}*/
 	 return true;
-}
+};
 
 Mesh.prototype.setDrawingBuffer = function(bufferName) {
 	for each (var buffer in this.buffers) {
@@ -95,7 +95,7 @@ Mesh.prototype.setDrawingBuffer = function(bufferName) {
 		}
 	}
 	return false;
-}
+};
 
 Mesh.prototype.calcBBox = function(vertices) {
 	var nbPoints = Math.floor(vertices.length / 3);
@@ -121,7 +121,7 @@ Mesh.prototype.calcBBox = function(vertices) {
 			this.BBox.z.max = Math.max(this.BBox.z.max, z);
 		}
 	}
-}
+};
 
 Mesh.prototype.draw = function(shaderProgram) {
 	if (this.drawingBuffer != null) {
@@ -138,7 +138,7 @@ Mesh.prototype.draw = function(shaderProgram) {
 			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
 		}
 	}
-}
+};
 
 //Primitives namespace
 Primitives = {};
@@ -243,8 +243,8 @@ Primitives.cube = function() {
 	mesh.setDrawingBuffer("indices");
 	
 	return mesh;
-}
+};
 
 Primitives.sphere = function() {
 	
-}
+};
