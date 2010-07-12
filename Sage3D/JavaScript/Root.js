@@ -120,10 +120,10 @@ Root._Root = function() {
 		return this.rootTransform;
 	};
 
-	this.LookAt = function (lookAt) {
+	/*this.LookAt = function (lookAt) {
 		var m = makeLookAt(lookAt.ex, lookAt.ey, lookAt.ez, lookAt.cx, lookAt.cy, lookAt.cz, lookAt.ux, lookAt.uy, lookAt.uz);
 		this._modelViewMatrix = this._modelViewMatrix.x(m);
-	};
+	};*/
 
 	//private methods
 

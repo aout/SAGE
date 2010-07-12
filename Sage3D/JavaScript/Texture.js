@@ -19,11 +19,11 @@ Texture.StatusEnum = {
 		TEXTURE_LOADING: 1,
 		TEXTURE_BINDING: 2,
 		TEXTURE_READY: 3,
-		TEXTURE_ERROR: 4	
+		TEXTURE_ERROR: 4
 };
 
 //public methods
-Texture.prototype.load = function(unitTexture, url) {
+Texture.prototype.load = function(unitTexture, url, callback) {
 	if (unitTexture < 0 || unitTexture > 31) {
 		this.status = Texture.StatusEnum.TEXTURE_ERROR;
 		this.error = "Bad unit texture";
@@ -44,6 +44,9 @@ Texture.prototype.load = function(unitTexture, url) {
 	    self.webGL.texParameteri(self.webGL.TEXTURE_2D, self.webGL.TEXTURE_MIN_FILTER, self.webGL.LINEAR_MIPMAP_NEAREST);
 	    self.webGL.generateMipmap(self.webGL.TEXTURE_2D);
 		self.status = Texture.StatusEnum.TEXTURE_READY;
+		if (callback != undefined) {
+			callback(self);
+		}
 	};
 	this.image.src = url;
 	return this.status;
@@ -58,6 +61,6 @@ Texture.prototype.active = function(shaderProgram) {
 	this.webGL.activeTexture(this.unitTexture + this.webGL.TEXTURE0);
 	this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.glTexture);
 	shaderProgram.setUniforms([{	name: "uSampler" + this.unitTexture,
-		 						type: "1i",
-		 						value: this.unitTexture 				}]);
+		 							type: "1i",
+		 							value: this.unitTexture 				}]);
 };

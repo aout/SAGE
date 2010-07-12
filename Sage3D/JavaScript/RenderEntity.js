@@ -5,7 +5,6 @@ gIncludedFiles.push("RenderEntity.js");
 
 include("Mesh.js");
 include("Texture.js");
-include("Program.js");
 
 RenderEntity = function() {
 	
