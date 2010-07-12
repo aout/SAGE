@@ -36,54 +36,43 @@ Mesh.prototype.clone = function(mesh) {
 
 Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems, itemType, itemSize) {
 	var gl = Root.getInstance().getWebGL();
-	// test parametres
-	// vive les langages de script !!!
-	/*if (bufferName != undefined && bufferType != undefined && bufferData != undefined && numItems != undefined && itemType != undefined && itemSize != undefined &&
-		bufferName instanceof String && bufferType instanceof Int && bufferData instanceof Array && numItems instanceof Int && itemType instanceof Int && itemSize instanceof Int &&
-		bufferName.length > 0 && (bufferType == gl.ARRAY_BUFFER || bufferType == gl.ELEMENT_ARRAY_BUFFER) && bufferData.length > 0 && numItems > 0 && (itemSize > 0 && itemSize < 5)) {*/
-		
-		var tmpBuffer;
-		var glArray;
-		
-		switch (itemType) {
-			case gl.FIXED:
-			case gl.BYTE:
-			case gl.UNSIGNED_BYTE:
-			case gl.SHORT:
-				//throw SageNotImplementedException
+	var tmpBuffer;
+	var glArray;
+	
+	switch (itemType) {
+		case gl.FIXED:
+		case gl.BYTE:
+		case gl.UNSIGNED_BYTE:
+		case gl.SHORT:
+			//throw SageNotImplementedException
+			return false;
+			break;
+		case gl.FLOAT:
+			if (bufferType == gl.ELEMENT_ARRAY_BUFFER) {
+				//throw SageBadArgsException;
 				return false;
-				break;
-			case gl.FLOAT:
-				if (bufferType == gl.ELEMENT_ARRAY_BUFFER) {
-					//throw SageBadArgsException;
-					return false;
-				}
-				glArray = new WebGLFloatArray(bufferData);
-				break;
-			case gl.UNSIGNED_SHORT:
-				glArray = new WebGLUnsignedShortArray(bufferData);
-				break;
-			default:
-				//throw SageBadArgsException();
-				return false;
-				break;
-		}
-		
-		tmpBuffer = gl.createBuffer();
-		gl.bindBuffer(bufferType, tmpBuffer);
-	    gl.bufferData(bufferType, glArray, gl.STATIC_DRAW);
-		tmpBuffer.bufferName = bufferName;
-		tmpBuffer.bufferType = bufferType;
-		tmpBuffer.itemType = itemType;
-		tmpBuffer.itemSize = itemSize;
-	    tmpBuffer.numItems = numItems;
-		
-		this.buffers.push(tmpBuffer);
-	/*}
-	else {
-		//throw SageBadArgsException();
-		return false;
-	}*/
+			}
+			glArray = new WebGLFloatArray(bufferData);
+			break;
+		case gl.UNSIGNED_SHORT:
+			glArray = new WebGLUnsignedShortArray(bufferData);
+			break;
+		default:
+			//throw SageBadArgsException();
+			return false;
+			break;
+	}
+	
+	tmpBuffer = gl.createBuffer();
+	gl.bindBuffer(bufferType, tmpBuffer);
+    gl.bufferData(bufferType, glArray, gl.STATIC_DRAW);
+	tmpBuffer.bufferName = bufferName;
+	tmpBuffer.bufferType = bufferType;
+	tmpBuffer.itemType = itemType;
+	tmpBuffer.itemSize = itemSize;
+    tmpBuffer.numItems = numItems;
+	
+	this.buffers.push(tmpBuffer);
 	 return true;
 };
 
@@ -98,9 +87,9 @@ Mesh.prototype.setDrawingBuffer = function(bufferName) {
 };
 
 Mesh.prototype.calcBBox = function(vertices) {
-	var nbPoints = Math.floor(vertices.length / 3);
-	for (var i = 0; i < nbPoints; i += 3) {
-		var x = vertices[i * 3];
+	var nPoints = Math.floor(vertices.length / 3);
+	for (var i = 0; i < nPoints; ++i) {
+		var x = vertices[i * 3    ];
 		var y = vertices[i * 3 + 1];
 		var z = vertices[i * 3 + 2];
 		
