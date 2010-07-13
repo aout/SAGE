@@ -25,30 +25,34 @@ function main() {
 
 function loadEntity() {
 	var Cloader = ColladaLoader.getInstance();
-	Cloader.load("Resources/Meshs/Amahani.dae", entityLoaded);
+	Cloader.load("Resources/Meshs/Amahani.dae", initScene);
 }
 
-function entityLoaded(entity) {
+function initScene(entity) {
 	var rootTransform = Transform.getTransform("root");
-	rootTransform.content.push(entity);
+	
+	var amahaniEntityTransform = rootTransform.addChild("amahani");
+	var amahaniCameraTransform = amahaniEntityTransform.addChild("amahani-camera");
+	//var amahaniCameraTransform = rootTransform.addChild("amahani-camera");
+	
+	//add the entity
+	amahaniEntityTransform.content.push(entity);
 
+	//and set amahani position
 	var bbox = entity.mesh.BBox;
+	var x = 0.0;
+	var y = -((bbox.y.max - bbox.y.min) / 2.0);
+	var z = -8.0;
+	amahaniEntityTransform.translate([x, y, z]);
+	amahaniEntityTransform.rotate(180.0, [0.0, 1.0, 0.0]);
 
-	var midx = (bbox.x.min + bbox.x.max) / 2;
-	var midy = (bbox.y.min + bbox.y.max) / 2;
-	var midz = (bbox.z.min + bbox.z.max) / 2;
-	
-	var maxdim = bbox.x.max - bbox.x.min;
-	maxdim = Math.max(maxdim, bbox.y.max - bbox.y.min);
-	maxdim = Math.max(maxdim, bbox.z.max - bbox.z.min);
-	
-	var m = makeLookAt(midx, midy, midz + (maxdim * 1.5),
-					   midx, midy, midz,
-					   0, 1, 0);
-
-	rootTransform.localMatrix = rootTransform.localMatrix.x(m);
-	rootTransform.translate([0.0, -1.0, 0.0]);
-	rootTransform.rotate(-90, [1, 0, 0]);
+	//set camera position
+	//becareful amahaniCameraTransform is a child of amahaniEntityTransform
+	amahaniCameraTransform.translate([0.0, 3.0, 4.0]);
+	amahaniCameraTransform.rotate(-20.0, [1.0, 0.0, 0.0]);
+	var camera = Root.getInstance().getCamera(); 
+	camera.attach(amahaniCameraTransform);
+	camera.update();
 
 	setInterval(draw, 12);	
 }
@@ -57,7 +61,7 @@ var lastTime = new Date().getTime();
 function draw() {
 	var root = Root.getInstance();
 	var gl = root.getWebGL();
-	var rootTransform = Transform.getTransform("root");
+	var amahaniTransform = Transform.getTransform("amahani");
 	
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
@@ -67,6 +71,6 @@ function draw() {
     }
     lastTime = timeNow;
 
-	rootTransform.rotate((75 * elapsed) / 1000.0, [0.0, 0.0, 1.0]);
-	rootTransform.render();
+	//amahaniTransform.rotate((75 * elapsed) / 1000.0, [0.0, 1.0, 0.0]);
+	Transform.getTransform("root").render();
 }

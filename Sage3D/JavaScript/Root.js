@@ -4,6 +4,7 @@ gIncludedFiles.push("Root.js");
 
 include("Program.js");
 include("Transform.js");
+include("Camera.js");
 
 //Root Namespace
 Root = {};
@@ -43,6 +44,7 @@ Root._Root = function() {
 	var _defaultProgram = undefined;
 
 	this.rootTransform = undefined;
+	this.camera = undefined;
 
 	//Initializes the Root
 	// TODO: Try to catch the parameter within the function and not by arguments
@@ -93,10 +95,11 @@ Root._Root = function() {
 		this._webGL.enable(this._webGL.DEPTH_TEST);
 		this._webGL.depthFunc(this._webGL.LEQUAL);
 
+		this.rootTransform = new Transform(undefined, "root");
+		this.camera = new Camera("Camera", this.rootTransform);
+		
 		//set status to LOADED
 		this._status = this.StatusEnum.LOADED;
-		
-		this.rootTransform = new Transform(undefined, "root");
 		return true;
 	};
 
@@ -118,6 +121,10 @@ Root._Root = function() {
 
 	this.getRootTransform = function() {
 		return this.rootTransform;
+	};
+
+	this.getCamera = function() {
+		return this.camera;
 	};
 
 	/*this.LookAt = function (lookAt) {

@@ -126,6 +126,12 @@ ColladaLoader.prototype.parse = function() {
 	var texture = new Texture();
 	texture.load(0, ColladaLoader.nodeText(textureNode), ColladaLoader.textureLoaded);
 
+	var zUp = false;
+	var axisNode = ColladaLoader.getNode(this.xmlFile, '//c:asset/c:up_axis');
+	if (axisNode) {
+		zUp = ColladaLoader.nodeText(axisNode) == "Z_UP" ? true : false;
+	}
+
     var meshNode = ColladaLoader.getNode(this.xmlFile, '//c:library_geometries/c:geometry[@id="mesh"]/c:mesh');
 	if (!meshNode) {
 		this.status = ColladaLoader.StatusEnum.ERROR;
@@ -198,14 +204,25 @@ ColladaLoader.prototype.parse = function() {
 		var normalIndex 	= pArray[i * 3 + 1] * 3;
 		var texcoordIndex 	= pArray[i * 3 + 2] * 2;
 		
-		explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex    ]);
-		explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 1]);
-		explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 2]);
+		explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex]);
+		if (zUp == false) {
+			explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 1]);
+			explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 2]);
+		}
+		else {
+			explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 2]);
+			explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 1]);			
+		}
 		
-		
-		explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex    ]);
-		explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 1]);
-		explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 2]);
+		explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex]);
+		if (zUp == false) {
+			explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 1]);
+			explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 2]);
+		}
+		else {
+			explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 2]);
+			explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 1]);			
+		}
 		
 		explodeTmpBuffers.texcoord.push(tmpBuffers.texcoord[texcoordIndex    ]);
 		explodeTmpBuffers.texcoord.push(tmpBuffers.texcoord[texcoordIndex + 1]);
