@@ -72,8 +72,9 @@ Transform = function(parent, name) {
 	this.shaderProgram = Root.getInstance().getDefaultProgram();
 	
 	if (this.parent != undefined) {
-			this.computedMatrix = this.parent.computedMatrix.mul(this.localMatrix);
-		}
+		this.parent.children.push(this);
+		this.computedMatrix = this.parent.computedMatrix.x(this.localMatrix);
+	}
 };
 
 /**
@@ -105,6 +106,7 @@ Transform.getTransform = function(transformName, rootTransform) {
 Transform.prototype.addChild = function(name) {
 	var child = new Transform(this, name);
 	this.children.push(child);
+	return child;
 };
 
 /**
@@ -176,7 +178,7 @@ Transform.prototype.render = function() {
 	//First, recompute the matrix if necessary
 	if (this.isLocalMatrixChanged === true || this.isParentMatrixChanged === true) {
 		if (this.parent != undefined) {
-			this.computedMatrix = this.parent.computedMatrix.mul(this.localMatrix);
+			this.computedMatrix = this.parent.computedMatrix.x(this.localMatrix);
 		}
 		else {
 			this.computedMatrix = this.localMatrix;
@@ -190,6 +192,9 @@ Transform.prototype.render = function() {
 		{name: "uMVMatrix",
 		 type: "Matrix4fv",
 		 value: this.computedMatrix},
+ 		{name: "uEMatrix",
+		 type: "Matrix4fv",
+		 value: Root.getInstance().getCamera().computedMatrix},
 		{name: "uPMatrix",
 		 type: "Matrix4fv",
 		 value: Root.getInstance().getProjectionMatrix()},
