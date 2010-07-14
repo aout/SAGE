@@ -67,7 +67,8 @@ Root._Root = function() {
 		//WebGL	initialization!
 		//default shader
 		this._defaultProgram = new Program();
-		this._defaultProgram.createAndUse(this._webGL, "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs");
+		this._defaultProgram.compile();
+		this._defaultProgram.use();
 		//viewport
 		this._webGL.viewport(0, 0, this._viewPort.width, this._viewPort.height);
 		//this._webGL.depthRange(1, 10);

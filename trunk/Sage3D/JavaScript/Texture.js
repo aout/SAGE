@@ -3,17 +3,32 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("Texture.js");
 
-Texture = function () {
+/**
+ * Texture Class
+ * @param {String} name Name
+ * @param {Int} unitTexture
+ * @param {String} url
+ * @param {Function} callback
+ */
+Texture = function(name) {
 
 	this.webGL = Root.getInstance().getWebGL();
+
+	this.name = name;
+
+	this.status = Texture.StatusEnum.TEXTURE_NONE;
+	this.error = "no error";
 
 	this.unitTexture = undefined;
 	this.glTexture = undefined;
 	this.image = undefined;
-	this.status = Texture.StatusEnum.TEXTURE_NONE;
-	this.error = "no error";
+
+	this.progress = 0.0;
 };
 
+/**
+ * Texture Status
+ */
 Texture.StatusEnum = {
 		TEXTURE_NONE: 0,
 		TEXTURE_LOADING: 1,
@@ -22,7 +37,22 @@ Texture.StatusEnum = {
 		TEXTURE_ERROR: 4
 };
 
-//public methods
+/**
+ * Texture destructor
+ */
+Texture.prototype.destroy = function() {
+	this.status = TEXTURE_NONE;
+	this.webGL.deleteTexture(this.glTexture);
+	delete this.image;
+};
+
+
+/**
+ * Load a texture from url
+ * @param {Int} unitTexture
+ * @param {String} url
+ * @param {Function} callback
+ */
 Texture.prototype.load = function(unitTexture, url, callback) {
 	if (unitTexture < 0 || unitTexture > 31) {
 		this.status = Texture.StatusEnum.TEXTURE_ERROR;
@@ -44,6 +74,7 @@ Texture.prototype.load = function(unitTexture, url, callback) {
 	    self.webGL.texParameteri(self.webGL.TEXTURE_2D, self.webGL.TEXTURE_MIN_FILTER, self.webGL.LINEAR_MIPMAP_NEAREST);
 	    self.webGL.generateMipmap(self.webGL.TEXTURE_2D);
 		self.status = Texture.StatusEnum.TEXTURE_READY;
+		delete self.image;
 		if (callback != undefined) {
 			callback(self);
 		}
@@ -52,6 +83,10 @@ Texture.prototype.load = function(unitTexture, url, callback) {
 	return this.status;
 };
 
+/**
+ * Active the texture
+ * @param {Program} shaderProgram
+ */
 Texture.prototype.active = function(shaderProgram) {
 	if (this.status != Texture.StatusEnum.TEXTURE_READY)
 		return this.status;

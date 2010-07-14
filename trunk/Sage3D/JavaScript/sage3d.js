@@ -1,7 +1,7 @@
 var gIncludedFiles = new Array();
 gIncludedFiles.push("sage3d.js");
 
-gIncludedFiles.inArray = function (value) {
+Array.prototype.inArray = function (value) {
 	for (var i = 0; i < this.length; ++i)
 		if (this[i] === value)
 			return true;
@@ -145,6 +145,10 @@ function main() {
 	document.onkeydown = handleKeyDown;
 	document.onkeyup = handleKeyUp;
 	loadEntity();
+	
+	ResourceManager.getInstance().loadMesh("cube-mesh", "cube");
+	ResourceManager.getInstance().loadTexture("cube-texture", "Resources/Textures/NeHe.gif");
+	ResourceManager.getInstance().doLoad(initScene);
 }
 
 function loadEntity() {
