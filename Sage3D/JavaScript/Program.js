@@ -14,10 +14,10 @@ var StatusEnum =
 };
 
 Program = function() {
-	this.webGL = null;
+	this.webGL = Root.getInstance().getWebGL();
 	
-	this.vertexShaderString = null;
-	this.fragmentShaderString = null;
+	this.vertexShaderString = "attribute vec3 aVertexPosition;attribute vec2 aTextureCoord;uniform mat4 uMVMatrix;uniform mat4 uEMatrix;uniform mat4 uPMatrix;varying vec2 vTextureCoord;void	main(void) {	gl_Position = uPMatrix * uEMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);	vTextureCoord = aTextureCoord;}";
+	this.fragmentShaderString = "varying vec2 vTextureCoord;uniform sampler2D uSampler0;void	main(void) {gl_FragColor = texture2D(uSampler0, vec2(vTextureCoord.s, vTextureCoord.t));}";
 	
 	this.vertexShader = null;
 	this.fragmentShader = null;

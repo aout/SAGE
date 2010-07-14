@@ -3,6 +3,9 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("ColladaLoader.js");
 
+/**
+ * ColladaLoader Class
+ */
 ColladaLoader = function() {
 	this.webGL	= Root.getInstance().getWebGL();
 	this.xhr	= new XMLHttpRequest();
@@ -16,6 +19,10 @@ ColladaLoader = function() {
 	this.callback = undefined;
 };
 
+/**
+ * Static member
+ * ColladaLoader StatusEnum
+ */
 ColladaLoader.StatusEnum = {
 	NONE			: 0,
 	XML_LOADING		: 1,
@@ -24,8 +31,16 @@ ColladaLoader.StatusEnum = {
 	ERROR			: 4
 };
 
+/**
+ * Static member
+ * ColladaLoader instance
+ */
 ColladaLoader.instance = undefined;
 
+/**
+ * Static member
+ * ColladaLoader getInstance
+ */
 ColladaLoader.getInstance = function() {
 	if (ColladaLoader.instance == undefined) {
 		ColladaLoader.instance = new ColladaLoader();
@@ -33,6 +48,12 @@ ColladaLoader.getInstance = function() {
 	return ColladaLoader.instance;
 };
 
+/**
+ * Static member
+ * Node Text get node content as a String
+ * @return {String} Node Content
+ * @param {Node} n DOM Node
+ */
 ColladaLoader.nodeText = function(n) {
   var s = "";
   for (c = n.firstChild; c; c = c.nextSibling) {
@@ -44,6 +65,10 @@ ColladaLoader.nodeText = function(n) {
   return s;
 };
 
+/**
+ * Static member
+ * ParseFloatListString parse a string
+ */
 ColladaLoader.parseFloatListString = function(s) {
   if (s == "")
     return [];
@@ -97,7 +122,7 @@ ColladaLoader.prototype.load = function(url, callback) {
 	this.status = ColladaLoader.StatusEnum.XML_LOADING;
 	this.callback = callback;
     var self = this;
-	this.entity = new RenderEntity();
+	this.entity = new Entity();
 
     this.xhr.onreadystatechange = function () {
 		if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {

@@ -3,10 +3,13 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("Mesh.js");
 
-Mesh = function () {
-	//private attributes
-	
-	//public attributes
+/**
+ * Mesh Class
+ * @param {String} name Name
+ */
+Mesh = function (name) {
+	this.webGL = Root.getInstance().getWebGL();
+	this.name = name;
 	this.buffers = new Array();
 	this.drawingBuffer = null;
 	this.BBox = {
@@ -14,47 +17,61 @@ Mesh = function () {
 		y: { min: -Infinity, max: Infinity },
 		z: { min: -Infinity, max: Infinity },
 	}
-	
-	//private methods
 };
 
-//public methods
-Mesh.prototype.clone = function(mesh) {
-	this.buffers = null;
-	this.buffers = new Array();
-	for each(var buffer in this.buffers) {
-		this.buffers.push(buffer);
+/**
+ * Mesh Destructor
+ */
+Mesh.prototype.destroy = function() {
+	for (var i = 0; i < this.buffers.length; ++i) {
+		delete this.buffers[i];
 	}
-
-	this.BBox.x.min = mesh.BBox.x.min;
-	this.BBox.x.max = mesh.BBox.x.max;
-	this.BBox.y.min = mesh.BBox.y.min;
-	this.BBox.y.max = mesh.BBox.y.max;
-	this.BBox.z.min = mesh.BBox.z.min;
-	this.BBox.z.max = mesh.BBox.z.max;
+	delete this.buffers;
 };
 
+/**
+ * Clone
+ * @param {Mesh} mesh Mesh Object
+ */
+Mesh.prototype.clone = function(mesh) {
+	delete this.buffers;
+	this.buffers = new Array();
+	for (var i = 0; i < mesh.buffers.length; ++i) {
+		this.buffers.push(buffers[i]);
+	}
+	this.BBox = mesh.BBox;
+};
+
+/**
+ * Add a buffer to the mesh
+ * @param {String} bufferName Name of the new buffer
+ * @param {Int} bufferType Buffer type: gl.ELEMENT_ARRAY_BUFFER | gl.ARRAY_BUFFER
+ * @param {Array} bufferData Data array
+ * @param {Int} numItems Number of Vertex
+ * @param {Int} itemType Item type: gl.FIXED | gl.BYTE | gl.UNSIGNED_BYTE | gl.SHORT | gl.FLOAT | gl.UNSIGNED_SHORT
+ * @param {Int} itemSize Number of elements per Vertex
+ */
 Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems, itemType, itemSize) {
-	var gl = Root.getInstance().getWebGL();
 	var tmpBuffer;
 	var glArray;
 	
+	//Check data format and instanciates Buffer
 	switch (itemType) {
-		case gl.FIXED:
-		case gl.BYTE:
-		case gl.UNSIGNED_BYTE:
-		case gl.SHORT:
+		case this.webGL.FIXED:
+		case this.webGL.BYTE:
+		case this.webGL.UNSIGNED_BYTE:
+		case this.webGL.SHORT:
 			//throw SageNotImplementedException
 			return false;
 			break;
-		case gl.FLOAT:
-			if (bufferType == gl.ELEMENT_ARRAY_BUFFER) {
+		case this.webGL.FLOAT:
+			if (bufferType == this.webGL.ELEMENT_ARRAY_BUFFER) {
 				//throw SageBadArgsException;
 				return false;
 			}
 			glArray = new WebGLFloatArray(bufferData);
 			break;
-		case gl.UNSIGNED_SHORT:
+		case this.webGL.UNSIGNED_SHORT:
 			glArray = new WebGLUnsignedShortArray(bufferData);
 			break;
 		default:
@@ -63,19 +80,25 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
 			break;
 	}
 	
-	tmpBuffer = gl.createBuffer();
-	gl.bindBuffer(bufferType, tmpBuffer);
-    gl.bufferData(bufferType, glArray, gl.STATIC_DRAW);
+	//Create VBO
+	tmpBuffer = this.webGL.createBuffer();
+	this.webGL.bindBuffer(bufferType, tmpBuffer);
+    this.webGL.bufferData(bufferType, glArray, this.webGL.STATIC_DRAW);
 	tmpBuffer.bufferName = bufferName;
 	tmpBuffer.bufferType = bufferType;
 	tmpBuffer.itemType = itemType;
 	tmpBuffer.itemSize = itemSize;
     tmpBuffer.numItems = numItems;
 	
+	//Add to mesh buffer array
 	this.buffers.push(tmpBuffer);
-	 return true;
+	return true;
 };
 
+/**
+ * Set the drawing buffer
+ * @param {String} bufferName Buffer name
+ */
 Mesh.prototype.setDrawingBuffer = function(bufferName) {
 	for each (var buffer in this.buffers) {
 		if (buffer.bufferName === bufferName) {
@@ -86,6 +109,10 @@ Mesh.prototype.setDrawingBuffer = function(bufferName) {
 	return false;
 };
 
+/**
+ * Calculate the Bounding Box
+ * @param {Array} vertices
+ */
 Mesh.prototype.calcBBox = function(vertices) {
 	var nPoints = Math.floor(vertices.length / 3);
 	for (var i = 0; i < nPoints; ++i) {
@@ -112,6 +139,10 @@ Mesh.prototype.calcBBox = function(vertices) {
 	}
 };
 
+/**
+ * Draw the mesh
+ * @param {Program} shaderProgram
+ */
 Mesh.prototype.draw = function(shaderProgram) {
 	if (this.drawingBuffer != null) {
 		var gl = Root.getInstance().getWebGL();
@@ -129,111 +160,4 @@ Mesh.prototype.draw = function(shaderProgram) {
 	}
 };
 
-//Primitives namespace
-Primitives = {};
 
-Primitives.cube = function() {
-
-	var gl = Root.getInstance().getWebGL();
-	if (gl == null)
-		return null;
-
-    var vertices = [
-      // Front face
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
-
-      // Back face
-      -1.0, -1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0, -1.0, -1.0,
-
-      // Top face
-      -1.0,  1.0, -1.0,
-      -1.0,  1.0,  1.0,
-       1.0,  1.0,  1.0,
-       1.0,  1.0, -1.0,
-
-      // Bottom face
-      -1.0, -1.0, -1.0,
-       1.0, -1.0, -1.0,
-       1.0, -1.0,  1.0,
-      -1.0, -1.0,  1.0,
-
-      // Right face
-       1.0, -1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0,  1.0,  1.0,
-       1.0, -1.0,  1.0,
-
-      // Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      -1.0,  1.0, -1.0,
-    ];
-
-	var texCoord = [
-	  // Front face
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-
-      // Back face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-
-      // Top face
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-
-      // Bottom face
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 0.0,
-
-      // Right face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-
-      // Left face
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0
-    ];
-
-	var indices = [
-      0, 1, 2,      0, 2, 3,    // Front face
-      4, 5, 6,      4, 6, 7,    // Back face
-      8, 9, 10,     8, 10, 11,  // Top face
-      12, 13, 14,   12, 14, 15, // Bottom face
-      16, 17, 18,   16, 18, 19, // Right face
-      20, 21, 22,   20, 22, 23  // Left face
-    ]
-
-	var mesh = new Mesh();
-	
-	mesh.calcBBox(vertices);
-	mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3);
-	mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2);
-	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1);
-	mesh.setDrawingBuffer("indices");
-	
-	return mesh;
-};
-
-Primitives.sphere = function() {
-	
-};

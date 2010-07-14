@@ -3,7 +3,7 @@ if (gIncludedFiles == undefined)
 
 gIncludedFiles.push("Transform.js");
 
-include("RenderEntity.js");
+include("Entity.js");
 
 /**
  * Transform Class
@@ -33,7 +33,7 @@ Transform = function(parent, name) {
 	 * Render entities associated to the current Transform
 	 * @type {RenderEntityArray}
 	 */
-	this.content = new Array();
+	this.entities = new Array();
 
 	/**
 	 * Matrix of the current Transform
@@ -78,6 +78,18 @@ Transform = function(parent, name) {
 };
 
 /**
+ * Transform destructor
+ */
+Transform.prototype.destroy = function() {
+	for (var i = 0; i < this.children.length; ++i) {
+		this.children[i].destroy();
+	}
+	for (var i = 0; i < this.content.length; ++i) {
+		this.entities[i].destroy();
+	}
+};
+
+/**
  * Static method
  * @param	{String} transformName Transform name
  * @param	{Transform} rootTransform Optional Root transform
@@ -101,33 +113,58 @@ Transform.getTransform = function(transformName, rootTransform) {
 
 /**
  * Add a child to this Transform
- * @param {String} name Name for the child transform
+ * @param {Transform} transform Child Transform to add
  */
-Transform.prototype.addChild = function(name) {
-	var child = new Transform(this, name);
+Transform.prototype.addChild = function(transform) {
+	var child = transform;
+	if (!(transform instanceof Transform)) {
+		child = new Transform(this, transform);
+	}
 	this.children.push(child);
 	return child;
 };
 
 /**
  * Remove Child
- * @param {String} param Name for the child transform or the transform itself
+ * @param {String} param Name for the child transform
  * @return {Transform} Transform
  */
 Transform.prototype.removeChild = function(name) {
-	var newArray = new Array();
 	var transform = undefined;
-	for each (var child in this.children) {
-		if (child.name === name) {
-			transform = child;
-		}
-		else {
-			newArray.push(child);
+	for (var i = 0; i < this.children.length; ++i) {
+		if (this.children[i].name == name) {
+			transform = this.children[i];
+			this.children.splice(i, 1);
+			break;
 		}
 	}
-	this.children = newArray;
 	return transform;
 };
+
+/**
+ * Add an entity
+ * @param {Entity} entity
+ */
+Transform.prototype.addEntity = function(entity) {
+	this.entities.push(entity);
+};
+
+/**
+ * Remove entity
+ * @param {Int} handle
+ * @return {Entity} Removed entity
+ */
+Transform.prototype.removeEntity = function(name) {
+	var entity = undefined;
+	for (var i = 0; i < this.entities.length; ++i) {
+		if (this.entities[i].name == name) {
+			ret = this.entities[i];
+			this.entities.splice(i, 1);
+			break;
+		}
+	}
+	return entity;
+}
 
 /**
  * Translate
@@ -201,13 +238,13 @@ Transform.prototype.render = function() {
 	];
 	this.shaderProgram.setUniforms(uniforms);
 	
-	for each (var entity in this.content) {
-		entity.draw(this.shaderProgram);
+	for (var i = 0; i < this.entities.length; ++i) {
+		this.entities[i].draw(this.shaderProgram);
 	}
 	
 	//Call render() on the children Transform
-	for each (var child in this.children) {
-		child.isParentMatrixChanged = hasChanged;
-		child.render();
+	for (var i = 0; i < this.children.length; ++i) {
+		this.children[i].isParentMatrixChanged = hasChanged;
+		this.children[i].render();
 	}
 };
