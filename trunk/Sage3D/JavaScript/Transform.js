@@ -69,7 +69,7 @@ Transform = function(parent, name) {
 	 * Shader used to draw the content
 	 * @type {Program}
 	 */
-	this.shaderProgram = Root.getInstance().getDefaultProgram();
+	this.shaderProgram = undefined;
 	
 	if (this.parent != undefined) {
 		this.parent.children.push(this);
@@ -102,7 +102,8 @@ Transform.getTransform = function(transformName, rootTransform) {
 	if (rootTransform.name === transformName) {
 		return rootTransform;
 	}
-	for each (var childTransform in rootTransform.children) {
+	for (var i = 0; i < rootTransform.children.length; ++i) {
+		var childTransform = rootTransform.children[i];
 		var transform = Transform.getTransform(transformName, childTransform);
 		if (transform != undefined) {
 			return transform;
@@ -223,6 +224,10 @@ Transform.prototype.render = function() {
 		this.isLocalMatrixChanged = false;
 		this.isParentMatrixChanged = false;
 		hasChanged = true;
+	}
+
+	if (this.shaderProgram == undefined) {
+		this.shaderProgram = Root.getInstance().getDefaultProgram();
 	}
 
 	var uniforms = [
