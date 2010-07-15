@@ -17,21 +17,8 @@ include("Root.js");
 include ("ResourceManager.js");
 include ("Primitives.js")
 
-function itWorks()
-{
-	var root = Root.getInstance();
-	var mesh = ResourceManager.getInstance().getMeshByName("cube");
-	var texture = ResourceManager.getInstance().getTextureByName("cubetexture");
-	var rootTransform = Transform.getTransform("root");
-	
-	var cubeTransform = rootTransform.addChild("cube");
-	cubeTransform.translate([0,0,-4]);
-	var cube = new Entity("cube", mesh, [texture]);
-	cubeTransform.addEntity(cube);
-	setInterval(draw, 12);
-}
 var lastTime = new Date().getTime();
-function draw()
+function drawScene()
 {
 	var timeNow = new Date().getTime();
     if (lastTime != 0) {
@@ -49,13 +36,29 @@ function draw()
 		
 }
 
-function main() {
+function initScene()
+{
 	var root = Root.getInstance();
+	var mesh = ResourceManager.getInstance().getMeshByName("cube");
+	var texture = ResourceManager.getInstance().getTextureByName("cubetexture");
+	var rootTransform = Transform.getTransform("root");
 	
-	root.init("viewport", {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
-	
+	var cubeTransform = rootTransform.addChild("cube");
+	cubeTransform.translate([0,0,-4]);
+	var cube = new Entity("cube", mesh, [texture]);
+	cubeTransform.addEntity(cube);
+	setInterval(drawScene, 12);
+}
+
+function loadResources() {
 	var rm = ResourceManager.getInstance();
 	rm.prepareMesh("cube", "cube");
 	rm.prepareTexture("cubetexture", "Resources/Textures/nehe.gif");
-	rm.doLoad(itWorks);
+	rm.doLoad(initScene);
+}
+
+function main() {
+	var root = Root.getInstance();
+	
+	root.init("viewport", loadResources, {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
 }

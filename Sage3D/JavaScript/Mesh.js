@@ -100,9 +100,9 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
  * @param {String} bufferName Buffer name
  */
 Mesh.prototype.setDrawingBuffer = function(bufferName) {
-	for each (var buffer in this.buffers) {
-		if (buffer.bufferName === bufferName) {
-			this.drawingBuffer = buffer;
+	for (var i = 0; i < this.buffers.length; ++i) {
+		if (this.buffers[i].bufferName === bufferName) {
+			this.drawingBuffer = this.buffers[i];
 			return true;
 		}
 	}
