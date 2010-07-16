@@ -10,13 +10,13 @@ ColladaLoader = function() {
 	this.webGL	= Root.getInstance().getWebGL();
 	this.xhr	= new XMLHttpRequest();
 	
-	this.entity	= undefined;
-	
 	this.status = ColladaLoader.StatusEnum.NONE;
 	this.error = "no error";
 	
 	this.xmlFile = undefined;
 	this.callback = undefined;
+	
+	this.task = undefined;
 };
 
 /**
@@ -112,17 +112,11 @@ ColladaLoader.getNode = function(xml, xpathexpr, ctxNode) {
 	return xml.evaluate(xpathexpr, ctxNode, ColladaLoader.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
-ColladaLoader.textureLoaded = function(texture) {
-	if (texture != undefined && texture.status != Texture.StatusEnum.TEXTURE_ERROR) {
-		ColladaLoader.getInstance().entity.addTexture(texture);
-	}
-};
-
-ColladaLoader.prototype.load = function(url, callback) {
+ColladaLoader.prototype.load = function(task, callback) {
 	this.status = ColladaLoader.StatusEnum.XML_LOADING;
 	this.callback = callback;
+	this.task = task;
     var self = this;
-	this.entity = new Entity();
 
     this.xhr.onreadystatechange = function () {
 		if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
@@ -131,15 +125,23 @@ ColladaLoader.prototype.load = function(url, callback) {
 		}
     };
 
-    this.xhr.open("GET", url, true);
+    this.xhr.open("GET", task.location, true);
     this.xhr.overrideMimeType("text/xml");
     this.xhr.setRequestHeader("Content-Type", "text/xml");
     try { this.xhr.send(null); }
 	catch(e) { alert(e.Message); }
-	return this.entity;
 };
 
 ColladaLoader.prototype.parse = function() {
+	var text = {
+		type		: "Texture",
+		owner		: this.task,
+		name		: this.task.name + '_texture',
+		progress	: 0.0
+	};
+	ResourceManager.getInstance().taskList.push(text);
+	this.task.children.push(text);
+	
     this.status = ColladaLoader.StatusEnum.XML_PARSING;
 	
 	var textureNode = ColladaLoader.getNode(this.xmlFile, '//c:library_images/c:image[@name="diffuse"]/c:init_from');
@@ -148,8 +150,9 @@ ColladaLoader.prototype.parse = function() {
 		this.error = "Couldn't find texture node";
 		return false;
 	}
-	var texture = new Texture();
-	texture.load(0, ColladaLoader.nodeText(textureNode), ColladaLoader.textureLoaded);
+	
+	var texture = new Texture(text.name);
+	texture.load(0, ColladaLoader.nodeText(textureNode), this.callback);
 
 	var zUp = false;
 	var axisNode = ColladaLoader.getNode(this.xmlFile, '//c:asset/c:up_axis');
@@ -259,13 +262,12 @@ ColladaLoader.prototype.parse = function() {
 	tmpBuffers.texcoord = null;
 	tmpBuffers = null;
 
-	var mesh = new Mesh();
+	var mesh = new Mesh(this.task.name + '_mesh');
 	mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, explodeTmpBuffers.position, Math.floor(explodeTmpBuffers.position.length / 3), this.webGL.FLOAT, 3);
 //	mesh.addBuffer("aNormal", gl.ARRAY_BUFFER, explodeTmpBuffers.normal, Math.floor(explodeTmpBuffers.normal.length / 3), gl.FLOAT, 3);
 	mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, explodeTmpBuffers.texcoord, Math.floor(explodeTmpBuffers.texcoord.length / 2), this.webGL.FLOAT, 2);
 	mesh.setDrawingBuffer("aVertexPosition");
 	mesh.calcBBox(explodeTmpBuffers.position);
-	this.entity.setMesh(mesh);
 	
 	//delete explodeTmpBuffers
 	explodeTmpBuffers.position = null;
@@ -275,7 +277,8 @@ ColladaLoader.prototype.parse = function() {
 
 	this.status = ColladaLoader.StatusEnum.COMPLETE;
 
+
 	if (this.callback != undefined) {
-		this.callback(this.entity);
+		this.callback(mesh);
 	}
 };

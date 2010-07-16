@@ -7,6 +7,8 @@ gIncludedFiles.push("ResourceManager.js");
  * ResourceManager Class
  */
 ResourceManager = function() {
+	this.colladaLoader = new ColladaLoader();
+	
 	this.quotas = {
 		Textures	: 10240,
 		Meshs		: 10240,
@@ -70,16 +72,30 @@ ResourceManager.onTaskComplete = function(resource) {
 	}
 	
 	for (var i = 0; i < rm.taskList.length; ++i) {
-		if (rm.taskList[i].name == resource.name){
+		if (resource != undefined && rm.taskList[i].name == resource.name){
 			switch (rm.taskList[i].type){
 				case "Mesh":
-				if (resource instanceof Mesh)
+				if (resource instanceof Mesh) {
 					rm.taskList[i].progress = 1.0;
+					if (rm.taskList[i].owner) {
+						rm.taskList[i].owner.progress += 1 / rm.taskList[i].owner.children.length;
+						if (rm.taskList[i].owner.progress == 1) {
+							ResourceManager.onTaskComplete(undefined);
+						}
+					}
+				}
 				break;
 				
 				case "Texture":
-				if (resource instanceof Texture)
+				if (resource instanceof Texture) {
 					rm.taskList[i].progress = 1.0;
+					if (rm.taskList[i].owner) {
+						rm.taskList[i].owner.progress += 1 / rm.taskList[i].owner.children.length;
+					if (rm.taskList[i].owner.progress == 1) {
+							ResourceManager.onTaskComplete(undefined);
+						}
+					}
+				}
 				break;
 				
 				case "Program":
@@ -170,9 +186,36 @@ ResourceManager.prototype.prepareProgram = function(name, location) {
  * @param {String} location
  */
 ResourceManager.prototype.prepareCollada = function(name, location) {
+	if (this.status >= ResourceManager.StatusEnum.RM_LOADING && this.programs[name] != undefined) {
+		this.status = ResourceManager.StatusEnum.RM_ERROR;
+		this.error = "Name already exits";
+		return false;
+	}
+	this.status = ResourceManager.StatusEnum.RM_PREPARING;
+	var task = {
+		type		: "Collada",
+		name		: name,
+		location	: location,
+		progress	: 0.0,
+		children	: []
+	};
+	this.taskList.push(task);
 	
+	var mesh = {
+		type		: "Mesh",
+		owner		: task,
+		name		: task.name + '_mesh',
+		progress	: 0.0
+	};
+	
+	task.children.push(mesh);
+	ResourceManager.getInstance().taskList.push(mesh);	
 };
 
+/**
+ * Executes the previously prepared tasks then calls the callback on campletion
+ * @param {Function} callback Function to be executed at the completion of the Load
+ */
 ResourceManager.prototype.doLoad = function(callback) {
 	if (this.status != ResourceManager.StatusEnum.RM_PREPARING) {
 		this.status = ResourceManager.StatusEnum.RM_ERROR;
@@ -190,6 +233,9 @@ ResourceManager.prototype.doLoad = function(callback) {
 				break;
 			case "Program":
 				this.loadProgram(this.taskList[i]);
+				break;
+			case "Collada":
+				this.loadCollada(this.taskList[i]);
 				break;
 		}
 	}
@@ -213,7 +259,7 @@ ResourceManager.prototype.loadProgram = function(task) {
 };
 
 ResourceManager.prototype.loadCollada = function(task) {
-	
+	this.colladaLoader.load(task, ResourceManager.onTaskComplete);
 };
 
 ResourceManager.prototype.getTextureByName = function(name) {
