@@ -10,10 +10,21 @@ Root = function() {
 	this.viewPort = undefined;
 	this.webGL = undefined;
 	this.status = Root.StatusEnum.ROOT_NONE;
+	
 	this.projectionMatrix = Matrix.I(4);;
 	this.defaultProgram = undefined;
 	this.rootTransform = undefined;
 	this.camera = undefined;	
+	
+	this.maxFps = 200;
+	this.actualFps = 0.0;
+	this.drawInterval = undefined;
+	this.fpsInterval = undefined;
+	
+	this.renderedFrames = 0;
+	this.lastRender = undefined;
+	
+	this.onRender = undefined;
 };
 
 Root.StatusEnum = {
@@ -37,8 +48,7 @@ Root.getInstance = function() {
 
 	//Initializes the Root
 	// TODO: Try to catch the parameter within the function and not by arguments
-Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, projection)
-{
+Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, projection) {
 	this.status = Root.StatusEnum.ROOT_NONE;
 	
 	//Set a viewport into the canvas
@@ -108,8 +118,7 @@ Root.prototype.getCamera = function() {
 };
 
 //Check if webGL is currently enabled in the client's browser
-Root.prototype.isWebGLEnabled = function()
-{
+Root.prototype.isWebGLEnabled = function() {
 	//standard webGL status
 	if (!this.webGL) {
 		try { this.webGL = this.viewPort.getContext("webgl"); } 
@@ -139,3 +148,43 @@ Root.prototype.isWebGLEnabled = function()
 	}
 	return true;
 };
+
+/**
+ * Start the Render Loop
+ * @param {Array} callbacks Array of callback functions to be executed
+ */
+Root.prototype.startRendering = function(callback) {
+	this.onRender = callback;
+	var TimePerFrame = 1000 / this.maxFps;
+	this.drawInterval = setInterval(this.draw, TimePerFrame);
+	this.fpsInterval = setInterval(this.getFps, 500);
+};
+
+/**
+ * Render Loop (draw)
+ * @param {Function} callbacks Callback function to be executed
+ * @param {Time} elapsedTime Time (ms) passed between two frames
+ */
+Root.prototype.draw = function() {
+	var root = Root.getInstance();
+	if (root.lastRender == undefined){
+		root.lastRender = new Date().getTime();
+	}
+	var elapsedTime = new Date().getTime() - root.lastRender;
+	++root.renderedFrames;
+	
+	root.webGL.clear(root.webGL.COLOR_BUFFER_BIT | root.webGL.DEPTH_BUFFER_BIT);
+		
+	if (root.onRender != undefined) {
+		root.onRender(elapsedTime);
+	}
+	root.camera.update();
+	root.rootTransform.render();
+	root.lastRender = new Date().getTime();
+}
+
+Root.prototype.getFps = function() {
+	var root = Root.getInstance();
+	root.actualFps = root.renderedFrames * 2;
+	root.renderedFrames = 0;
+}
