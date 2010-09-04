@@ -1,0 +1,18 @@
+PreparEntities(NameFile)
+Derouler les mesh du file et appeler constructeur entity
+PreparEntity
+Call constructeur entity(Mesh = null, texture = null)
+Ressourcemanager avec map index name entities
+Get entities with name
+list entity
+list animation
+
+- Anim
+Animator a map name animation
+animator while animation et animation.applymatrix
+animation a list node(inette)
+animation a timer
+suivant timer animation fais un truc bien defini.
+Donc possibilité d'accelerer et de pause
+
+- Light
