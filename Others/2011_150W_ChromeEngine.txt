@@ -1,0 +1,16 @@
+SAGE - as an acronym for Simple and Adaptative Graphic Engine - is a lightweight JavaScript 
+graphic engine that allows "non-enlightened-to-3D" developers (most known as Web Developers) 
+to embed rich 3D scenes all over the Internet.
+Built on an Open Source architecture, it offers additional modules support and provides 
+a community shared repository.
+
+
+First thing to know: SAGE is not the CryEngine, nor the Unreal Engine; and he doesn't want to.
+The main goal is to provide a never seen level of simplicity in 3D gesture so every 
+developer can finally create and manipulate a 3D environment with no theorical knowledge.
+
+The Second thing to know about SAGE is that it is not a Game Engine.
+Of course it can be used to produce Games but it doesn't offer highly specific
+functionalities like physics or artificial intelligence.
+That being said, and since 3D is not limited to Gaming, SAGE can be used to develop simple and 
+addictive games, advanced web apps or powerful office tools.
