@@ -16,3 +16,17 @@ suivant timer animation fais un truc bien defini.
 Donc possibilité d'accelerer et de pause
 
 - Light
+
+Collada Loader
+
+Refonte du parser
+	- Parsing et creation du mesh
+	- Parsing et creation du skeleton --> entity
+	- Parsing, loading et creation des textures
+	- Parsing animation --> entity
+
+	http://tfc.duke.free.fr/ quelques calculs en C pas mal
+
+	Formule pour calculer points, joints et poids :
+	
+	Vertexdest = SUM ( Vertexsource * Underlying_Bone_Final_Matrix * Underlying_Bone_Weight[Vertexsource])
