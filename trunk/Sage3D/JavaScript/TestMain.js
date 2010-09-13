@@ -195,7 +195,7 @@ function handleKeys(elapsed) {
 
 function drawScene(elapsedTime)
 {
-	Transform.getTransform("cube").rotate((75 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
+    Transform.getTransform("amahani").rotate((75 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
 	document.getElementById("FPS").innerText = parseInt(Root.getInstance().actualFps).toString();
 	handleKeys(elapsedTime);
 }
@@ -203,26 +203,27 @@ function drawScene(elapsedTime)
 function initScene()
 {
 	var root = Root.getInstance();
-	var mesh = ResourceManager.getInstance().getMeshByName("cube");
-	var texture = ResourceManager.getInstance().getTextureByName("cubetexture");
+	//var mesh = ResourceManager.getInstance().getMeshByName("cube");
+	//var texture = ResourceManager.getInstance().getTextureByName("cubetexture");
 	
 	var amahaniMesh = ResourceManager.getInstance().getMeshByName("Amahani_mesh");
-	var amahaniTex = ResourceManager.getInstance().getTextureByName("Amahani_texture");
+	//var amahaniTex = ResourceManager.getInstance().getTextureByName("Amahani_texture");
 	
 	var rootTransform = Transform.getTransform("root");
-	var cubeTransform = rootTransform.addChild("cube");
-	var amahaniTransform = cubeTransform.addChild("amahani");
+	//var cubeTransform = rootTransform.addChild("cube");
+	var amahaniTransform = rootTransform.addChild("amahani");
+	//var amahaniTransform = cubeTransform.addChild("amahani");
 	var cameraTransform = rootTransform.addChild("camera");
 	
 	root.getCamera().attach(cameraTransform);
 	
-	cubeTransform.translate([0,-1,-6]);
+	//cubeTransform.translate([0,-1,-6]);
 	amahaniTransform.translate([0, 1, 0]);
 	
-	var cube = new Entity("cube", mesh, [texture]);
-	var amahani = new Entity("amahani", amahaniMesh, [amahaniTex]);
+	//var cube = new Entity("cube", mesh, [texture]);
+	var amahani = new Entity("amahani", amahaniMesh, /*[amahaniTex]*/new Array());
 	
-	cubeTransform.addEntity(cube);
+	//cubeTransform.addEntity(cube);
 	amahaniTransform.addEntity(amahani);
 	
 	root.startRendering(drawScene);
@@ -230,8 +231,8 @@ function initScene()
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();
-	rm.prepareMesh("cube", "cube");
-	rm.prepareTexture("cubetexture", "Resources/Textures/nehe.gif");
+	//rm.prepareMesh("cube", "cube");
+	//rm.prepareTexture("cubetexture", "Resources/Textures/nehe.gif");
 	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
 	rm.doLoad(initScene);
 }
