@@ -133,14 +133,14 @@ ColladaLoader.prototype.load = function(task, callback) {
 };
 
 ColladaLoader.prototype.parse = function () {
-    var text = {
-        type: "Texture",
-        owner: this.task,
-        name: this.task.name + '_texture',
-        progress: 0.0
+    /*var text = {
+    type: "Texture",
+    owner: this.task,
+    name: this.task.name + '_texture',
+    progress: 0.0
     };
     ResourceManager.getInstance().taskList.push(text);
-    this.task.children.push(text); // A retravailler avec le resourceManager.js
+    this.task.children.push(text); // A retravailler avec le resourceManager.js*/
 
     this.status = ColladaLoader.StatusEnum.XML_PARSING;
 
@@ -150,153 +150,118 @@ ColladaLoader.prototype.parse = function () {
     
     ***/
 
+    /*** 
+
+    Contenu du floatArray
+
+    var floatArrays = {
+    'INDICESP': {
+    'floatArray': Array(),
+    'maxOffset': 0,
+    'count': 29000
+    },
+    'POSITION': {
+    'floatArray': Array(),
+    'newArray': Array(),
+    'offset': 0,
+    'stride': 3,
+    'count': 29000
+    }
+    };
+    
+    ***/
+
+    var floatArrays = {};
+
     var geometryNode = ColladaLoader.getNode(this.xmlFile, '//c:library_geometries/c:geometry');
     var listMeshNodes = geometryNode.getElementsByTagName('mesh');
+
     for (var i = 0; i < listMeshNodes.length; i++) {
         var listMeshNodesChildren = listMeshNodes[i].children;
         var listTrianglesNodes = listMeshNodes[i].getElementsByTagName('triangles');
+
         for (var j = 0; j < listTrianglesNodes.length; j++) {
             var listInputNodes = listTrianglesNodes[j].getElementsByTagName('input');
+            var indicesP = listTrianglesNodes[j].getElementsByTagName('p')[0];
+
+            floatArrays['INDICESP'] = {};
+
+            floatArrays['INDICESP']['floatArray'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesP));
+            floatArrays['INDICESP']['maxOffset'] = 0;
+            //floatArrays['INDICESP']['count'] = parseInt(listTrianglesNodes[j].getAttribute('count'));
+            floatArrays['INDICESP']['count'] = Math.floor(floatArrays['INDICESP']['floatArray'].length / 3);
+
             for (var k = 0; k < listInputNodes.length; k++) {
-                alert(listInputNodes[k].getAttribute('source'));
+                for (var l = 0; l < listMeshNodesChildren.length; l++) {
+                    var sourceId = listInputNodes[k].getAttribute('source');
+
+                    if (listMeshNodesChildren[l].getAttribute('id') == sourceId.substr(1, sourceId.length - 1)) {
+                        if (listInputNodes[k].getAttribute('semantic') == "VERTEX") {
+                            var listInputVertices = listMeshNodesChildren[l].getElementsByTagName('input');
+
+                            for (var m = 0; m < listInputVertices.length; m++) {
+                                var sourceIdVertex = listInputVertices[m].getAttribute('source');
+
+                                for (var n = 0; n < listMeshNodesChildren.length; n++) {
+                                    if (listMeshNodesChildren[n].getAttribute('id') == sourceIdVertex.substr(1, sourceIdVertex.length - 1)) {
+                                        floatArrays['POSITION'] = {}
+                                        floatArrays['POSITION']['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[n].children[0]));
+                                        var offset = parseInt(listInputNodes[k].getAttribute('offset'));
+                                        floatArrays['POSITION']['offset'] = offset;
+                                        floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
+                                        var accessorNode = listMeshNodesChildren[n].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
+                                        floatArrays['POSITION']['stride'] = parseInt(accessorNode.getAttribute('stride'));
+                                        floatArrays['POSITION']['count'] = parseInt(accessorNode.getAttribute('count'));
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            floatArrays[listInputNodes[k].getAttribute('semantic')] = {}
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[l].children[0]));
+                            var offset = parseInt(listInputNodes[k].getAttribute('offset'));
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['offset'] = offset;
+                            floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
+                            var accessorNode = listMeshNodesChildren[l].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['stride'] = parseInt(accessorNode.getAttribute('stride'));
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['count'] = parseInt(accessorNode.getAttribute('count'));
+
+                        }
+                    }
+                }
             }
+
+            // On remet les tableaux dans l'ordre
+            var end = floatArrays['INDICESP']['count'] * (floatArrays['INDICESP']['maxOffset'] + 1);
+            for (var p = 0; p < end; p += floatArrays['INDICESP']['maxOffset'] + 1) {
+                for (var name in floatArrays) {
+                    if (name == 'INDICESP')
+                        continue;
+                    if (p == 0)
+                        floatArrays[name]['newArray'] = new Array();
+                    for (var stride = 0; stride < floatArrays[name]['stride']; stride++)
+                        floatArrays[name]['newArray'].push(floatArrays[name]['floatArray'][floatArrays['INDICESP']['floatArray'][p + floatArrays[name]['offset']] * floatArrays[name]['stride'] + stride])
+                }
+            }
+
+            // Creation des vbo
+            var mesh = new Mesh('Amahani_mesh');
+            mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, floatArrays['POSITION']['newArray'], Math.floor(floatArrays['POSITION']['newArray'].length / floatArrays['POSITION']['stride']), this.webGL.FLOAT, floatArrays['POSITION']['stride']);
+            mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, floatArrays['TEXCOORD']['newArray'], Math.floor(floatArrays['TEXCOORD']['newArray'].length / floatArrays['TEXCOORD']['stride']), this.webGL.FLOAT, floatArrays['TEXCOORD']['stride']);
+            mesh.setDrawingBuffer("aVertexPosition");
+            mesh.calcBBox(floatArrays['POSITION']['newArray']);
         }
     }
 
+    //return false;
 
     //    var meshId = meshNode.getAttribute("id"); A mettre ailleurs
 
-    return false; // pour du test
-
-    if (!meshNode) {
-        this.status = ColladaLoader.StatusEnum.ERROR;
-        this.error = "Couldn't find texture node";
-        return false;
-    }
-
-    var texture = new Texture(text.name);
-    texture.load(0, ColladaLoader.nodeText(textureNode), this.callback);
-
-    var zUp = false;
-    var axisNode = ColladaLoader.getNode(this.xmlFile, '//c:asset/c:up_axis');
-    if (axisNode) {
-        zUp = ColladaLoader.nodeText(axisNode) == "Z_UP" ? true : false;
-    }
-
-    var meshNode = ColladaLoader.getNode(this.xmlFile, '//c:library_geometries/c:geometry[@id="mesh"]/c:mesh');
-    if (!meshNode) {
-        this.status = ColladaLoader.StatusEnum.ERROR;
-        this.error = "Couldn't find mesh node";
-        return false;
-    }
-
-    var arrayNames = ['position', 'normal', 'texcoord'];
-    var tmpBuffers =
-	{
-	    position: undefined,
-	    normal: undefined,
-	    texcoord: undefined
-	};
-    for (var i = 0; i < arrayNames.length; ++i) {
-        var arrayName = arrayNames[i];
-
-        var arrayNode = ColladaLoader.getNode(this.xmlFile, '//c:source[@id="' + arrayName + '"]/c:float_array', meshNode);
-        if (!arrayNode) {
-            this.status = ColladaLoader.StatusEnum.ERROR;
-            this.error = "Missing " + arrayName + " float_array in mesh node";
-            return false;
-        }
-
-        var count = parseInt(arrayNode.getAttribute('count'));
-        tmpBuffers[arrayName] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(arrayNode));
-
-        /*if (tmpBuffers[arrayName].length != count) {
-        this.status = ColladaLoader.StatusEnum.ERROR;
-        this.error = "Attribute " + arrayName + " expected " + count + " elements but parse gave " + tmpBuffers[arrayName].length;
-        return false;
-        }*/
-    }
-
-    var trianglesNode = ColladaLoader.getNode(this.xmlFile, '//c:triangles', meshNode);
-    if (!trianglesNode) {
-        this.status = ColladaLoader.StatusEnum.ERROR;
-        this.error = "Missing triangles in mesh node";
-        return false;
-    }
-    var count = parseInt(trianglesNode.getAttribute('count'));
-
-    var pNode = ColladaLoader.getNode(this.xmlFile, '//c:p', trianglesNode);
-    if (!pNode) {
-        this.status = ColladaLoader.StatusEnum.ERROR;
-        this.error = "Missing triangles/p in mesh node";
-        return false;
-    }
-    var pArray = ColladaLoader.parseIntListString(ColladaLoader.nodeText(pNode));
-
-    /*if (pArray.length != count) {
-    this.status = ColladaLoader.StatusEnum.ERROR;
-    this.error = "Expected " + count + " elements but parse gave " + pArray.length;
-    return false;
-    }*/
-
-    var explodeTmpBuffers =
-	{
-	    position: undefined,
-	    normal: undefined,
-	    texcoord: undefined
-	};
-    explodeTmpBuffers.position = new Array();
-    explodeTmpBuffers.normal = new Array();
-    explodeTmpBuffers.texcoord = new Array();
-
-    var nPoints = Math.floor(pArray.length / 3);
-    for (var i = 0; i < nPoints; ++i) {
-        var positionIndex = pArray[i * 3] * 3;
-        var normalIndex = pArray[i * 3 + 1] * 3;
-        var texcoordIndex = pArray[i * 3 + 2] * 2;
-
-        explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex]);
-        if (zUp == false) {
-            explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 1]);
-            explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 2]);
-        }
-        else {
-            explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 2]);
-            explodeTmpBuffers.position.push(tmpBuffers.position[positionIndex + 1]);
-        }
-
-        explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex]);
-        if (zUp == false) {
-            explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 1]);
-            explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 2]);
-        }
-        else {
-            explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 2]);
-            explodeTmpBuffers.normal.push(tmpBuffers.normal[normalIndex + 1]);
-        }
-
-        explodeTmpBuffers.texcoord.push(tmpBuffers.texcoord[texcoordIndex]);
-        explodeTmpBuffers.texcoord.push(tmpBuffers.texcoord[texcoordIndex + 1]);
-    }
-
-    //delete tmpBuffers
-    tmpBuffers.position = null;
-    tmpBuffers.normal = null;
-    tmpBuffers.texcoord = null;
-    tmpBuffers = null;
-
-    var mesh = new Mesh(this.task.name + '_mesh');
-    mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, explodeTmpBuffers.position, Math.floor(explodeTmpBuffers.position.length / 3), this.webGL.FLOAT, 3);
-    //	mesh.addBuffer("aNormal", gl.ARRAY_BUFFER, explodeTmpBuffers.normal, Math.floor(explodeTmpBuffers.normal.length / 3), gl.FLOAT, 3);
-    mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, explodeTmpBuffers.texcoord, Math.floor(explodeTmpBuffers.texcoord.length / 2), this.webGL.FLOAT, 2);
-    mesh.setDrawingBuffer("aVertexPosition");
-    mesh.calcBBox(explodeTmpBuffers.position);
-
     //delete explodeTmpBuffers
-    explodeTmpBuffers.position = null;
-    explodeTmpBuffers.normal = null;
-    explodeTmpBuffers.texcoord = null;
-    explodeTmpBuffers = null;
+    /*for (var name in floatArrays) {
+    delete floatArrays[name];
+    }*/
+    delete floatArrays;
 
     this.status = ColladaLoader.StatusEnum.COMPLETE;
 
