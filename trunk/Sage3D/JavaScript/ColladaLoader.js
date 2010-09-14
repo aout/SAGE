@@ -253,7 +253,87 @@ ColladaLoader.prototype.parse = function () {
         }
     }
 
-    //return false;
+
+
+    /*** 
+
+    Contenu du Skeleton
+
+    var Skeleton = {
+    'JOINT1': {
+    'matrix': Matrix(),
+    'weights': Array(),
+    },
+    };
+    
+    ***/
+
+    var Skeleton = {};
+
+    var skinNode = ColladaLoader.getNode(this.xmlFile, '//c:library_controllers/c:controller/c:skin');
+    var skinSourcesNodes = skinNode.getElementsByTagName('source');
+    var jointsNode = skinNode.getElementsByTagName('joints')[0];
+    var vertexWeights = skinNode.getElementsByTagName('vertex_weights')[0];
+
+    var inputs = jointsNode.getElementsByTagName('input');
+    var jointNameId = '';
+    var matrixId = '';
+    var weightId = '';
+
+    for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].getAttribute('semantic') == 'JOINT') {
+            jointNameId = inputs[i].getAttribute('source');
+            jointNameId = jointNameId.substr(1, jointNameId.length - 1);
+        }
+        else if (inputs[i].getAttribute('semantic') == 'INV_BIND_MATRIX') {
+            matrixId = inputs[i].getAttribute('source');
+            matrixId = matrixId.substr(1, matrixId.length - 1);
+        }
+    }
+
+    inputs = vertexWeights.getElementsByTagName('input');
+
+    for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].getAttribute('semantic') == 'WEIGHT') {
+            weightId = inputs[i].getAttribute('source');
+            weightId = weightId.substr(1, weightId.length - 1);
+        }
+    }
+
+
+    var vcount = ColladaLoader.parseIntListString(ColladaLoader.nodeText(vertexWeights.getElementsByTagName('vcount')[0]));
+    var v = ColladaLoader.parseIntListString(ColladaLoader.nodeText(vertexWeights.getElementsByTagName('v')[0]));
+    var jointNames = new Array();
+    var matrix = new Array();
+    var weight;
+
+    for (var i = 0; i < skinSourcesNodes.length; i++) {
+        switch (skinSourcesNodes[i].getAttribute('id')) {
+            case jointNameId:
+                var jointNamesString = ColladaLoader.nodeText(skinSourcesNodes[i].children[0]);
+                jointNamesString = jointNamesString.replace(/^\n*\s+/g, "").replace(/\s+\n*$/g, "");
+                jointNames = jointNamesString.split(/\s+/);
+                break;
+            case matrixId:
+                var matrixTmp = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(skinSourcesNodes[i].children[0]));
+                for (var j = 0; j < matrixTmp.length; j += 16) {
+                    var matrixTmp2 = new Array();
+                    matrixTmp2.push(matrixTmp[j]);
+                    matrix.push(new Matrix(matrixTmp2));
+                }
+                break;
+            case weightId:
+                weight = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(skinSourcesNodes[i].children[0]));
+                break;
+        }
+    }
+
+    Skeleton['JOINTS'] = jointNames;
+    Skeleton['MATRICES'] = matrix;
+    Skeleton['WEIGHTS'] = weight;
+
+
+    return false;
 
     //    var meshId = meshNode.getAttribute("id"); A mettre ailleurs
 
