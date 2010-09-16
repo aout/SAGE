@@ -23,7 +23,8 @@ Texture = function(name) {
 	this.glTexture = undefined;
 	this.image = undefined;
 
-	this.progress = 0.0;
+  this.minFilter = undefined;
+  this.magFilter = undefined;
 };
 
 /**
@@ -53,13 +54,27 @@ Texture.prototype.destroy = function() {
  * @param {String} url
  * @param {Function} callback
  */
-Texture.prototype.load = function(unitTexture, url, callback) {
+Texture.prototype.load = function(unitTexture, url, callback, minfilter, magfilter) {
 	if (unitTexture < 0 || unitTexture > 31) {
 		this.status = Texture.StatusEnum.TEXTURE_ERROR;
 		this.error = "Bad unit texture";
 		return this.status;
 	}
 	this.status = Texture.StatusEnum.TEXTURE_LOADING;
+	switch (minfilter) {
+	  case 'NEAREST':                this.minFilter = this.webGL.NEAREST;                break;
+	  case 'LINEAR':                 this.minFilter = this.webGL.LINEAR;                 break;
+	  case 'LINEAR_MIPMAP_NEAREST':  this.minFilter = this.webGL.LINEAR_MIPMAP_NEAREST;  break;
+	  case 'NEAREST_MIPMAP_NEAREST': this.minFilter = this.webGL.NEAREST_MIPMAP_NEAREST; break;
+	  case 'NEAREST_MIPMAP_LINEAR':  this.minFilter = this.webGL.NEAREST_MIPMAP_LINEAR;  break;
+	  case 'LINEAR_MIPMAP_LINEAR':   this.minFilter = this.webGL.LINEAR_MIPMAP_LINEAR;   break;
+	  default:                       this.minFilter = this.webGL.NEAREST;                break;
+	}
+  switch (magfilter) {
+    case 'NEAREST':                this.magFilter = this.webGL.NEAREST;                break;
+    case 'LINEAR':                 this.magFilter = this.webGL.LINEAR;                 break;
+    default:                       this.magFilter = this.webGL.LINEAR;                 break;
+  }
 	this.unitTexture = unitTexture;
 	var self = this;
 	
@@ -69,10 +84,13 @@ Texture.prototype.load = function(unitTexture, url, callback) {
 		self.glTexture = self.webGL.createTexture();
 		self.webGL.activeTexture(self.unitTexture + self.webGL.TEXTURE0);
 		self.webGL.bindTexture(self.webGL.TEXTURE_2D, self.glTexture);
-		self.webGL.texImage2D(self.webGL.TEXTURE_2D, 0, self.image, true);
-	    self.webGL.texParameteri(self.webGL.TEXTURE_2D, self.webGL.TEXTURE_MAG_FILTER, self.webGL.LINEAR);
-	    self.webGL.texParameteri(self.webGL.TEXTURE_2D, self.webGL.TEXTURE_MIN_FILTER, self.webGL.LINEAR_MIPMAP_NEAREST);
-	    self.webGL.generateMipmap(self.webGL.TEXTURE_2D);
+		self.webGL.pixelStorei(self.webGL.UNPACK_FLIP_Y_WEBGL, true);
+		self.webGL.texImage2D(self.webGL.TEXTURE_2D, 0, self.webGL.RGBA, self.webGL.RGBA, self.webGL.UNSIGNED_BYTE, self.image);
+	  self.webGL.texParameteri(self.webGL.TEXTURE_2D, self.webGL.TEXTURE_MAG_FILTER, self.magFilter);
+	  self.webGL.texParameteri(self.webGL.TEXTURE_2D, self.webGL.TEXTURE_MIN_FILTER, self.minFilter);
+	  if (self.minFilter == self.webGL.NEAREST_MIPMAP_NEAREST || self.minFilter == self.webGL.LINEAR_MIPMAP_NEAREST ||
+	    self.minFilter == self.webGL.NEAREST_MIPMAP_LINEAR || self.minFilter == self.webGL.LINEAR_MIPMAP_LINEAR)
+	   self.webGL.generateMipmap(self.webGL.TEXTURE_2D);
 		self.status = Texture.StatusEnum.TEXTURE_READY;
 		delete self.image;
 		if (callback != undefined) {
