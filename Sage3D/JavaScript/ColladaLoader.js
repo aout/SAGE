@@ -112,69 +112,223 @@ ColladaLoader.getNode = function(xml, xpathexpr, ctxNode) {
 	return xml.evaluate(xpathexpr, ctxNode, ColladaLoader.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
+ColladaLoader.getNodes = function(xml, xpathexpr, ctxNode) {
+  if (ctxNode == null)
+    ctxNode = xml;
+  return xml.evaluate(xpathexpr, ctxNode, ColladaLoader.nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+};
+
 ColladaLoader.prototype.load = function(task, callback) {
 	this.status = ColladaLoader.StatusEnum.XML_LOADING;
 	this.callback = callback;
 	this.task = task;
-    var self = this;
+  var self = this;
 
-    this.xhr.onreadystatechange = function () {
-		if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
-          self.xmlFile = self.xhr.responseXML;
-		  self.parse();
-		}
-    };
+  this.xhr.onreadystatechange = function () {
+  	if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
+      self.xmlFile = self.xhr.responseXML;
+  	  self.parse();
+  	}
+  };
 
-    this.xhr.open("GET", task.location, true);
-    this.xhr.overrideMimeType("text/xml");
-    this.xhr.setRequestHeader("Content-Type", "text/xml");
-    try { this.xhr.send(null); }
+  this.xhr.open("GET", task.location, true);
+  this.xhr.overrideMimeType("text/xml");
+  this.xhr.setRequestHeader("Content-Type", "text/xml");
+  try { this.xhr.send(null); }
 	catch(e) { alert(e.Message); }
 };
 
 ColladaLoader.prototype.parse = function () {
-    /*var text = {
-    type: "Texture",
-    owner: this.task,
-    name: this.task.name + '_texture',
-    progress: 0.0
-    };
-    ResourceManager.getInstance().taskList.push(text);
-    this.task.children.push(text); // A retravailler avec le resourceManager.js*/
-
     this.status = ColladaLoader.StatusEnum.XML_PARSING;
 
-    /***
-    
-    Boucles pour retrouver les input des meshs 
-    
-    ***/
+    //Up Axis var with Y_UP as default value
+    var upAxis = 'Y_UP';
 
-    /*** 
-
-    Contenu du floatArray
-
-    var floatArrays = {
-    'INDICESP': {
-    'floatArray': Array(),
-    'maxOffset': 0,
-    'count': 29000
-    },
-    'POSITION': {
-    'floatArray': Array(),
-    'newArray': Array(),
-    'offset': 0,
-    'stride': 3,
-    'count': 29000
+    //Get up axis real value
+    var upAxisNode = ColladaLoader.getNode(this.xmlFile, '/c:COLLADA/c:asset/c:up_axis');
+    if (!upAxisNode) {
+      alert('Warning: couldn\'t find up_axis node. Assuming up axis is Y_UP');
     }
+    else {
+      upAxis = ColladaLoader.nodeText(upAxisNode);
+      switch (upAxis) {
+        case 'X_UP':
+        case 'Y_UP':
+        case 'Z_UP':
+          alert('Up Axis: ' + upAxis);
+        break;
+        default:
+          upAxis = 'Y_UP';
+          alert('Warning: up axis as unknown value. Assuming up axis is Y_UP');
+        break;
+      }
+      delete upAxisNode;
+    }
+
+    //Creation of the materials
+    /*
+    var materials = {
+      materialId: {
+        texture:    Sage3D.Texture
+      }
     };
+    */
+    var materials = {};
     
-    ***/
+    var materialNodes = ColladaLoader.getNodes(this.xmlFile, '/c:COLLADA/c:library_materials/c:material');
+    if (!materialNodes || !materialNodes.snapshotLength) {
+      alert('Warning: couldn\'t find any material nodes');
+    }
+    else {
+      for (var i = 0; i < materialNodes.snapshotLength; i++) {
+        var materialId = materialNodes.snapshotItem(i).getAttribute('id');
+        if (!materialId) {
+          alert('Error: this material doesn\'t have an id');
+          continue;
+        }
+        
+        var instanceEffectNode = ColladaLoader.getNode(this.xmlFile, 'c:instance_effect', materialNodes.snapshotItem(i));
+        if (!instanceEffectNode) {
+          alert('Error: couldn\'t find the instance_effect node');
+          continue;
+        }
+        
+        var effectId = instanceEffectNode.getAttribute('url');
+        if (!effectId) {
+          alert('Error: couldn\'t find effect url');
+          continue;
+        }
+        effectId = effectId.substr(1, effectId.length - 1);
+        
+        var effectNode = ColladaLoader.getNode(this.xmlFile, '/c:COLLADA/c:library_effects/c:effect[@id="' + effectId + '"]');
+        if (!effectNode) {
+          alert('Error: couldn\'t find the effect node with id = ' + effectId);
+          continue;
+        }
+        
+        var textureNode = ColladaLoader.getNode(this.xmlFile, 'c:profile_COMMON/c:technique/c:phong/c:diffuse/c:texture', effectNode);
+        if (!textureNode) {
+          alert('Error: couldn\'t find the texture node');
+          continue;
+        }
+        
+        var samplerSid = textureNode.getAttribute('texture');
+        if (!samplerSid) {
+          alert('Error: couldn\'t find the sampler sid');
+          continue;
+        }
+        
+        var samplerNode = ColladaLoader.getNode(this.xmlFile, 'c:profile_COMMON/c:newparam[@sid="' + samplerSid + '"]/c:sampler2D', effectNode);
+        if (!samplerNode) {
+          alert('Error: couldn\'t find the sampler node');
+          continue;
+        }
+        var minfilter = 'NEAREST';
+        var magfilter = 'LINEAR';
+        
+        var minfilterNode = ColladaLoader.getNode(this.xmlFile, 'c:minfilter', samplerNode);
+        if (!minfilterNode) {
+          alert('Warning: couldn\'t find the minfilter node. Assuming is NEAREST');
+        } else {
+          minfilter = ColladaLoader.nodeText(minfilterNode);
+          switch (minfilter) {
+            case 'NEAREST':
+            case 'LINEAR':
+            case 'LINEAR_MIPMAP_NEAREST':
+            case 'NEAREST_MIPMAP_NEAREST':
+            case 'NEAREST_MIPMAP_LINEAR':
+            case 'LINEAR_MIPMAP_LINEAR':
+              break;
+            default:
+              alert('Warning: minfilter as an unknown value. Assuming is NEAREST');
+              minfilter = 'NEAREST';
+            break;
+          }
+        }
+        
+        var magfilterNode = ColladaLoader.getNode(this.xmlFile, 'c:magfilter', samplerNode);
+        if (!magfilterNode) {
+          alert('Warning: couldn\'t find the magfilter node. Assuming is LINEAR');
+        } else {
+          magfilter = ColladaLoader.nodeText(magfilterNode);
+          switch (magfilter) {
+            case 'NEAREST':
+            case 'LINEAR':
+              break;
+            default:
+              alert('Warning: magfilter as an unknown value. Assuming is LINEAR');
+              magfilter = 'LINEAR';
+            break;
+          }
+        }
+        
+        var sourceNode = ColladaLoader.getNode(this.xmlFile, 'c:source', samplerNode);
+        if (!sourceNode) {
+          alert('Error: couldn\'t find the source node');
+          continue;
+        }
 
-    var floatArrays = {};
+        var surfaceSid = ColladaLoader.nodeText(sourceNode);
+        if (!surfaceSid || surfaceSid == '') {
+          alert('Error: couldn\'t find the surface sid');
+          continue;
+        }
+        
+        var initFromNode = ColladaLoader.getNode(this.xmlFile, 'c:profile_COMMON/c:newparam[@sid="' + surfaceSid + '"]/c:surface/c:init_from', effectNode);
+        if (!initFromNode) {
+          alert('Error: couldn\'t find the init_from node from surface');
+          continue;
+        }
 
-    var geometryNode = ColladaLoader.getNode(this.xmlFile, '//c:library_geometries/c:geometry');
-    var listMeshNodes = geometryNode.getElementsByTagName('mesh');
+        var imageId = ColladaLoader.nodeText(initFromNode);
+        if (!imageId || imageId == '') {
+          alert('Error: couldn\'t find the image id');
+          continue;
+        }
+
+        var imageUrlNode = ColladaLoader.getNode(this.xmlFile, '/c:COLLADA/c:library_images/c:image[@id="' + imageId + '"]/c:init_from');
+        if (!imageUrlNode) {
+          alert('Error: couldn\'t find the init_from node from image');
+          continue;
+        }
+        
+        var imageUrl = ColladaLoader.nodeText(imageUrlNode);
+        if (!imageUrl || imageUrl == '') {
+          alert('Error: couldn\'t find the image url');
+          continue;
+        }
+
+        materials[materialId] = new Texture(imageId);
+        materials[materialId].load(0, imageUrl, function() {alert('Texture loaded successfuly !!!')}, minfilter, magfilter);
+
+      }
+    }
+    
+    return false;
+    
+    /*
+    var mesh = {
+      id:       String,
+      indices:  {
+        valuesArray:  Array(),
+        maxOffset:    int,
+        count:        int        
+      },
+      sources:  {
+        POSITION: {
+          valuesArray:      Array(),
+          reorganizedArray: Array(),
+          offset:           int,
+          stride:           int,
+          count:            int
+        },
+        ...
+      }
+    }; 
+    */
+    var mesh = {};
+
+    var MeshesNode = ColladaLoader.getNodes(this.xmlFile, '/c:COLLADA/c:library_geometries/c:geometry');
 
     for (var i = 0; i < listMeshNodes.length; i++) {
         var listMeshNodesChildren = listMeshNodes[i].children;
@@ -184,12 +338,12 @@ ColladaLoader.prototype.parse = function () {
             var listInputNodes = listTrianglesNodes[j].getElementsByTagName('input');
             var indicesP = listTrianglesNodes[j].getElementsByTagName('p')[0];
 
-            floatArrays['INDICESP'] = {};
+            mesh['INDICESP'] = {};
 
-            floatArrays['INDICESP']['floatArray'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesP));
-            floatArrays['INDICESP']['maxOffset'] = 0;
-            //floatArrays['INDICESP']['count'] = parseInt(listTrianglesNodes[j].getAttribute('count'));
-            floatArrays['INDICESP']['count'] = Math.floor(floatArrays['INDICESP']['floatArray'].length / 3);
+            mesh['INDICESP']['floatArray'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesP));
+            mesh['INDICESP']['maxOffset'] = 0;
+            //mesh['INDICESP']['count'] = parseInt(listTrianglesNodes[j].getAttribute('count'));
+            mesh['INDICESP']['count'] = Math.floor(mesh['INDICESP']['floatArray'].length / 3);
 
             for (var k = 0; k < listInputNodes.length; k++) {
                 for (var l = 0; l < listMeshNodesChildren.length; l++) {
@@ -204,27 +358,27 @@ ColladaLoader.prototype.parse = function () {
 
                                 for (var n = 0; n < listMeshNodesChildren.length; n++) {
                                     if (listMeshNodesChildren[n].getAttribute('id') == sourceIdVertex.substr(1, sourceIdVertex.length - 1)) {
-                                        floatArrays['POSITION'] = {}
-                                        floatArrays['POSITION']['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[n].children[0]));
+                                        mesh['POSITION'] = {}
+                                        mesh['POSITION']['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[n].children[0]));
                                         var offset = parseInt(listInputNodes[k].getAttribute('offset'));
-                                        floatArrays['POSITION']['offset'] = offset;
-                                        floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
+                                        mesh['POSITION']['offset'] = offset;
+                                        mesh['INDICESP']['maxOffset'] = offset > mesh['INDICESP']['maxOffset'] ? offset : mesh['INDICESP']['maxOffset'];
                                         var accessorNode = listMeshNodesChildren[n].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
-                                        floatArrays['POSITION']['stride'] = parseInt(accessorNode.getAttribute('stride'));
-                                        floatArrays['POSITION']['count'] = parseInt(accessorNode.getAttribute('count'));
+                                        mesh['POSITION']['stride'] = parseInt(accessorNode.getAttribute('stride'));
+                                        mesh['POSITION']['count'] = parseInt(accessorNode.getAttribute('count'));
                                     }
                                 }
                             }
                         }
                         else {
-                            floatArrays[listInputNodes[k].getAttribute('semantic')] = {}
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[l].children[0]));
+                            mesh[listInputNodes[k].getAttribute('semantic')] = {}
+                            mesh[listInputNodes[k].getAttribute('semantic')]['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[l].children[0]));
                             var offset = parseInt(listInputNodes[k].getAttribute('offset'));
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['offset'] = offset;
-                            floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
+                            mesh[listInputNodes[k].getAttribute('semantic')]['offset'] = offset;
+                            mesh['INDICESP']['maxOffset'] = offset > mesh['INDICESP']['maxOffset'] ? offset : mesh['INDICESP']['maxOffset'];
                             var accessorNode = listMeshNodesChildren[l].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['stride'] = parseInt(accessorNode.getAttribute('stride'));
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['count'] = parseInt(accessorNode.getAttribute('count'));
+                            mesh[listInputNodes[k].getAttribute('semantic')]['stride'] = parseInt(accessorNode.getAttribute('stride'));
+                            mesh[listInputNodes[k].getAttribute('semantic')]['count'] = parseInt(accessorNode.getAttribute('count'));
 
                         }
                     }
@@ -232,24 +386,24 @@ ColladaLoader.prototype.parse = function () {
             }
 
             // On remet les tableaux dans l'ordre
-            var end = floatArrays['INDICESP']['count'] * (floatArrays['INDICESP']['maxOffset'] + 1);
-            for (var p = 0; p < end; p += floatArrays['INDICESP']['maxOffset'] + 1) {
-                for (var name in floatArrays) {
+            var end = mesh['INDICESP']['count'] * (mesh['INDICESP']['maxOffset'] + 1);
+            for (var p = 0; p < end; p += mesh['INDICESP']['maxOffset'] + 1) {
+                for (var name in mesh) {
                     if (name == 'INDICESP')
                         continue;
                     if (p == 0)
-                        floatArrays[name]['newArray'] = new Array();
-                    for (var stride = 0; stride < floatArrays[name]['stride']; stride++)
-                        floatArrays[name]['newArray'].push(floatArrays[name]['floatArray'][floatArrays['INDICESP']['floatArray'][p + floatArrays[name]['offset']] * floatArrays[name]['stride'] + stride])
+                        mesh[name]['newArray'] = new Array();
+                    for (var stride = 0; stride < mesh[name]['stride']; stride++)
+                        mesh[name]['newArray'].push(mesh[name]['floatArray'][mesh['INDICESP']['floatArray'][p + mesh[name]['offset']] * mesh[name]['stride'] + stride])
                 }
             }
 
             // Creation des vbo
             var mesh = new Mesh('Amahani_mesh');
-            mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, floatArrays['POSITION']['newArray'], Math.floor(floatArrays['POSITION']['newArray'].length / floatArrays['POSITION']['stride']), this.webGL.FLOAT, floatArrays['POSITION']['stride']);
-            mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, floatArrays['TEXCOORD']['newArray'], Math.floor(floatArrays['TEXCOORD']['newArray'].length / floatArrays['TEXCOORD']['stride']), this.webGL.FLOAT, floatArrays['TEXCOORD']['stride']);
+            mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, mesh['POSITION']['newArray'], Math.floor(mesh['POSITION']['newArray'].length / mesh['POSITION']['stride']), this.webGL.FLOAT, mesh['POSITION']['stride']);
+            mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, mesh['TEXCOORD']['newArray'], Math.floor(mesh['TEXCOORD']['newArray'].length / mesh['TEXCOORD']['stride']), this.webGL.FLOAT, mesh['TEXCOORD']['stride']);
             mesh.setDrawingBuffer("aVertexPosition");
-            mesh.calcBBox(floatArrays['POSITION']['newArray']);
+            mesh.calcBBox(mesh['POSITION']['newArray']);
         }
     }
 
@@ -333,15 +487,15 @@ ColladaLoader.prototype.parse = function () {
     Skeleton['WEIGHTS'] = weight;
 
 
-    return false;
+    //return false;
 
     //    var meshId = meshNode.getAttribute("id"); A mettre ailleurs
 
     //delete explodeTmpBuffers
-    /*for (var name in floatArrays) {
-    delete floatArrays[name];
+    /*for (var name in mesh) {
+    delete mesh[name];
     }*/
-    delete floatArrays;
+    delete mesh;
 
     this.status = ColladaLoader.StatusEnum.COMPLETE;
 
