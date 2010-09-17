@@ -304,31 +304,37 @@ ColladaLoader.prototype.parse = function () {
       }
     }
     
-    return false;
+    /***
     
-    /*
-    var mesh = {
-      id:       String,
-      indices:  {
-        valuesArray:  Array(),
-        maxOffset:    int,
-        count:        int        
-      },
-      sources:  {
-        POSITION: {
-          valuesArray:      Array(),
-          reorganizedArray: Array(),
-          offset:           int,
-          stride:           int,
-          count:            int
-        },
-        ...
-      }
-    }; 
-    */
-    var mesh = {};
+    Boucles pour retrouver les input des meshs 
+    
+    ***/
 
-    var MeshesNode = ColladaLoader.getNodes(this.xmlFile, '/c:COLLADA/c:library_geometries/c:geometry');
+    /*** 
+
+    Contenu du floatArray
+
+    var floatArrays = {
+    'INDICESP': {
+    'floatArray': Array(),
+    'maxOffset': 0,
+    'count': 29000
+    },
+    'POSITION': {
+    'floatArray': Array(),
+    'newArray': Array(),
+    'offset': 0,
+    'stride': 3,
+    'count': 29000
+    }
+    };
+    
+    ***/
+
+    var floatArrays = {};
+
+    var geometryNode = ColladaLoader.getNode(this.xmlFile, '//c:library_geometries/c:geometry');
+    var listMeshNodes = geometryNode.getElementsByTagName('mesh');
 
     for (var i = 0; i < listMeshNodes.length; i++) {
         var listMeshNodesChildren = listMeshNodes[i].children;
@@ -338,12 +344,12 @@ ColladaLoader.prototype.parse = function () {
             var listInputNodes = listTrianglesNodes[j].getElementsByTagName('input');
             var indicesP = listTrianglesNodes[j].getElementsByTagName('p')[0];
 
-            mesh['INDICESP'] = {};
+            floatArrays['INDICESP'] = {};
 
-            mesh['INDICESP']['floatArray'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesP));
-            mesh['INDICESP']['maxOffset'] = 0;
-            //mesh['INDICESP']['count'] = parseInt(listTrianglesNodes[j].getAttribute('count'));
-            mesh['INDICESP']['count'] = Math.floor(mesh['INDICESP']['floatArray'].length / 3);
+            floatArrays['INDICESP']['floatArray'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesP));
+            floatArrays['INDICESP']['maxOffset'] = 0;
+            //floatArrays['INDICESP']['count'] = parseInt(listTrianglesNodes[j].getAttribute('count'));
+            floatArrays['INDICESP']['count'] = Math.floor(floatArrays['INDICESP']['floatArray'].length / 3);
 
             for (var k = 0; k < listInputNodes.length; k++) {
                 for (var l = 0; l < listMeshNodesChildren.length; l++) {
@@ -358,27 +364,27 @@ ColladaLoader.prototype.parse = function () {
 
                                 for (var n = 0; n < listMeshNodesChildren.length; n++) {
                                     if (listMeshNodesChildren[n].getAttribute('id') == sourceIdVertex.substr(1, sourceIdVertex.length - 1)) {
-                                        mesh['POSITION'] = {}
-                                        mesh['POSITION']['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[n].children[0]));
+                                        floatArrays['POSITION'] = {}
+                                        floatArrays['POSITION']['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[n].children[0]));
                                         var offset = parseInt(listInputNodes[k].getAttribute('offset'));
-                                        mesh['POSITION']['offset'] = offset;
-                                        mesh['INDICESP']['maxOffset'] = offset > mesh['INDICESP']['maxOffset'] ? offset : mesh['INDICESP']['maxOffset'];
+                                        floatArrays['POSITION']['offset'] = offset;
+                                        floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
                                         var accessorNode = listMeshNodesChildren[n].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
-                                        mesh['POSITION']['stride'] = parseInt(accessorNode.getAttribute('stride'));
-                                        mesh['POSITION']['count'] = parseInt(accessorNode.getAttribute('count'));
+                                        floatArrays['POSITION']['stride'] = parseInt(accessorNode.getAttribute('stride'));
+                                        floatArrays['POSITION']['count'] = parseInt(accessorNode.getAttribute('count'));
                                     }
                                 }
                             }
                         }
                         else {
-                            mesh[listInputNodes[k].getAttribute('semantic')] = {}
-                            mesh[listInputNodes[k].getAttribute('semantic')]['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[l].children[0]));
+                            floatArrays[listInputNodes[k].getAttribute('semantic')] = {}
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[l].children[0]));
                             var offset = parseInt(listInputNodes[k].getAttribute('offset'));
-                            mesh[listInputNodes[k].getAttribute('semantic')]['offset'] = offset;
-                            mesh['INDICESP']['maxOffset'] = offset > mesh['INDICESP']['maxOffset'] ? offset : mesh['INDICESP']['maxOffset'];
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['offset'] = offset;
+                            floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
                             var accessorNode = listMeshNodesChildren[l].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
-                            mesh[listInputNodes[k].getAttribute('semantic')]['stride'] = parseInt(accessorNode.getAttribute('stride'));
-                            mesh[listInputNodes[k].getAttribute('semantic')]['count'] = parseInt(accessorNode.getAttribute('count'));
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['stride'] = parseInt(accessorNode.getAttribute('stride'));
+                            floatArrays[listInputNodes[k].getAttribute('semantic')]['count'] = parseInt(accessorNode.getAttribute('count'));
 
                         }
                     }
@@ -386,29 +392,28 @@ ColladaLoader.prototype.parse = function () {
             }
 
             // On remet les tableaux dans l'ordre
-            var end = mesh['INDICESP']['count'] * (mesh['INDICESP']['maxOffset'] + 1);
-            for (var p = 0; p < end; p += mesh['INDICESP']['maxOffset'] + 1) {
-                for (var name in mesh) {
+            var end = floatArrays['INDICESP']['count'] * (floatArrays['INDICESP']['maxOffset'] + 1);
+            for (var p = 0; p < end; p += floatArrays['INDICESP']['maxOffset'] + 1) {
+                for (var name in floatArrays) {
                     if (name == 'INDICESP')
                         continue;
                     if (p == 0)
-                        mesh[name]['newArray'] = new Array();
-                    for (var stride = 0; stride < mesh[name]['stride']; stride++)
-                        mesh[name]['newArray'].push(mesh[name]['floatArray'][mesh['INDICESP']['floatArray'][p + mesh[name]['offset']] * mesh[name]['stride'] + stride])
+                        floatArrays[name]['newArray'] = new Array();
+                    for (var stride = 0; stride < floatArrays[name]['stride']; stride++)
+                        floatArrays[name]['newArray'].push(floatArrays[name]['floatArray'][floatArrays['INDICESP']['floatArray'][p + floatArrays[name]['offset']] * floatArrays[name]['stride'] + stride])
                 }
             }
 
             // Creation des vbo
             var mesh = new Mesh('Amahani_mesh');
-            mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, mesh['POSITION']['newArray'], Math.floor(mesh['POSITION']['newArray'].length / mesh['POSITION']['stride']), this.webGL.FLOAT, mesh['POSITION']['stride']);
-            mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, mesh['TEXCOORD']['newArray'], Math.floor(mesh['TEXCOORD']['newArray'].length / mesh['TEXCOORD']['stride']), this.webGL.FLOAT, mesh['TEXCOORD']['stride']);
+            mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, floatArrays['POSITION']['newArray'], Math.floor(floatArrays['POSITION']['newArray'].length / floatArrays['POSITION']['stride']), this.webGL.FLOAT, floatArrays['POSITION']['stride']);
+            mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, floatArrays['TEXCOORD']['newArray'], Math.floor(floatArrays['TEXCOORD']['newArray'].length / floatArrays['TEXCOORD']['stride']), this.webGL.FLOAT, floatArrays['TEXCOORD']['stride']);
             mesh.setDrawingBuffer("aVertexPosition");
-            mesh.calcBBox(mesh['POSITION']['newArray']);
+            mesh.calcBBox(floatArrays['POSITION']['newArray']);
         }
     }
-
-
-
+    
+    
     /*** 
 
     Contenu du Skeleton
@@ -485,7 +490,6 @@ ColladaLoader.prototype.parse = function () {
     Skeleton['JOINTS'] = jointNames;
     Skeleton['MATRICES'] = matrix;
     Skeleton['WEIGHTS'] = weight;
-
 
     //return false;
 
