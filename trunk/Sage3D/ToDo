@@ -23,7 +23,7 @@ Refonte du parser
 	- Parsing et creation du mesh --> done
 	- Parsing et creation du skeleton --> done
 	- Parsing, loading et creation des textures
-	- Parsing animation --> entity
+	- Parsing animation --> done
 
 	http://tfc.duke.free.fr/ quelques calculs en C pas mal
 	http://www.cyberkreations.com/kreationsedge/?page_id=30

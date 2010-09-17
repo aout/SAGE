@@ -155,7 +155,7 @@ ColladaLoader.prototype.parse = function () {
         case 'X_UP':
         case 'Y_UP':
         case 'Z_UP':
-          alert('Up Axis: ' + upAxis);
+         // alert('Up Axis: ' + upAxis);
         break;
         default:
           upAxis = 'Y_UP';
@@ -491,7 +491,67 @@ ColladaLoader.prototype.parse = function () {
     Skeleton['MATRICES'] = matrix;
     Skeleton['WEIGHTS'] = weight;
 
-    //return false;
+	/*** 
+
+    Contenu du tableau Animations
+
+    var Animations = {
+    'ANIMATION1': {
+    'input': Array(),
+    'output': Array(),
+	'intangents': Array(),
+    'outtagents': Array(),
+	'interpolations': "",
+    },
+    };
+    
+    ***/
+
+
+
+    var Animations = {};
+
+    var animationsNode = ColladaLoader.getNode(this.xmlFile, '//c:library_animations');
+	var listAnimationNodes = animationsNode.getElementsByTagName('animation');
+	var animationName = '';
+	
+	for (var i = 0; i < listAnimationNodes.length; i++) {
+	
+		var animationSourcesNodes = listAnimationNodes[i].getElementsByTagName('source');
+		var animationSamplerNode = listAnimationNodes[i].getElementsByTagName('sampler');
+		var listSamplerChildren = animationSamplerNode[0].children;
+		
+		Animations[i] = new Array();
+	
+		for (var j = 0; j < listSamplerChildren.length; j++) {
+			 animationName = listSamplerChildren[j].getAttribute('source');
+			 animationName = animationName.substr(1, animationName.length - 1);
+			 
+			 for (var k = 0; k < animationSourcesNodes.length; k++) {
+				if (animationName == animationSourcesNodes[k].getAttribute('id'))
+					switch (k) {
+						case 0:
+							Animations[i]['INPUT'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(animationSourcesNodes[k].children[0]));
+							break;
+						case 1:
+							Animations[i]['OUTPUT'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(animationSourcesNodes[k].children[0]));
+							break;
+						case 2:
+							Animations[i]['IN_TANGENT'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(animationSourcesNodes[k].children[0]));
+							break;
+						case 3:
+							Animations[i]['OUT_TANGENT'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(animationSourcesNodes[k].children[0]));
+							break;
+						case 4:
+							Animations[i]['INTERPOLATION'] = ColladaLoader.nodeText(animationSourcesNodes[k].children[0]);
+							break;
+						}
+					
+				}
+		}
+	}
+		
+    // return false; // pour du test
 
     //    var meshId = meshNode.getAttribute("id"); A mettre ailleurs
 
