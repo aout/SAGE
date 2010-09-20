@@ -83,12 +83,12 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
 	//Create VBO
 	tmpBuffer = this.webGL.createBuffer();
 	this.webGL.bindBuffer(bufferType, tmpBuffer);
-    this.webGL.bufferData(bufferType, glArray, this.webGL.STATIC_DRAW);
+  this.webGL.bufferData(bufferType, glArray, this.webGL.STATIC_DRAW);
 	tmpBuffer.bufferName = bufferName;
 	tmpBuffer.bufferType = bufferType;
 	tmpBuffer.itemType = itemType;
 	tmpBuffer.itemSize = itemSize;
-    tmpBuffer.numItems = numItems;
+  tmpBuffer.numItems = numItems;
 	
 	//Add to mesh buffer array
 	this.buffers.push(tmpBuffer);
