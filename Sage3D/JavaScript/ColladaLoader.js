@@ -48,6 +48,10 @@ ColladaLoader.getInstance = function() {
 	return ColladaLoader.instance;
 };
 
+ColladaLoader.trim = function(s) {
+  return s.replace(/\n/, ' ').replace(/^\s+/g, '').replace(/\s+$/g, '');
+}
+
 /**
  * Static member
  * Node Text get node content as a String
@@ -62,7 +66,7 @@ ColladaLoader.nodeText = function(n) {
 	}
     s += c.textContent;
   }
-  return s;
+  return ColladaLoader.trim(s);
 };
 
 /**
@@ -99,6 +103,33 @@ ColladaLoader.parseIntListString = function(s) {
   return res;
 };
 
+ColladaLoader.parseMatrixString = function(s) {
+  var tab = ColladaLoader.parseFloatListString(s);
+  if (tab.length != 16) {
+    return null;
+  }  
+  return $M([[tab[00], tab[01], tab[02], tab[03]],
+             [tab[04], tab[05], tab[06], tab[07]],
+             [tab[08], tab[09], tab[10], tab[11]],
+             [tab[12], tab[13], tab[14], tab[15]]]);
+}
+
+ColladaLoader.parseMatricesString = function(s) {
+  var tab = ColladaLoader.parseFloatListString(s);
+  if (tab.length % 16) {
+    return null;
+  }
+  
+  var res = new Array(tab.length / 16);
+  for (var i = 0; i < tab.length / 16; ++i) {
+    res[i] = $M([ [tab[i * 16 + 00], tab[i * 16 + 01], tab[i * 16 + 02], tab[i * 16 + 03]],
+                  [tab[i * 16 + 04], tab[i * 16 + 05], tab[i * 16 + 06], tab[i * 16 + 07]],
+                  [tab[i * 16 + 08], tab[i * 16 + 09], tab[i * 16 + 10], tab[i * 16 + 11]],
+                  [tab[i * 16 + 12], tab[i * 16 + 13], tab[i * 16 + 14], tab[i * 16 + 15]]  ]);
+  }
+  return res;
+}
+
 ColladaLoader.nsResolver = function(prefix) {
       var ns = {
         'c' : 'http://www.collada.org/2005/11/COLLADASchema'
@@ -116,6 +147,43 @@ ColladaLoader.getNodes = function(xml, xpathexpr, ctxNode) {
   if (ctxNode == null)
     ctxNode = xml;
   return xml.evaluate(xpathexpr, ctxNode, ColladaLoader.nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+};
+
+ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {
+  
+  var sid = currentNode.getAttribute('sid');
+  
+  if (sid && sid != '') {
+    for (var i = 0; i < joints.length; ++i) {
+      if (joints[i].name == sid) {
+        jointIndex = i;
+        if (parent) {
+          parent.children.push(joints[i]);
+        }
+        joints[i].parent = parent;
+        parent = joints[i];
+        
+        var transformNodes = ColladaLoader.getNodes(xml, 'c:matrix | c:translate | c:rotate', currentNode);
+        for (var j = 0; j < transformNodes.snapshotLength; ++j) {
+          switch (transformNodes.snapshotItem(j).nodeName) {
+            case 'matrix':
+              joints[i].localMatrix = ColladaLoader.parseMatrixString(ColladaLoader.nodeText(transformNodes.snapshotItem(j)));
+              break;
+            case 'translate':
+              break;
+            case 'rotate':
+              break;
+          }
+        }
+        break;
+      }
+    }
+  }
+  
+  var childrenNodes = ColladaLoader.getNodes(xml, 'c:node', currentNode);
+  for (var i = 0; i < childrenNodes.snapshotLength; ++i) {
+    ColladaLoader.organizeJoints(xml, childrenNodes.snapshotItem(i), joints, parent);
+  }
 };
 
 ColladaLoader.prototype.load = function(task, callback) {
@@ -299,198 +367,430 @@ ColladaLoader.prototype.parse = function () {
         }
 
         materials[materialId] = new Texture(imageId);
-        materials[materialId].load(0, imageUrl, function() {alert('Texture loaded successfuly !!!')}, minfilter, magfilter);
+        materials[materialId].load(0, imageUrl, function() {alert('Texture ' + imageId + ' loaded successfuly !!!')}, minfilter, magfilter);
 
       }
     }
     
-    /***
-    
-    Boucles pour retrouver les input des meshs 
-    
-    ***/
+    /*
+    var meshes = {
+      'geometryId': {
+        triangles:  Array({
+                           indices:    Array(int),
+                           inputs:     Array({
+                                              semantic: String,
+                                              offset:   int,
+                                              source:   pointer to meshes[geometryId]['sources'][sourceId]},
+                                              ... ),
+                           stride:     int,
+                           count:      int,
+                           material:   String,
+                          },
+                          ...),
+        sources:  {
+          'sourceId': {
+            valuesArray:      Array(),
+            stride:           int,
+            count:            int
+          },
+          ...
+        }
+      }
+    }; 
+    */
+    var meshes = {};
+    var geometryNodes = ColladaLoader.getNodes(this.xmlFile, '/c:COLLADA/c:library_geometries/c:geometry');
 
-    /*** 
-
-    Contenu du floatArray
-
-    var floatArrays = {
-    'INDICESP': {
-    'floatArray': Array(),
-    'maxOffset': 0,
-    'count': 29000
-    },
-    'POSITION': {
-    'floatArray': Array(),
-    'newArray': Array(),
-    'offset': 0,
-    'stride': 3,
-    'count': 29000
+    if (!geometryNodes || !geometryNodes.snapshotLength) {
+      alert('Warning: couldn\'t find any geometry nodes');
     }
-    };
-    
-    ***/
+    else {
+      for (var i = 0; i < geometryNodes.snapshotLength; i++) {
+        var geometryId = geometryNodes.snapshotItem(i).getAttribute('id');
+        if (!geometryId || geometryId == '') {
+          alert('Error: this geometry doesn\'t have an id');
+          continue;
+        }
+        meshes[geometryId] = {};
+        meshes[geometryId]['sources'] = {};
 
-    var floatArrays = {};
-
-    var geometryNode = ColladaLoader.getNode(this.xmlFile, '//c:library_geometries/c:geometry');
-    var listMeshNodes = geometryNode.getElementsByTagName('mesh');
-
-    for (var i = 0; i < listMeshNodes.length; i++) {
-        var listMeshNodesChildren = listMeshNodes[i].children;
-        var listTrianglesNodes = listMeshNodes[i].getElementsByTagName('triangles');
-
-        for (var j = 0; j < listTrianglesNodes.length; j++) {
-            var listInputNodes = listTrianglesNodes[j].getElementsByTagName('input');
-            var indicesP = listTrianglesNodes[j].getElementsByTagName('p')[0];
-
-            floatArrays['INDICESP'] = {};
-
-            floatArrays['INDICESP']['floatArray'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesP));
-            floatArrays['INDICESP']['maxOffset'] = 0;
-            //floatArrays['INDICESP']['count'] = parseInt(listTrianglesNodes[j].getAttribute('count'));
-            floatArrays['INDICESP']['count'] = Math.floor(floatArrays['INDICESP']['floatArray'].length / 3);
-
-            for (var k = 0; k < listInputNodes.length; k++) {
-                for (var l = 0; l < listMeshNodesChildren.length; l++) {
-                    var sourceId = listInputNodes[k].getAttribute('source');
-
-                    if (listMeshNodesChildren[l].getAttribute('id') == sourceId.substr(1, sourceId.length - 1)) {
-                        if (listInputNodes[k].getAttribute('semantic') == "VERTEX") {
-                            var listInputVertices = listMeshNodesChildren[l].getElementsByTagName('input');
-
-                            for (var m = 0; m < listInputVertices.length; m++) {
-                                var sourceIdVertex = listInputVertices[m].getAttribute('source');
-
-                                for (var n = 0; n < listMeshNodesChildren.length; n++) {
-                                    if (listMeshNodesChildren[n].getAttribute('id') == sourceIdVertex.substr(1, sourceIdVertex.length - 1)) {
-                                        floatArrays['POSITION'] = {}
-                                        floatArrays['POSITION']['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[n].children[0]));
-                                        var offset = parseInt(listInputNodes[k].getAttribute('offset'));
-                                        floatArrays['POSITION']['offset'] = offset;
-                                        floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
-                                        var accessorNode = listMeshNodesChildren[n].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
-                                        floatArrays['POSITION']['stride'] = parseInt(accessorNode.getAttribute('stride'));
-                                        floatArrays['POSITION']['count'] = parseInt(accessorNode.getAttribute('count'));
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            floatArrays[listInputNodes[k].getAttribute('semantic')] = {}
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['floatArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(listMeshNodesChildren[l].children[0]));
-                            var offset = parseInt(listInputNodes[k].getAttribute('offset'));
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['offset'] = offset;
-                            floatArrays['INDICESP']['maxOffset'] = offset > floatArrays['INDICESP']['maxOffset'] ? offset : floatArrays['INDICESP']['maxOffset'];
-                            var accessorNode = listMeshNodesChildren[l].getElementsByTagName('technique_common')[0].getElementsByTagName('accessor')[0];
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['stride'] = parseInt(accessorNode.getAttribute('stride'));
-                            floatArrays[listInputNodes[k].getAttribute('semantic')]['count'] = parseInt(accessorNode.getAttribute('count'));
-
-                        }
-                    }
+        var sourceNodes = ColladaLoader.getNodes(this.xmlFile, 'c:mesh/c:source', geometryNodes.snapshotItem(i));
+        if (!sourceNodes || !sourceNodes.snapshotLength) {
+          alert('Warning: couldn\'t find any source nodes');
+          continue;
+        }
+        else {
+          for (var j = 0; j < sourceNodes.snapshotLength; j++) {
+            var sourceId = sourceNodes.snapshotItem(j).getAttribute('id');
+            if (!sourceId || sourceId == '') {
+              alert('Error: this source node doesn\'t have an id');
+              continue;
+            }
+            var accessorNode = ColladaLoader.getNode(this.xmlFile, 'c:technique_common/c:accessor', sourceNodes.snapshotItem(j));
+            if (!accessorNode) {
+              alert('Error: couldn\'t find the accessor node');
+              continue;
+            }
+            
+            var count = accessorNode.getAttribute('count');
+            if (!count || count == '') {
+              alert('Error: count attribute unknown');
+              continue;
+            }
+            count = parseInt(count);
+            
+            var stride = accessorNode.getAttribute('stride');
+            if (!stride || stride == '') {
+              alert('Error: stride attribute unknown');
+              continue;
+            }
+            stride = parseInt(stride);
+            
+            var sourceArrayId = accessorNode.getAttribute('source');
+            if (!sourceArrayId || sourceArrayId == '') {
+              alert('Error: source attribute unknown');
+              continue;
+            }
+            sourceArrayId = sourceArrayId.substr(1, sourceArrayId.length - 1);
+            
+            var sourceArrayNode = ColladaLoader.getNode(this.xmlFile, 'c:*[@id="' + sourceArrayId + '"]', sourceNodes.snapshotItem(j));
+            if (!sourceArrayNode) {
+              alert('Error: this source doesn\'t have value');
+              continue;
+            }
+            
+            if (count * stride != parseInt(sourceArrayNode.getAttribute('count'))) {
+              alert('Error: count doesn\'t match');
+              continue;
+            }
+            
+            meshes[geometryId]['sources'][sourceId] = {};
+            meshes[geometryId]['sources'][sourceId]['count'] = count;
+            meshes[geometryId]['sources'][sourceId]['stride'] = stride;
+            meshes[geometryId]['sources'][sourceId]['size'] = stride * count;
+            meshes[geometryId]['sources'][sourceId]['valuesArray'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(sourceArrayNode));
+            
+            if (meshes[geometryId]['sources'][sourceId]['valuesArray'].length < meshes[geometryId]['sources'][sourceId]['size']) {
+              alert('Error: There is not enough value in the array');
+              delete meshes[geometryId][sourceArrayId];
+            } else if (meshes[geometryId]['sources'][sourceId]['valuesArray'].length > meshes[geometryId]['sources'][sourceId]['size']) {
+              alert('Warning: there is too much value in the array');
+            }
+          }
+        }
+        
+        var trianglesNodes = ColladaLoader.getNodes(this.xmlFile, 'c:mesh/c:triangles', geometryNodes.snapshotItem(i));
+        if (!trianglesNodes || !trianglesNodes.snapshotLength) {
+          alert('Error: couldn\'t find any triangles nodes');
+          delete meshes[geometryId];
+          continue;
+        }
+        else {
+          meshes[geometryId]['triangles'] = new Array();
+          for (var j = 0; j < trianglesNodes.snapshotLength; j++) {
+            var triangles = {};
+            
+            var count = trianglesNodes.snapshotItem(j).getAttribute('count');
+            if (!count || count == '') {
+              alert('Error: no count attribute');
+              continue;
+            }
+            count = parseInt(count);
+            
+            var material = trianglesNodes.snapshotItem(j).getAttribute('material');
+            if (!material || material == '') {
+              alert('Error: no material attribute');
+              continue;
+            }
+            
+            triangles['count'] = count;
+            triangles['material'] = material;
+            
+            var maxOffset = 0;
+            
+            var inputNodes = ColladaLoader.getNodes(this.xmlFile, 'c:input', trianglesNodes.snapshotItem(j));
+            if (!inputNodes || !inputNodes.snapshotLength) {
+              alert('Error: couldn\'t find any input nodes');
+              continue;
+            }
+            else {
+              triangles['inputs'] = new Array();
+              for (var k = 0; k < inputNodes.snapshotLength; k++) {
+                var input = {};
+                
+                var offset = inputNodes.snapshotItem(k).getAttribute('offset');
+                if (!offset || offset == '') {
+                  alert('Error: no offset');
+                  continue;
                 }
+                offset = parseInt(offset);
+                
+                var source = inputNodes.snapshotItem(k).getAttribute('source');
+                if (!source || source == '') {
+                  alert('Error: no source');
+                  continue;
+                }
+                source = source.substr(1, source.length - 1);
+                
+                var semantic = inputNodes.snapshotItem(k).getAttribute('semantic');
+                if (!semantic || semantic == '') {
+                  alert('Error: no semantic');
+                  continue;
+                }
+                
+                var sourceNode = ColladaLoader.getNode(this.xmlFile, 'c:mesh/c:*[@id="' + source + '"]', geometryNodes.snapshotItem(i));
+                if (!sourceNode) {
+                  alert('Error: source not found');
+                  continue;
+                }
+
+                if (sourceNode.nodeName == 'vertices') {
+                  var newInputNode = ColladaLoader.getNode(this.xmlFile, 'c:input', sourceNode);
+                  if (!newInputNode) {
+                    alert('Error: no input node in vertices');
+                    continue;
+                  }
+                  
+                  semantic = newInputNode.getAttribute('semantic');
+                  source = newInputNode.getAttribute('source');
+                  source = source.substr(1, source.length - 1);
+                }
+                
+                for (var sourceName in meshes[geometryId]['sources']) {
+                  if (sourceName == source) {
+                    input['semantic'] = semantic;
+                    maxOffset = offset > maxOffset ? offset : maxOffset;
+                    input['offset'] = offset;
+                    input['source'] = meshes[geometryId]['sources'][sourceName];
+                    triangles['inputs'].push(input);
+                    break;
+                  }
+                }
+              }
             }
 
+            triangles['stride'] = maxOffset + 1;
+            
+            var indicesNode = ColladaLoader.getNode(this.xmlFile, 'c:p', trianglesNodes.snapshotItem(j));
+            if (!indicesNode) {
+              alert('Error: no indices node');
+              continue;
+            }
+            
+            triangles['indices'] = ColladaLoader.parseIntListString(ColladaLoader.nodeText(indicesNode));
+            if (triangles['indices'].length != triangles['count'] * triangles['stride'] * 3) {
+              alert('Warning: bad number of indices');
+            }
+            
+            meshes[geometryId]['triangles'].push(triangles);
+          }
+        }
+      }
+    }
+
+
+            /*
             // On remet les tableaux dans l'ordre
-            var end = floatArrays['INDICESP']['count'] * (floatArrays['INDICESP']['maxOffset'] + 1);
-            for (var p = 0; p < end; p += floatArrays['INDICESP']['maxOffset'] + 1) {
-                for (var name in floatArrays) {
+            var end = mesh['INDICESP']['count'] * (mesh['INDICESP']['maxOffset'] + 1);
+            for (var p = 0; p < end; p += mesh['INDICESP']['maxOffset'] + 1) {
+                for (var name in mesh) {
                     if (name == 'INDICESP')
                         continue;
                     if (p == 0)
-                        floatArrays[name]['newArray'] = new Array();
-                    for (var stride = 0; stride < floatArrays[name]['stride']; stride++)
-                        floatArrays[name]['newArray'].push(floatArrays[name]['floatArray'][floatArrays['INDICESP']['floatArray'][p + floatArrays[name]['offset']] * floatArrays[name]['stride'] + stride])
+                        mesh[name]['newArray'] = new Array();
+                    for (var stride = 0; stride < mesh[name]['stride']; stride++)
+                        mesh[name]['newArray'].push(mesh[name]['floatArray'][mesh['INDICESP']['floatArray'][p + mesh[name]['offset']] * mesh[name]['stride'] + stride])
                 }
             }
+            */
 
-            // Creation des vbo
-            var mesh = new Mesh('Amahani_mesh');
-            mesh.addBuffer("aVertexPosition", this.webGL.ARRAY_BUFFER, floatArrays['POSITION']['newArray'], Math.floor(floatArrays['POSITION']['newArray'].length / floatArrays['POSITION']['stride']), this.webGL.FLOAT, floatArrays['POSITION']['stride']);
-            mesh.addBuffer("aTextureCoord", this.webGL.ARRAY_BUFFER, floatArrays['TEXCOORD']['newArray'], Math.floor(floatArrays['TEXCOORD']['newArray'].length / floatArrays['TEXCOORD']['stride']), this.webGL.FLOAT, floatArrays['TEXCOORD']['stride']);
-            mesh.setDrawingBuffer("aVertexPosition");
-            mesh.calcBBox(floatArrays['POSITION']['newArray']);
-        }
-    }
-    
-    
-    /*** 
 
-    Contenu du Skeleton
+    /***
 
-    var Skeleton = {
-    'JOINT1': {
-    'matrix': Matrix(),
-    'weights': Array(),
-    },
+    var skeletons = {
+      'controllerId': {
+        boundMesh:            String,
+        bindShapeMatrix:      Matrix,
+        jointsNumber:         int,
+        weightsNumber:        int,
+        vertexWeightsNumber:  int,
+        root:                 pointer to a joint,
+        joints:               Array({ name:         String,
+                                      ibm:          Matrix,
+                                      localMatrix:  Matrix,
+                                      worldMatrix:  Matrix,
+                                      parent:       int,
+                                      children:     Array(int) }),
+        weights:              Array(int),
+        vertexWeights:        Array(Array({joint: int, weight: int}))
+      },
+      ...      
     };
-    
+
     ***/
 
-    var Skeleton = {};
-
-    var skinNode = ColladaLoader.getNode(this.xmlFile, '//c:library_controllers/c:controller/c:skin');
-    var skinSourcesNodes = skinNode.getElementsByTagName('source');
-    var jointsNode = skinNode.getElementsByTagName('joints')[0];
-    var vertexWeights = skinNode.getElementsByTagName('vertex_weights')[0];
-
-    var inputs = jointsNode.getElementsByTagName('input');
-    var jointNameId = '';
-    var matrixId = '';
-    var weightId = '';
-
-    for (var i = 0; i < inputs.length; i++) {
-        if (inputs[i].getAttribute('semantic') == 'JOINT') {
-            jointNameId = inputs[i].getAttribute('source');
-            jointNameId = jointNameId.substr(1, jointNameId.length - 1);
+    var skeletons = {};
+    var skinNodes = ColladaLoader.getNodes(this.xmlFile, '/c:COLLADA/c:library_controllers/c:controller/c:skin');
+    
+    if (!skinNodes) {
+      alert('Warning: There isn\'t skin node');
+    } else {
+      for (var i = 0; i < skinNodes.snapshotLength; i++) {
+        var skin = {};
+        
+        var boundMeshId = skinNodes.snapshotItem(i).getAttribute('source');
+        var boundMeshFound = false;
+        
+        if (boundMeshId || boundMeshId != '') {
+          boundMeshId = boundMeshId.substr(1, boundMeshId.length - 1);
+          for (var meshName in meshes) {
+            if (meshName == boundMeshId) {
+              boundMeshFound = true;
+              break;
+            }
+          }
         }
-        else if (inputs[i].getAttribute('semantic') == 'INV_BIND_MATRIX') {
-            matrixId = inputs[i].getAttribute('source');
-            matrixId = matrixId.substr(1, matrixId.length - 1);
+        if (!boundMeshFound) {
+          alert('Error: bad mesh id');
+          continue;          
         }
+        
+        skin['boundMesh'] = boundMeshId;
+        
+        var controllerId = ColladaLoader.getNode(this.xmlFile, '..', skinNodes.snapshotItem(i)).getAttribute('id');
+        if (!controllerId || controllerId == '') {
+          alert('Error: bad controller id');
+          continue;
+        }
+        
+        var bindShapeMatrixNode = ColladaLoader.getNode(this.xmlFile, 'c:bind_shape_matrix', skinNodes.snapshotItem(i));
+        if (!bindShapeMatrixNode) {
+          alert('Warning: no bind shape matrix. Assuming it\'s identity');
+          skin['bindShapeMatrix'] = Matrix.I(4);
+        }
+        else {
+          skin['bindShapeMatrix'] = ColladaLoader.ParseMatrixString(ColladaLoader.nodeText(bindShapeMatrixNode));
+          if (!skin['bindShapeMatrix']) {
+            alert('Warning: invalid bind shape matrix. Assuming it\'s identity');
+            skin['bindShapeMatrix'] = Matrix.I(4);
+          }
+        }
+        
+        var jointsNode = ColladaLoader.getNode(this.xmlFile, 'c:joints', skinNodes.snapshotItem(i));
+        if (!jointsNode) {
+          alert('Error: no joints node');
+          continue;
+        }
+        
+        var inputJointNameNode = ColladaLoader.getNode(this.xmlFile, 'c:input[@semantic="JOINT"]', jointsNode);
+        if (!inputJointNameNode) {
+          alert('Error: no input joint node');
+          continue;
+        }
+        
+        var jointNameArrayId = inputJointNameNode.getAttribute('source');
+        if (!jointNameArrayId || jointNameArrayId == '') {
+          alert('Error: no joint name array id');
+          continue;
+        }
+        jointNameArrayId = jointNameArrayId.substr(1, jointNameArrayId.length - 1);
+        
+        var inputIBMNode = ColladaLoader.getNode(this.xmlFile, 'c:input[@semantic="INV_BIND_MATRIX"]', jointsNode);
+        if (!inputIBMNode) {
+          alert('Error: no IBM input node');
+          continue;
+        }
+        
+        var IBMArrayId = inputIBMNode.getAttribute('source');
+        if (!IBMArrayId || IBMArrayId == '') {
+          alert('Error: no IBM array id');
+          continue;
+        }
+        IBMArrayId = IBMArrayId.substr(1, IBMArrayId.length - 1);
+        
+        var jointNameArraySourceNode = ColladaLoader.getNode(this.xmlFile, 'c:source[@id="' + jointNameArrayId + '"]', skinNodes.snapshotItem(i));
+        var IBMArraySourceNode = ColladaLoader.getNode(this.xmlFile, 'c:source[@id="' + IBMArrayId + '"]', skinNodes.snapshotItem(i));
+        
+        if (!jointNameArraySourceNode || !IBMArraySourceNode) {
+          alert('Error: bad id');
+          continue;
+        }
+        
+        //bon j'en ai marre de checker les valeures de retour.
+        
+        var jointAccessorNode = ColladaLoader.getNode(this.xmlFile, 'c:technique_common/c:accessor', jointNameArraySourceNode);
+        skin['jointsNumber'] = jointAccessorNode.getAttribute('count');
+        var jointNameArrayNode = ColladaLoader.getNode(this.xmlFile, 'c:*[@id="' + jointAccessorNode.getAttribute('source').substr(1, jointAccessorNode.getAttribute('source').length - 1) + '"]', jointNameArraySourceNode);
+        
+        var jointNameTab = ColladaLoader.nodeText(jointNameArrayNode).split(/\s+/);
+        
+        var IBMAccessorNode = ColladaLoader.getNode(this.xmlFile, 'c:technique_common/c:accessor', IBMArraySourceNode);
+        var IBMArrayNode  = ColladaLoader.getNode(this.xmlFile, 'c:*[@id="' + IBMAccessorNode.getAttribute('source').substr(1, IBMAccessorNode.getAttribute('source').length - 1) + '"]', IBMArraySourceNode);
+        
+        var matricesTab = ColladaLoader.parseMatricesString(ColladaLoader.nodeText(IBMArrayNode));
+        
+        if (!jointNameTab || !matricesTab || jointNameTab.length != skin['jointsNumber'] || jointNameTab.length != matricesTab.length) {
+          alert('CACA');
+          continue;
+        }
+        
+        skin['joints'] = new Array(skin['jointsNumber'])
+        for (var j = 0; j < skin['jointsNumber']; ++j) {
+          skin['joints'][j] = {
+            name:               jointNameTab[j],
+            inverseBindMatrix:  matricesTab[j],
+            localMatrix:        Matrix.I(4),
+            worldMatrix:        Matrix.I(4),
+            parent:             -1,
+            children:           []
+          };
+        }
+        
+        // weights
+        var weightsSourceNodeId = ColladaLoader.getNode(this.xmlFile, 'c:vertex_weights/c:input[@semantic="WEIGHT"]', skinNodes.snapshotItem(i)).getAttribute('source');
+        var weightsAccessorNode = ColladaLoader.getNode(this.xmlFile, 'c:source[@id="' + weightsSourceNodeId.substr(1, weightsSourceNodeId.length - 1) + '"]/c:technique_common/c:accessor', skinNodes.snapshotItem(i));
+        var weightsArrayId = weightsAccessorNode.getAttribute('source');
+        skin['weightsNumber'] = parseInt(weightsAccessorNode.getAttribute('count'));
+        skin['weights'] = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(ColladaLoader.getNode(this.xmlFile, 'c:source/c:*[@id="' + weightsArrayId.substr(1, weightsArrayId.length - 1) + '"]', skinNodes.snapshotItem(i))));
+        
+        // vertexWeights
+        skin['vertexWeightsNumber'] = parseInt(ColladaLoader.getNode(this.xmlFile, 'c:vertex_weights', skinNodes.snapshotItem(i)).getAttribute('count'));
+        skin['vertexWeights'] = new Array(skin['vertexWeightsNumber']);
+        var vcountArray = ColladaLoader.parseIntListString(ColladaLoader.nodeText(ColladaLoader.getNode(this.xmlFile, 'c:vertex_weights/c:vcount', skinNodes.snapshotItem(i))));
+        var vArray = ColladaLoader.parseIntListString(ColladaLoader.nodeText(ColladaLoader.getNode(this.xmlFile, 'c:vertex_weights/c:v', skinNodes.snapshotItem(i))));
+        var vIndex = 0;
+        for (var j = 0; j < skin['vertexWeightsNumber']; ++j) {
+          skin['vertexWeights'][j] = new Array(vcountArray[j]);
+          for (var k = 0; k < vcountArray[j]; ++k) {
+            skin['vertexWeights'][j][k] = {
+              joint:  vArray[vIndex + k * 2 + 0],
+              weight: vArray[vIndex + k * 2 + 1]
+              };
+          }
+          vIndex += vcountArray[j] * 2;
+        }
+        delete vcountArray;
+        delete vArray;
+        
+        // Parsing visual scene to find the joint hierarchy 
+        var instanceControllerNode = ColladaLoader.getNode(this.xmlFile, '//c:instance_controller[@url="#' + controllerId + '"]');
+        var skeletonRootId = ColladaLoader.nodeText(ColladaLoader.getNode(this.xmlFile, 'c:skeleton', instanceControllerNode));
+        skeletonRootId = skeletonRootId.substr(1, skeletonRootId.length - 1);
+        var skeletonRootNode = ColladaLoader.getNode(this.xmlFile, '//c:node[@id="' + skeletonRootId + '"]');
+        ColladaLoader.organizeJoints(this.xmlFile, skeletonRootNode, skin['joints'], null);
+        
+        for (var j = 0; j < skin['joints'].length; ++j) {
+          if (!skin['joints'][j].parent) {
+            skin['root'] = skin['joints'][j];
+            break;
+          }
+        }
+        
+        skeletons[controllerId] = skin;
+      }
     }
-
-    inputs = vertexWeights.getElementsByTagName('input');
-
-    for (var i = 0; i < inputs.length; i++) {
-        if (inputs[i].getAttribute('semantic') == 'WEIGHT') {
-            weightId = inputs[i].getAttribute('source');
-            weightId = weightId.substr(1, weightId.length - 1);
-        }
-    }
-
-
-    var vcount = ColladaLoader.parseIntListString(ColladaLoader.nodeText(vertexWeights.getElementsByTagName('vcount')[0]));
-    var v = ColladaLoader.parseIntListString(ColladaLoader.nodeText(vertexWeights.getElementsByTagName('v')[0]));
-    var jointNames = new Array();
-    var matrix = new Array();
-    var weight;
-
-    for (var i = 0; i < skinSourcesNodes.length; i++) {
-        switch (skinSourcesNodes[i].getAttribute('id')) {
-            case jointNameId:
-                var jointNamesString = ColladaLoader.nodeText(skinSourcesNodes[i].children[0]);
-                jointNamesString = jointNamesString.replace(/^\n*\s+/g, "").replace(/\s+\n*$/g, "");
-                jointNames = jointNamesString.split(/\s+/);
-                break;
-            case matrixId:
-                var matrixTmp = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(skinSourcesNodes[i].children[0]));
-                for (var j = 0; j < matrixTmp.length; j += 16) {
-                    var matrixTmp2 = new Array();
-                    matrixTmp2.push(matrixTmp[j]);
-                    matrix.push(new Matrix(matrixTmp2));
-                }
-                break;
-            case weightId:
-                weight = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(skinSourcesNodes[i].children[0]));
-                break;
-        }
-    }
-
-    Skeleton['JOINTS'] = jointNames;
-    Skeleton['MATRICES'] = matrix;
-    Skeleton['WEIGHTS'] = weight;
-
+    return false;
+    
 	/*** 
 
     Contenu du tableau Animations
@@ -550,21 +850,10 @@ ColladaLoader.prototype.parse = function () {
 				}
 		}
 	}
-		
-    // return false; // pour du test
-
-    //    var meshId = meshNode.getAttribute("id"); A mettre ailleurs
-
-    //delete explodeTmpBuffers
-    /*for (var name in mesh) {
-    delete mesh[name];
-    }*/
-    delete mesh;
-
     this.status = ColladaLoader.StatusEnum.COMPLETE;
 
 
     if (this.callback != undefined) {
-        this.callback(mesh);
+        this.callback(null);
     }
 };
