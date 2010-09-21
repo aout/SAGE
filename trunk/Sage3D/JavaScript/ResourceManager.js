@@ -13,14 +13,14 @@ ResourceManager = function() {
 		Textures	: 10240,
 		Meshs		: 10240,
 		Programs	: 30,
-		Entities	: 100
+		Entities	: 100,
 	};
 	
 	this.usage = {
 		Textures	: 0,
 		Meshs		: 0,
 		Programs	: 0,
-		Entities	: 0
+		Entities	: 0,
 	};
 	
 	this.entities = [];
@@ -264,12 +264,13 @@ ResourceManager.prototype.loadCollada = function(task) {
 
 ResourceManager.prototype.getTextureByName = function(name) {
 	return this.textures[name];
-}
+};
 
 ResourceManager.prototype.getMeshByName = function(name) {
 	return this.meshs[name];
-}
+};
 
 ResourceManager.prototype.getProgramByName = function(name){
 	return this.programs[name];
-}
+};
+

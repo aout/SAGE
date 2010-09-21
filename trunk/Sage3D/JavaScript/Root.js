@@ -5,16 +5,26 @@ gIncludedFiles.push("Root.js");
 include("Program.js");
 include("Transform.js");
 include("Camera.js");
+include("Light.js");
 
 Root = function() {
 	this.viewPort = undefined;
 	this.webGL = undefined;
 	this.status = Root.StatusEnum.ROOT_NONE;
 	
-	this.projectionMatrix = Matrix.I(4);;
+	this.projectionMatrix = Matrix.I(4);
 	this.defaultProgram = undefined;
 	this.rootTransform = undefined;
-	this.camera = undefined;	
+	this.camera = undefined;
+	
+	this.isLightingEnabled = true;
+	this.lights = [];
+	this.maxLights = 5; //must have the exact same value in the shader!
+	this.numberOfLights = 0;
+	this.lightsPositions = [];
+	this.lightsDirections = [];
+	this.lightsColors = [];
+	this.lightsIntensities = [];
 	
 	this.maxFps = 200;
 	this.actualFps = 0.0;
@@ -181,10 +191,29 @@ Root.prototype.draw = function() {
 	root.camera.update();
 	root.rootTransform.render();
 	root.lastRender = new Date().getTime();
-}
+};
 
 Root.prototype.getFps = function() {
 	var root = Root.getInstance();
 	root.actualFps = root.renderedFrames * 2;
 	root.renderedFrames = 0;
-}
+};
+
+/**
+ * Adds a new light into the current scene.
+ * @param {String} name
+ * @param {String} type
+ * @param {Array} color
+ * @param {Int} intensity
+ * @param {Array} direction
+ * @param {Transform} parent
+ */
+Root.prototype.addLight = function(name, type, color, intensity, direction, parent) {
+  
+};
+
+Root.prototype.removeLight = function(name) {
+  
+};
+
+Root.prototype.getNumberOfLights = function()
