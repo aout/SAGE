@@ -2,10 +2,18 @@ if (gIncludedFiles == undefined)
 	alert("You must include this file");
 gIncludedFiles.push("Root.js");
 
-include("Program.js");
-include("Transform.js");
+include("AnimatableEntity.js");
 include("Camera.js");
+include("ColladaLoader.js");
+include("Entity.js");
+include("Joint.js");
 include("Light.js");
+include("Mesh.js");
+include("Primitives.js");
+include("Program.js");
+include("ResourceManager.js");
+include("Texture.js");
+include("Transform.js");
 
 Root = function() {
 	this.viewPort = undefined;
@@ -216,4 +224,4 @@ Root.prototype.removeLight = function(name) {
   
 };
 
-Root.prototype.getNumberOfLights = function()
+Root.prototype.getNumberOfLights = function() {};

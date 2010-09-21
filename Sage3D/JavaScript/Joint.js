@@ -111,7 +111,7 @@ Joint.prototype.invert = function() {
 /**
  * Render
  */
-Joint.prototype.render = function() {
+Joint.prototype.update = function() {
   var hasChanged = false;
   
   //First, recompute the matrix if necessary
@@ -125,5 +125,11 @@ Joint.prototype.render = function() {
     this.isLocalMatrixChanged = false;
     this.isParentMatrixChanged = false;
     hasChanged = true;
+  }
+  
+  //Call update() on the children Transform
+  for (var i = 0; i < this.children.length; ++i) {
+    this.children[i].isParentMatrixChanged = hasChanged;
+    this.children[i].update();
   }
 };

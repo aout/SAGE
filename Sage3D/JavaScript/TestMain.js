@@ -1,5 +1,5 @@
-var gIncludedFiles = new Array();
-gIncludedFiles.push("sage3d.js");
+var gIncludedFiles = [];
+gIncludedFiles.push("TestMain.js");
 
 Array.prototype.inArray = function (value) {
 	for (var i = 0; i < this.length; ++i)
@@ -14,9 +14,6 @@ function include(fileName) {
 }
 
 include("Root.js");
-include("ColladaLoader.js");
-include ("ResourceManager.js");
-include ("Primitives.js");
 
 if (typeof KeyEvent == "undefined") {
     var KeyEvent = {
@@ -203,38 +200,27 @@ function drawScene(elapsedTime)
 function initScene()
 {
 	var root = Root.getInstance();
-	//var mesh = ResourceManager.getInstance().getMeshByName("cube");
-	//var texture = ResourceManager.getInstance().getTextureByName("cubetexture");
 	
-	var amahaniMesh = ResourceManager.getInstance().getMeshByName("Amahani_mesh");
-	//var amahaniTex = ResourceManager.getInstance().getTextureByName("Amahani_texture");
 	
 	var rootTransform = Transform.getTransform("root");
-	//var cubeTransform = rootTransform.addChild("cube");
-	var amahaniTransform = rootTransform.addChild("amahani");
-	//var amahaniTransform = cubeTransform.addChild("amahani");
+  var amahaniTransform = Transform.getTransform("Amahani");
 	var cameraTransform = rootTransform.addChild("camera");
+
+	if (amahaniTransform) {
+	  alert(amahaniTransform.entities[0].name);
+	} else {
+	  alert('echec');
+	}
 	
 	root.getCamera().attach(cameraTransform);
 	
-	//cubeTransform.translate([0,-1,-6]);
-	amahaniTransform.translate([0, 1, 0]);
+	//amahaniTransform.translate([0, 1, 0]);
 	
-	//var cube = new Entity("cube", mesh, [texture]);
-	var amahani = new Entity("amahani", amahaniMesh, /*[amahaniTex]*/new Array());
-	
-	//cubeTransform.addEntity(cube);
-	amahaniTransform.addEntity(amahani);
-	
-	root.startRendering(drawScene);
+	//root.startRendering(drawScene);
 }
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();
-	//rm.prepareMesh("cube", "cube");
-	//rm.prepareTexture("cubetexture", "Resources/Textures/nehe.gif");
-	
-	rm.prepareEntity(name, primitive, material);
 	
 	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
 	rm.doLoad(initScene);

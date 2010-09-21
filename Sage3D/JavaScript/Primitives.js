@@ -3,6 +3,8 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("Primitives.js");
 
+include("Mesh.js");
+
 /**
  * Primitives namespace
  */
@@ -105,9 +107,9 @@ Primitives.cube = function(name, callback) {
 	var mesh = new Mesh(name);
 	
 	mesh.calcBBox(vertices);
-	mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3);
-	mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2);
-	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1);
+	mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3, gl.STATIC_DRAW);
+	mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2, gl.STATIC_DRAW);
+	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1, gl.STATIC_DRAW);
 	mesh.setDrawingBuffer("indices");
 	
 	callback(mesh);
@@ -162,9 +164,9 @@ Primitives.sphere = function(name, radius, lats, longs, callback) {
     var mesh = new Mesh(name);
     
     mesh.calcBBox(vertices);
-    mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, Math.floor(vertices.length / 3), gl.FLOAT, 3);
-    mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, Math.floor(texCoord.length / 2), gl.FLOAT, 2);
-    mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, indices.length, gl.UNSIGNED_SHORT, 1);
+    mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, Math.floor(vertices.length / 3), gl.FLOAT, 3, gl.STATIC_DRAW);
+    mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, Math.floor(texCoord.length / 2), gl.FLOAT, 2, gl.STATIC_DRAW);
+    mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, indices.length, gl.UNSIGNED_SHORT, 1, gl.STATIC_DRAW);
     mesh.setDrawingBuffer("indices");
   
     callback(mesh);
