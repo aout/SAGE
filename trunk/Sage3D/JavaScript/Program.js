@@ -139,13 +139,96 @@ Program.prototype.setUniforms = function(tab) {
 		this.uniforms[i].id = this.webGL.getUniformLocation(this.program, this.uniforms[i].name);
 		if (this.uniforms[i].id == -1)
 			continue;
-		switch (this.uniforms[i].type) {
-			case "Matrix4fv":
-				this.webGL.uniformMatrix4fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value.flatten()));
+		switch (this.uniforms[i].numberOfElements) {
+			case "1":
+				switch (this.uniforms[i].type) {
+				  case "Int":
+				    if (this.uniforms[i].isArray === true) {
+				      this.webGL.uniform1iv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+				    }
+				    else {
+				      this.webGL.uniform1i(this.uniforms[i].id, this.uniforms[i].value0);
+				    }
+				  break;
+				  case "Float":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform1fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else {
+              this.webGL.uniform1f(this.uniforms[i].id, this.uniforms[i].value0);
+            }
+				  break;
+				}
 			break;
-			case "1i":
-				this.webGL.uniform1i(this.uniforms[i].id, this.uniforms[i].value);
+			case "2":
+       switch (this.uniforms[i].type) {
+          case "Int":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform2iv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else {
+              this.webGL.uniform2i(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1);
+            }
+          break;
+          case "Float":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform2fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else if (this.uniforms[i].isMatrix === true) {
+              this.webGL.uniformMatrix2fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value0.flatten()));
+            }
+            else {
+              this.webGL.uniform2f(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1);
+            }
+          break;
+        }
 			break;
+			case "3":
+			 switch (this.uniforms[i].type) {
+          case "Int":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform3iv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else {
+              this.webGL.uniform3i(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1, this.uniforms[i].value2);
+            }
+          break;
+          case "Float":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform3fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else if (this.uniforms[i].isMatrix === true) {
+              this.webGL.uniformMatrix3fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value0.flatten()));
+            }
+            else {
+              this.webGL.uniform3f(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1, this.uniforms[i].value2);
+            }
+          break;
+        }
+      break;
+      case "4":
+       switch (this.uniforms[i].type) {
+          case "Int":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform4iv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else {
+              this.webGL.uniform4i(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1, this.uniforms[i].value2, this.uniforms[i].value3);
+            }
+          break;
+          case "Float":
+            if (this.uniforms[i].isArray === true) {
+              this.webGL.uniform4fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
+            }
+            else if (this.uniforms[i].isMatrix === true) {
+              this.webGL.uniformMatrix4fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value0.flatten()));
+            }
+            else {
+              this.webGL.uniform2f(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1, this.uniforms[i].value2, this.uniforms[i].value3);
+            }
+          break;
+        }
+      break;
 		}
 	}
 	
