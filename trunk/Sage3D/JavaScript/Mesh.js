@@ -10,7 +10,7 @@ gIncludedFiles.push("Mesh.js");
 Mesh = function (name) {
 	this.webGL = Root.getInstance().getWebGL();
 	this.name = name;
-	this.buffers = new Array();
+	this.buffers = [];
 	this.drawingBuffer = null;
 	this.BBox = {
 		x: { min: -Infinity, max: Infinity },
@@ -24,22 +24,10 @@ Mesh = function (name) {
  */
 Mesh.prototype.destroy = function() {
 	for (var i = 0; i < this.buffers.length; ++i) {
+		this.webGL.deleteBuffer(this.buffers[i]);
 		delete this.buffers[i];
 	}
 	delete this.buffers;
-};
-
-/**
- * Clone
- * @param {Mesh} mesh Mesh Object
- */
-Mesh.prototype.clone = function(mesh) {
-	delete this.buffers;
-	this.buffers = new Array();
-	for (var i = 0; i < mesh.buffers.length; ++i) {
-		this.buffers.push(buffers[i]);
-	}
-	this.BBox = mesh.BBox;
 };
 
 /**
@@ -50,8 +38,9 @@ Mesh.prototype.clone = function(mesh) {
  * @param {Int} numItems Number of Vertex
  * @param {Int} itemType Item type: gl.FIXED | gl.BYTE | gl.UNSIGNED_BYTE | gl.SHORT | gl.FLOAT | gl.UNSIGNED_SHORT
  * @param {Int} itemSize Number of elements per Vertex
+ * @param {Int} usage Usage: gl.STATIC_DRAW | gl.DYNAMIC_DRAW | gl.STREAM_DRAW
  */
-Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems, itemType, itemSize) {
+Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems, itemType, itemSize, usage) {
 	var tmpBuffer;
 	var glArray;
 	
@@ -83,7 +72,7 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
 	//Create VBO
 	tmpBuffer = this.webGL.createBuffer();
 	this.webGL.bindBuffer(bufferType, tmpBuffer);
-  this.webGL.bufferData(bufferType, glArray, this.webGL.STATIC_DRAW);
+  this.webGL.bufferData(bufferType, glArray, usage);
 	tmpBuffer.bufferName = bufferName;
 	tmpBuffer.bufferType = bufferType;
 	tmpBuffer.itemType = itemType;
@@ -93,6 +82,47 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
 	//Add to mesh buffer array
 	this.buffers.push(tmpBuffer);
 	return true;
+};
+
+/**
+ * Submit data to mesh already created
+ * @param {String} bufferName Name of the new buffer
+ * @param {Array} bufferData Data array
+ */
+Mesh.prototype.subData = function(bufferName, bufferData) {
+  var glArray = null;
+  
+  for (var i = 0; i < this.buffers.length; ++i) {
+    if (this.buffers[i].bufferName === bufferName) {
+      //Check data format and instanciates Buffer
+      switch (this.buffers[i].itemType) {
+        case this.webGL.FIXED:
+        case this.webGL.BYTE:
+        case this.webGL.UNSIGNED_BYTE:
+        case this.webGL.SHORT:
+          //throw SageNotImplementedException
+          return false;
+          break;
+        case this.webGL.FLOAT:
+          if (this.buffers[i].bufferType == this.webGL.ELEMENT_ARRAY_BUFFER) {
+            //throw SageBadArgsException;
+            return false;
+          }
+          glArray = new WebGLFloatArray(bufferData);
+          break;
+        case this.webGL.UNSIGNED_SHORT:
+          glArray = new WebGLUnsignedShortArray(bufferData);
+          break;
+        default:
+          //throw SageBadArgsException();
+          return false;
+          break;
+      }
+      this.webGL.bindBuffer(this.buffers[i].bufferType, this.buffers[i]);
+      this.webGL.bufferSubData(this.buffers[i].bufferType, 0, glArray);
+      break;
+    }
+  }
 };
 
 /**

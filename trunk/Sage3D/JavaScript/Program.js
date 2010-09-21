@@ -45,7 +45,7 @@ Program.prototype.load = function(vertexShader, fragmentShader, callback) {
 	
 	var self = this;
 	
-	this.xhr.onreadystatechange = function () {
+  this.xhr.onreadystatechange = function () {
 		if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
 			self.vertexShaderString = self.xhr.responseText;
 		  
@@ -56,19 +56,18 @@ Program.prototype.load = function(vertexShader, fragmentShader, callback) {
 				}
 			};
 		  
-      		self.xhr.open("GET", fragmentShader, true);
-		    self.xhr.overrideMimeType("text/xml");
-		    self.xhr.setRequestHeader("Content-Type", "text/xml");
-		    try { self.xhr.send(null); }
-			catch(e) { alert(e.Message); }
-		  
+      self.xhr.open("GET", fragmentShader, true);
+      self.xhr.overrideMimeType("text/xml");
+      self.xhr.setRequestHeader("Content-Type", "text/xml");
+      try { self.xhr.send(null); }
+      catch(e) { alert(e.Message); } 
 		}
-    };
+  };
 
-    this.xhr.open("GET", vertexShader, true);
-    this.xhr.overrideMimeType("text/xml");
-    this.xhr.setRequestHeader("Content-Type", "text/xml");
-    try { this.xhr.send(null); }
+  this.xhr.open("GET", vertexShader, true);
+  this.xhr.overrideMimeType("text/xml");
+  this.xhr.setRequestHeader("Content-Type", "text/xml");
+  try { this.xhr.send(null); }
 	catch(e) { alert(e.Message); }
 	
 	return this.status;

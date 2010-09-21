@@ -3,6 +3,11 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("ColladaLoader.js");
 
+include("AnimatableEntity.js");
+include("Entity.js");
+include("Texture.js");
+include("Joint.js");
+
 /**
  * ColladaLoader Class
  */
@@ -108,9 +113,9 @@ ColladaLoader.parseMatrixString = function(s) {
   if (tab.length != 16) {
     return null;
   }  
-  return $M([[tab[00], tab[01], tab[02], tab[03]],
-             [tab[04], tab[05], tab[06], tab[07]],
-             [tab[08], tab[09], tab[10], tab[11]],
+  return $M([[tab[ 0], tab[ 1], tab[ 2], tab[ 3]],
+             [tab[ 4], tab[ 5], tab[ 6], tab[ 7]],
+             [tab[ 8], tab[ 9], tab[10], tab[11]],
              [tab[12], tab[13], tab[14], tab[15]]]);
 }
 
@@ -122,9 +127,9 @@ ColladaLoader.parseMatricesString = function(s) {
   
   var res = new Array(tab.length / 16);
   for (var i = 0; i < tab.length / 16; ++i) {
-    res[i] = $M([ [tab[i * 16 + 00], tab[i * 16 + 01], tab[i * 16 + 02], tab[i * 16 + 03]],
-                  [tab[i * 16 + 04], tab[i * 16 + 05], tab[i * 16 + 06], tab[i * 16 + 07]],
-                  [tab[i * 16 + 08], tab[i * 16 + 09], tab[i * 16 + 10], tab[i * 16 + 11]],
+    res[i] = $M([ [tab[i * 16 +  0], tab[i * 16 +  1], tab[i * 16 +  2], tab[i * 16 +  3]],
+                  [tab[i * 16 +  4], tab[i * 16 +  5], tab[i * 16 +  6], tab[i * 16 +  7]],
+                  [tab[i * 16 +  8], tab[i * 16 +  9], tab[i * 16 + 10], tab[i * 16 + 11]],
                   [tab[i * 16 + 12], tab[i * 16 + 13], tab[i * 16 + 14], tab[i * 16 + 15]]  ]);
   }
   return res;
@@ -366,9 +371,17 @@ ColladaLoader.prototype.parse = function () {
           continue;
         }
 
-        materials[materialId] = new Texture(imageId);
-        materials[materialId].load(0, imageUrl, function() {alert('Texture ' + imageId + ' loaded successfuly !!!')}, minfilter, magfilter);
+        var text = {
+          type    : "Texture",
+          owner   : this.task,
+          name    : imageId,
+          progress  : 0.0
+        };
+        ResourceManager.getInstance().taskList.push(text);
+        this.task.children.push(text);
 
+        materials[materialId] = new Texture(imageId);
+        materials[materialId].load(0, imageUrl, this.callback, minfilter, magfilter);
       }
     }
     
@@ -736,14 +749,14 @@ ColladaLoader.prototype.parse = function () {
         
         skin['joints'] = new Array(skin['jointsNumber'])
         for (var j = 0; j < skin['jointsNumber']; ++j) {
-          skin['joints'][j] = {
+          skin['joints'][j] = new Joint({
             name:               jointNameTab[j],
             inverseBindMatrix:  matricesTab[j],
             localMatrix:        Matrix.I(4),
             worldMatrix:        Matrix.I(4),
-            parent:             -1,
+            parent:             null,
             children:           []
-          };
+          });
         }
         
         // weights
@@ -786,18 +799,35 @@ ColladaLoader.prototype.parse = function () {
           }
         }
         
+        var instanceMaterialNodes = ColladaLoader.getNodes(this.xmlFile, 'c:bind_material/c:technique_common/c:instance_material', instanceControllerNode);
+        for (var j = 0; j < instanceMaterialNodes.snapshotLength; ++j) {
+          var symbol = instanceMaterialNodes.snapshotItem(i).getAttribute('symbol');
+          var target = instanceMaterialNodes.snapshotItem(i).getAttribute('target');
+          target = target.substr(1, target.length - 1);
+          
+          for (var meshName in meshes) {
+            if (meshName === skin['boundMesh']) {
+              for (var k = 0; k < meshes[meshName].triangles; ++k){
+                if (meshes[meshName].triangles[k].material === symbol) {
+                  meshes[meshName].triangles[k].material = target;
+                }
+              }
+            }
+          }
+        }
         skeletons[controllerId] = skin;
       }
     }
-    for (var name in meshes) {
-      for(var i = 0; i < meshes[name].triangles; ++i){
-        for (var materialName in materialId){
-          if (meshes[name].triangles[i].material == materialName)
-            var entity = new Entity(name, mesh, material[materialName].texture);
-          }
-        }
-      }    
-    }
+
+  var ent = new AnimatableEntity('Amahani', meshes['mesh'], skeletons['skin'], materials);
+  var amahaniTransform = Transform.getTransform("root").addChild('Amahani');
+  amahaniTransform.addEntity(ent);
+  this.task.parsingProgress = 1.0;
+  if (this.callback) {
+    this.callback();
+  }
+};
+    /*
     return false;
     
 	/*** 
@@ -815,8 +845,7 @@ ColladaLoader.prototype.parse = function () {
     };
     
     ***/
-
-
+/*
 
     var Animations = {};
 
@@ -866,3 +895,4 @@ ColladaLoader.prototype.parse = function () {
         this.callback(null);
     }
 };
+*/

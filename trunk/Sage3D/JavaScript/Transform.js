@@ -27,13 +27,13 @@ Transform = function(parent, name) {
 	 * Children Transform
 	 * @type {TransformArray}
 	 */
-	this.children = new Array();
+	this.children = [];
 
 	/**
 	 * Render entities associated to the current Transform
 	 * @type {RenderEntityArray}
 	 */
-	this.entities = new Array();
+	this.entities = [];
 
 	/**
 	 * Matrix of the current Transform
@@ -276,25 +276,25 @@ Transform.prototype.render = function() {
 		 value0: root.getNumberOfLights()},
 		 
 		 {name: "uLightsPositions",
-     type: "Float"
+     type: "Float",
      isArray: true,
      numberOfElements: 3,
      value0: root.getLightsPosition()},
 		 
 		 {name: "uLightsDirections",
-		 type: "Float"
+		 type: "Float",
 		 isArray: true,
 		 numberOfElements: 3,
 		 value0: root.getLightsDirections()},
 		 
 		 {name: "uLightsColors",
-     type: "Float"
+     type: "Float",
      isArray: true,
      numberOfElements: 4,
      value0: root.getLightsColors()},
      
      {name: "uLightsIntensities",
-     type: "Float"
+     type: "Float",
      isArray: true,
      numberOfElements: 1,
      value0: root.getLightsIntensities()}

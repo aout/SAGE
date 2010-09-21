@@ -9,12 +9,12 @@ include("Texture.js");
 /**
  * Entity Class
  * @param {String} name Name
- * @param {Mesh} mesh Mesh
+ * @param {Mesh} mesh Meshes
  * @param {TextureArray} textures Textures
  */
-Entity = function(name, mesh, textures) {
+Entity = function(name, meshes, textures) {
 	this.name = name;
-	this.mesh = mesh;
+	this.meshes = meshes;
 	this.textures = textures;
 };
 
@@ -22,8 +22,11 @@ Entity = function(name, mesh, textures) {
  * Destroy
  */
 Entity.prototype.destroy = function() {
-	this.mesh.destroy();
-	delete this.mesh;
+	for (var i = 0; i < this.meshes.length; ++i) {
+	 this.meshes[i].destroy();
+	 delete this.meshes[i];
+	}
+	delete this.meshes;
 	for (var i = 0; i < this.textures.length; ++i) {
 		this.textures[i].destroy();
 		delete this.textures[i];
@@ -40,11 +43,11 @@ Entity.prototype.addTexture = function(texture) {
 };
 
 /**
- * Set mesh Entity
+ * Add a mesh to the Entity
  * @param {Mesh} mesh Mesh Object
  */
-Entity.prototype.setMesh = function(mesh) {
-	this.mesh = mesh;
+Entity.prototype.addMesh = function(mesh) {
+	this.meshes.push(mesh);
 };
 
 /**
@@ -56,7 +59,7 @@ Entity.prototype.draw = function(shaderProgram) {
 		this.textures[i].active(shaderProgram);
 	}
 
-	if (this.mesh != undefined) {
-		this.mesh.draw(shaderProgram);
-	}
+  for (var i = 0; i < this.meshes.length; ++i) {
+    this.meshes[i].draw(shaderProgram);
+  }
 };

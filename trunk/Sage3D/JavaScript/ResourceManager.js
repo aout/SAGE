@@ -3,6 +3,11 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("ResourceManager.js");
 
+include("AnimatableEntity.js");
+include("Entity.js");
+include("Texture.js");
+include("Joint.js");
+
 /**
  * ResourceManager Class
  */
@@ -60,52 +65,43 @@ ResourceManager.getInstance = function() {
 
 ResourceManager.onTaskComplete = function(resource) {
 	var rm = ResourceManager.getInstance();
-	var tempProgress = 0.0;
-	if (resource instanceof Mesh) {
-		rm.meshs[resource.name] = resource;
-	}
-	else if (resource instanceof Texture) {
-		rm.textures[resource.name] = resource;
-	}
-	else if (resource instanceof Program) {
-		rm.programs[resource.name] = resource;
+
+	if (resource) {
+  	if (resource instanceof Mesh) {
+  		rm.meshs[resource.name] = resource;
+  	}
+  	else if (resource instanceof Texture) {
+  		rm.textures[resource.name] = resource;
+  	}
+  	else if (resource instanceof Program) {
+  		rm.programs[resource.name] = resource;
+  	}
+  	
+    for (var i = 0; i < rm.taskList.length; ++i) {
+      if (rm.taskList[i].name == resource.name) {
+        rm.taskList[i].progress = 1.0;
+      }
+  	}
 	}
 	
-	for (var i = 0; i < rm.taskList.length; ++i) {
-		if (resource != undefined && rm.taskList[i].name == resource.name){
-			switch (rm.taskList[i].type){
-				case "Mesh":
-				if (resource instanceof Mesh) {
-					rm.taskList[i].progress = 1.0;
-					if (rm.taskList[i].owner) {
-						rm.taskList[i].owner.progress += 1 / rm.taskList[i].owner.children.length;
-						if (rm.taskList[i].owner.progress == 1) {
-							ResourceManager.onTaskComplete(undefined);
-						}
-					}
-				}
-				break;
-				
-				case "Texture":
-				if (resource instanceof Texture) {
-					rm.taskList[i].progress = 1.0;
-					if (rm.taskList[i].owner) {
-						rm.taskList[i].owner.progress += 1 / rm.taskList[i].owner.children.length;
-					if (rm.taskList[i].owner.progress == 1) {
-							ResourceManager.onTaskComplete(undefined);
-						}
-					}
-				}
-				break;
-				
-				case "Program":
-				if (resource instanceof Program)
-					rm.taskList[i].progress = 1.0;
-				break;
-			}
-		}
-		tempProgress += rm.taskList[i].progress;
-	}
+  var tempProgress = 0.0;
+  for (var i = 0; i < rm.taskList.length; ++i) {
+    if (rm.taskList[i].type == "Collada") {
+      if (rm.taskList[i].children.length) {
+        rm.taskList[i].childrenProgress = 0.0;
+        for (var j = 0; j < rm.taskList[i].children.length; ++j) {
+          rm.taskList[i].childrenProgress += rm.taskList[i].children[j].progress / rm.taskList[i].children.length;
+        }
+      } else {
+        rm.taskList[i].childrenProgress = 1.0;
+      }
+      if (rm.taskList[i].childrenProgress == 1.0 && rm.taskList[i].parsingProgress == 1.0) {
+        rm.taskList[i].progress = 1.0;
+      }
+    }
+    tempProgress += rm.taskList[i].progress;
+  }
+  
 	rm.overallProgress = tempProgress / rm.taskList.length;
 	if (rm.overallProgress == 1)
 		rm.callback();
@@ -197,19 +193,11 @@ ResourceManager.prototype.prepareCollada = function(name, location) {
 		name		: name,
 		location	: location,
 		progress	: 0.0,
+		childrenProgress: 0.0,
+		parsingProgress: 0.0,
 		children	: []
 	};
 	this.taskList.push(task);
-	
-	var mesh = {
-		type		: "Mesh",
-		owner		: task,
-		name		: task.name + '_mesh',
-		progress	: 0.0
-	};
-	
-	task.children.push(mesh);
-	ResourceManager.getInstance().taskList.push(mesh);	
 };
 
 /**

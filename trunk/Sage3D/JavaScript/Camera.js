@@ -3,6 +3,8 @@ if (gIncludedFiles == undefined)
 	
 gIncludedFiles.push("Camera.js");
 
+include("Transform.js");
+
 /**
  * Camera Class
  * @param {String} name Name of the Camera
@@ -60,7 +62,7 @@ Camera.prototype.lookAt = function(ex, ey, ez, tx, ty, tz, ux, uy, uz) {
  */
 Camera.prototype.update = function() {
 	//First, we get the parent transforms
-	var parentTransforms = new Array;
+	var parentTransforms = [];
 	for (var transform = this.parent; transform != undefined; transform = transform.parent) {
 		parentTransforms.push(transform);
 	}
