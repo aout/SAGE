@@ -789,6 +789,15 @@ ColladaLoader.prototype.parse = function () {
         skeletons[controllerId] = skin;
       }
     }
+    for (var name in meshes) {
+      for(var i = 0; i < meshes[name].triangles; ++i){
+        for (var materialName in materialId){
+          if (meshes[name].triangles[i].material == materialName)
+            var entity = new Entity(name, mesh, material[materialName].texture);
+          }
+        }
+      }    
+    }
     return false;
     
 	/*** 
