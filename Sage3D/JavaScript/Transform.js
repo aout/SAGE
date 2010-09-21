@@ -209,9 +209,11 @@ Transform.prototype.invert = function() {
 
 /**
  * Render
+ * Here we pass uniforms to the shader program
  */
 Transform.prototype.render = function() {
 	var hasChanged = false;
+	var root = Root.getInstance();
 	
 	//First, recompute the matrix if necessary
 	if (this.isLocalMatrixChanged === true || this.isParentMatrixChanged === true) {
@@ -227,19 +229,75 @@ Transform.prototype.render = function() {
 	}
 
 	if (this.shaderProgram == undefined) {
-		this.shaderProgram = Root.getInstance().getDefaultProgram();
+		this.shaderProgram = root.getDefaultProgram();
 	}
+
+/**
+ * Example of uniform
+ * {name: "UniformName",
+ *  type: Float | Int,
+ *  isArray: true | false | undefined,
+ *  isMatrix: true | false | undefined,
+ *  numberOfElements: 1 - 4,
+ *  value0: xxx,
+ *  value1: xxx, <- don't define these is only 1 value
+ *  value2: xxx, <- don't define these is only 1 value
+ *  value3: xxx} <- don't define these is only 1 value
+ */
 
 	var uniforms = [
 		{name: "uMVMatrix",
-		 type: "Matrix4fv",
-		 value: this.computedMatrix},
+		 type: "Float",
+		 isMatrix: true,
+		 numberOfElements: 4,
+		 value0: this.computedMatrix},
+		 
  		{name: "uEMatrix",
-		 type: "Matrix4fv",
-		 value: Root.getInstance().getCamera().computedMatrix},
+		 type: "Float",
+		 isMatrix: true,
+		 numberOfElements: 4,
+		 value0: root.getCamera().computedMatrix},
+		 
 		{name: "uPMatrix",
-		 type: "Matrix4fv",
-		 value: Root.getInstance().getProjectionMatrix()},
+		 type: "Float",
+		 isMatrix: true,
+		 numberOfElements: 4,
+		 value0: Rroot.getProjectionMatrix()},
+		 
+		 {name: "uNMatrix",
+		 type: "Float",
+		 isMatrix: true,
+		 numberOfElements: 4,
+		 value0: this.computedMatrix.inverse()},
+		 
+		 {name: "uNumberOfLights",
+		 type:  "Int",
+		 numberOfElements: 1,
+		 value0: root.getNumberOfLights()},
+		 
+		 {name: "uLightsPositions",
+     type: "Float"
+     isArray: true,
+     numberOfElements: 3,
+     value0: root.getLightsPosition()},
+		 
+		 {name: "uLightsDirections",
+		 type: "Float"
+		 isArray: true,
+		 numberOfElements: 3,
+		 value0: root.getLightsDirections()},
+		 
+		 {name: "uLightsColors",
+     type: "Float"
+     isArray: true,
+     numberOfElements: 4,
+     value0: root.getLightsColors()},
+     
+     {name: "uLightsIntensities",
+     type: "Float"
+     isArray: true,
+     numberOfElements: 1,
+     value0: root.getLightsIntensities()}
 	];
 	this.shaderProgram.setUniforms(uniforms);
 	

@@ -23,8 +23,8 @@ Texture = function(name) {
 	this.glTexture = undefined;
 	this.image = undefined;
 
-  this.minFilter = undefined;
-  this.magFilter = undefined;
+  	this.minFilter = undefined;
+  	this.magFilter = undefined;
 };
 
 /**
@@ -114,6 +114,7 @@ Texture.prototype.active = function(shaderProgram) {
 	this.webGL.activeTexture(this.unitTexture + this.webGL.TEXTURE0);
 	this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.glTexture);
 	shaderProgram.setUniforms([{	name: "uSampler" + this.unitTexture,
-		 							type: "1i",
-		 							value: this.unitTexture 				}]);
+		 							              type: "1i",
+		 							              value: this.unitTexture
+		 							           }]);
 };

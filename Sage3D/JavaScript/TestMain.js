@@ -233,6 +233,9 @@ function loadResources() {
 	var rm = ResourceManager.getInstance();
 	//rm.prepareMesh("cube", "cube");
 	//rm.prepareTexture("cubetexture", "Resources/Textures/nehe.gif");
+	
+	rm.prepareEntity(name, primitive, material);
+	
 	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
 	rm.doLoad(initScene);
 }
