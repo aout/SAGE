@@ -139,7 +139,7 @@ Program.prototype.setUniforms = function(tab) {
 		if (this.uniforms[i].id == -1)
 			continue;
 		switch (this.uniforms[i].numberOfElements) {
-			case "1":
+			case 1:
 				switch (this.uniforms[i].type) {
 				  case "Int":
 				    if (this.uniforms[i].isArray === true) {
@@ -159,7 +159,7 @@ Program.prototype.setUniforms = function(tab) {
 				  break;
 				}
 			break;
-			case "2":
+			case 2:
        switch (this.uniforms[i].type) {
           case "Int":
             if (this.uniforms[i].isArray === true) {
@@ -174,7 +174,7 @@ Program.prototype.setUniforms = function(tab) {
               this.webGL.uniform2fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
             }
             else if (this.uniforms[i].isMatrix === true) {
-              this.webGL.uniformMatrix2fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value0.flatten()));
+              this.webGL.uniformMatrix2fv(this.uniforms[i].id, false, new Float32Array(this.uniforms[i].value0.flatten()));
             }
             else {
               this.webGL.uniform2f(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1);
@@ -182,7 +182,7 @@ Program.prototype.setUniforms = function(tab) {
           break;
         }
 			break;
-			case "3":
+			case 3:
 			 switch (this.uniforms[i].type) {
           case "Int":
             if (this.uniforms[i].isArray === true) {
@@ -197,7 +197,7 @@ Program.prototype.setUniforms = function(tab) {
               this.webGL.uniform3fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
             }
             else if (this.uniforms[i].isMatrix === true) {
-              this.webGL.uniformMatrix3fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value0.flatten()));
+              this.webGL.uniformMatrix3fv(this.uniforms[i].id, false, new Float32Array(this.uniforms[i].value0.flatten()));
             }
             else {
               this.webGL.uniform3f(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1, this.uniforms[i].value2);
@@ -205,7 +205,7 @@ Program.prototype.setUniforms = function(tab) {
           break;
         }
       break;
-      case "4":
+      case 4:
        switch (this.uniforms[i].type) {
           case "Int":
             if (this.uniforms[i].isArray === true) {
@@ -220,7 +220,7 @@ Program.prototype.setUniforms = function(tab) {
               this.webGL.uniform4fv(this.uniforms[i].id, this.uniforms[i].value0.length, this.uniforms[i].value0);
             }
             else if (this.uniforms[i].isMatrix === true) {
-              this.webGL.uniformMatrix4fv(this.uniforms[i].id, false, new WebGLFloatArray(this.uniforms[i].value0.flatten()));
+              this.webGL.uniformMatrix4fv(this.uniforms[i].id, false, new Float32Array(this.uniforms[i].value0.flatten()));
             }
             else {
               this.webGL.uniform2f(this.uniforms[i].id, this.uniforms[i].value0, this.uniforms[i].value1, this.uniforms[i].value2, this.uniforms[i].value3);

@@ -13,7 +13,7 @@ Primitives = {};
 /**
  * make a cube
  */
-Primitives.cube = function(name, callback) {
+Primitives.cube = function(name, scale, callback) {
 
 	var gl = Root.getInstance().getWebGL();
 	if (gl == null)
@@ -21,40 +21,40 @@ Primitives.cube = function(name, callback) {
 
     var vertices = [
       // Front face
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
+      -1.0 * scale, -1.0 * scale,  1.0 * scale,
+       1.0 * scale, -1.0 * scale,  1.0 * scale,
+       1.0 * scale,  1.0 * scale,  1.0 * scale,
+      -1.0 * scale,  1.0 * scale,  1.0 * scale,
 
       // Back face
-      -1.0, -1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0, -1.0, -1.0,
+      -1.0 * scale, -1.0 * scale, -1.0 * scale,
+      -1.0 * scale,  1.0 * scale, -1.0 * scale,
+       1.0 * scale,  1.0 * scale, -1.0 * scale,
+       1.0 * scale, -1.0 * scale, -1.0 * scale,
 
       // Top face
-      -1.0,  1.0, -1.0,
-      -1.0,  1.0,  1.0,
-       1.0,  1.0,  1.0,
-       1.0,  1.0, -1.0,
+      -1.0 * scale,  1.0 * scale, -1.0 * scale,
+      -1.0 * scale,  1.0 * scale,  1.0 * scale,
+       1.0 * scale,  1.0 * scale,  1.0 * scale,
+       1.0 * scale,  1.0 * scale, -1.0 * scale,
 
       // Bottom face
-      -1.0, -1.0, -1.0,
-       1.0, -1.0, -1.0,
-       1.0, -1.0,  1.0,
-      -1.0, -1.0,  1.0,
+      -1.0 * scale, -1.0 * scale, -1.0 * scale,
+       1.0 * scale, -1.0 * scale, -1.0 * scale,
+       1.0 * scale, -1.0 * scale,  1.0 * scale,
+      -1.0 * scale, -1.0 * scale,  1.0 * scale,
 
       // Right face
-       1.0, -1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0,  1.0,  1.0,
-       1.0, -1.0,  1.0,
+       1.0 * scale, -1.0 * scale, -1.0 * scale,
+       1.0 * scale,  1.0 * scale, -1.0 * scale,
+       1.0 * scale,  1.0 * scale,  1.0 * scale,
+       1.0 * scale, -1.0 * scale,  1.0 * scale,
 
       // Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      -1.0,  1.0, -1.0,
+      -1.0 * scale, -1.0 * scale, -1.0 * scale,
+      -1.0 * scale, -1.0 * scale,  1.0 * scale,
+      -1.0 * scale,  1.0 * scale,  1.0 * scale,
+      -1.0 * scale,  1.0 * scale, -1.0 * scale,
     ];
 
 	var texCoord = [
@@ -104,11 +104,12 @@ Primitives.cube = function(name, callback) {
       20, 21, 22,   20, 22, 23  // Left face
     ]
 
+  
 	var mesh = new Mesh(name);
 	
 	mesh.calcBBox(vertices);
-	mesh.addBuffer("aVertexPosition", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3, gl.STATIC_DRAW);
-	mesh.addBuffer("aTextureCoord", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2, gl.STATIC_DRAW);
+	mesh.addBuffer("POSITION", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3, gl.STATIC_DRAW);
+	mesh.addBuffer("TEXCOORD", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2, gl.STATIC_DRAW);
 	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1, gl.STATIC_DRAW);
 	mesh.setDrawingBuffer("indices");
 	
