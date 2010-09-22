@@ -192,7 +192,7 @@ Root.prototype.draw = function() {
 	++root.renderedFrames;
 	
 	root.webGL.clear(root.webGL.COLOR_BUFFER_BIT | root.webGL.DEPTH_BUFFER_BIT);
-		
+
 	if (root.onRender != undefined) {
 		root.onRender(elapsedTime);
 	}

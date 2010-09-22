@@ -121,7 +121,9 @@ Transform.prototype.addChild = function(transform) {
 	if (!(transform instanceof Transform)) {
 		child = new Transform(this, transform);
 	}
-	this.children.push(child);
+	else {
+	 this.children.push(child);
+	}
 	return child;
 };
 
@@ -231,6 +233,7 @@ Transform.prototype.render = function() {
 	if (this.shaderProgram == undefined) {
 		this.shaderProgram = root.getDefaultProgram();
 	}
+  this.shaderProgram.use();
 
 /**
  * Example of uniform
@@ -262,15 +265,15 @@ Transform.prototype.render = function() {
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: Rroot.getProjectionMatrix()},
+		 value0: root.getProjectionMatrix()},
 		 
 		 {name: "uNMatrix",
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: this.computedMatrix.inverse()},
+		 value0: this.computedMatrix.inverse()}//,
 		 
-		 {name: "uNumberOfLights",
+		 /*{name: "uNumberOfLights",
 		 type:  "Int",
 		 numberOfElements: 1,
 		 value0: root.getNumberOfLights()},
@@ -297,7 +300,7 @@ Transform.prototype.render = function() {
      type: "Float",
      isArray: true,
      numberOfElements: 1,
-     value0: root.getLightsIntensities()}
+     value0: root.getLightsIntensities()}*/
 	];
 	this.shaderProgram.setUniforms(uniforms);
 	

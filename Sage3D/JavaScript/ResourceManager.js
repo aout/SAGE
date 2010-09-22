@@ -233,14 +233,14 @@ ResourceManager.prototype.doLoad = function(callback) {
 ResourceManager.prototype.loadMesh = function(task) {
 	switch(task.location) {
 		case "cube":
-			Primitives.cube(task.name, ResourceManager.onTaskComplete);
+			Primitives.cube(task.name, 0.02, ResourceManager.onTaskComplete);
 			break;
 	}
 };
 
 ResourceManager.prototype.loadTexture = function(task) {
 	var texture = new Texture(task.name);
-	texture.load(0, task.location, ResourceManager.onTaskComplete);
+	texture.load(0, task.location, ResourceManager.onTaskComplete, 'NEAREST', 'LINEAR');
 };
 
 ResourceManager.prototype.loadProgram = function(task) {

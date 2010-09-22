@@ -58,10 +58,10 @@ Mesh.prototype.addBuffer = function(bufferName, bufferType, bufferData, numItems
 				//throw SageBadArgsException;
 				return false;
 			}
-			glArray = new WebGLFloatArray(bufferData);
+			glArray = new Float32Array(bufferData);
 			break;
 		case this.webGL.UNSIGNED_SHORT:
-			glArray = new WebGLUnsignedShortArray(bufferData);
+			glArray = new Uint16Array(bufferData);
 			break;
 		default:
 			//throw SageBadArgsException();
