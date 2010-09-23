@@ -273,9 +273,9 @@ Transform.prototype.render = function() {
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: this.computedMatrix.inverse()}//,
+		 value0: this.computedMatrix.inverse()},
 		 
-		 /*{name: "uNumberOfLights",
+		 {name: "uNumberOfLights",
 		 type:  "Int",
 		 numberOfElements: 1,
 		 value0: root.getNumberOfLights()},
@@ -284,7 +284,7 @@ Transform.prototype.render = function() {
      type: "Float",
      isArray: true,
      numberOfElements: 3,
-     value0: root.getLightsPosition()},
+     value0: root.getLightsPositions()},
 		 
 		 {name: "uLightsDirections",
 		 type: "Float",
@@ -302,7 +302,7 @@ Transform.prototype.render = function() {
      type: "Float",
      isArray: true,
      numberOfElements: 1,
-     value0: root.getLightsIntensities()}*/
+     value0: root.getLightsIntensities()}
 	];
 	this.shaderProgram.setUniforms(uniforms);
 	
