@@ -7,7 +7,7 @@ attribute vec3 TEXBINORMAL;
 uniform mat4 uMVMatrix;
 uniform mat4 uEMatrix;
 uniform mat4 uPMatrix;
-uniform mat4 uNVMatrix;
+uniform mat4 uNMatrix;
 
 uniform vec3 uLightingDirection;
 
