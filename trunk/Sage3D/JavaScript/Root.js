@@ -35,9 +35,9 @@ Root = function() {
 	this.lightsColors = [];
 	this.lightsIntensities = [];
 	
-	this.ambientColor = [1.0, 1.0, 1.0];
+	this.ambientColor = [0.1, 0.1, 0.1];
 	this.directionalColor = [1.0, 1.0, 1.0];
-	this.lightingDirection = [1.0, 1.0, 1.0];
+	this.lightingDirection = $V([0.0, -1.0, -1.0]).toUnitVector().x(-1);
 	
 	this.maxFps = 200;
 	this.actualFps = 0.0;
