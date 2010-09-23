@@ -46,7 +46,3 @@ Light.TypeEnum = {
 	SPOTLIGHT		: 2, // conic light (spots, lamps...)
 	POINTLIGHT		: 3, // spherical light (bulbs, sun in a very wide scene, fire...)
 };
-
-Light.prototype.add = function () {
-	
-};
