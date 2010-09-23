@@ -113,6 +113,8 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 	//WebGL	initialization!
 	//default shader
 	this.defaultProgram = new Program("Default", "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs", callback);
+	
+	this.canDraw = true;
 	return true;
 };
 
@@ -186,6 +188,13 @@ Root.prototype.startRendering = function(callback) {
  */
 Root.prototype.draw = function() {
 	var root = Root.getInstance();
+	
+	if (!root.canDraw) {
+	  return;
+  }
+	
+	root.canDraw = false;
+	 
 	if (root.lastRender == undefined){
 		root.lastRender = new Date().getTime();
 	}
@@ -200,6 +209,8 @@ Root.prototype.draw = function() {
 	root.camera.update();
 	root.rootTransform.render();
 	root.lastRender = new Date().getTime();
+	
+	root.canDraw = true;
 };
 
 Root.prototype.getFps = function() {
