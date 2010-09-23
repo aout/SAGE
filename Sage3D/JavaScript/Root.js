@@ -207,7 +207,28 @@ Root.prototype.draw = function() {
 		root.onRender(elapsedTime);
 	}
 	root.camera.update();
-	root.rootTransform.render();
+	
+	var prev = null;
+	var actual = root.rootTransform;
+	var next = null;
+	
+	while (actual) {
+	  if (!prev || actual != prev.parent) {
+	    actual.render();
+	  }
+	  next = actual.nextChild();
+	  if (!next) {
+	    if (actual == prev.parent) {
+	      next = actual.parent;
+	    }
+	    else {
+	      next = prev;
+	    }
+	  }
+	  prev = actual;
+	  actual = next;
+	}
+	
 	root.lastRender = new Date().getTime();
 	
 	root.canDraw = true;
