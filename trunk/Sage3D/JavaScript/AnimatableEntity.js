@@ -12,9 +12,10 @@ include("Texture.js");
  * @param {Mesh} mesh Meshes
  * @param {TextureArray} textures Textures
  */
-AnimatableEntity = function(name, geometry, skeleton, materials) {
+AnimatableEntity = function(name, upAxis, geometry, skeleton, materials) {
   this.webGL = Root.getInstance().getWebGL();
   this.name = name;
+  this.upAxis = upAxis;
   this.geometry = geometry;
   this.skeleton = skeleton;
   this.materials = materials;
@@ -76,8 +77,31 @@ AnimatableEntity.prototype.calcMesh = function() {
         var source = inputs.source;
         var IPos = indices[PPos + inputs.offset] * source.stride;
         
-        for (var l = 0; l < source.stride; ++l) {
-          buffers[k].push(source.valuesArray[IPos + l]);
+        if (source.stride == 3) {
+          var x = source.valuesArray[IPos + 0];
+          var y = source.valuesArray[IPos + 1];
+          var z = source.valuesArray[IPos + 2];
+          
+          switch(this.upAxis) {
+            case 'X_UP':
+              var tmp = x;
+              x = -y;
+              y = tmp;
+            break;
+            case 'Z_UP':
+              var tmp = y;
+              y = z;
+              z = -tmp;
+            break;
+          }
+          buffers[k].push(x);
+          buffers[k].push(y);
+          buffers[k].push(z);
+        }
+        else {
+          for (var l = 0; l < source.stride; ++l) {
+            buffers[k].push(source.valuesArray[IPos + l]);
+          }
         }
       }
     }

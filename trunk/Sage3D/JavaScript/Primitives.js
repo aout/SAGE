@@ -57,6 +57,44 @@ Primitives.cube = function(name, scale, callback) {
       -1.0 * scale,  1.0 * scale, -1.0 * scale,
     ];
 
+  var normals = [
+      // Front face
+       0.0,  0.0,  1.0,
+       0.0,  0.0,  1.0,
+       0.0,  0.0,  1.0,
+       0.0,  0.0,  1.0,
+
+      // Back face
+       0.0,  0.0, -1.0,
+       0.0,  0.0, -1.0,
+       0.0,  0.0, -1.0,
+       0.0,  0.0, -1.0,
+
+      // Top face
+       0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
+
+      // Bottom face
+       0.0, -1.0,  0.0,
+       0.0, -1.0,  0.0,
+       0.0, -1.0,  0.0,
+       0.0, -1.0,  0.0,
+
+      // Right face
+       1.0,  0.0,  0.0,
+       1.0,  0.0,  0.0,
+       1.0,  0.0,  0.0,
+       1.0,  0.0,  0.0,
+
+      // Left face
+      -1.0,  0.0,  0.0,
+      -1.0,  0.0,  0.0,
+      -1.0,  0.0,  0.0,
+      -1.0,  0.0,  0.0,
+    ];
+
 	var texCoord = [
 	  // Front face
       0.0, 0.0,
@@ -110,6 +148,7 @@ Primitives.cube = function(name, scale, callback) {
 	mesh.calcBBox(vertices);
 	mesh.addBuffer("POSITION", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3, gl.STATIC_DRAW);
 	mesh.addBuffer("TEXCOORD", gl.ARRAY_BUFFER, texCoord, 24, gl.FLOAT, 2, gl.STATIC_DRAW);
+	mesh.addBuffer("NORMAL", gl.ARRAY_BUFFER, normals, 24, gl.FLOAT, 3, gl.STATIC_DRAW);
 	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1, gl.STATIC_DRAW);
 	mesh.setDrawingBuffer("indices");
 	

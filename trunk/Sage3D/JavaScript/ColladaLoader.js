@@ -678,7 +678,7 @@ ColladaLoader.prototype.parse = function () {
         
         var bindShapeMatrixNode = ColladaLoader.getNode(this.xmlFile, 'c:bind_shape_matrix', skinNodes.snapshotItem(i));
         if (!bindShapeMatrixNode) {
-          alert('Warning: no bind shape matrix. Assuming it\'s identity');
+          //alert('Warning: no bind shape matrix. Assuming it\'s identity');
           skin['bindShapeMatrix'] = Matrix.I(4);
         }
         else {
@@ -819,7 +819,7 @@ ColladaLoader.prototype.parse = function () {
       }
     }
 
-  var ent = new AnimatableEntity('Amahani', meshes['mesh'], skeletons['skin'], materials);
+  var ent = new AnimatableEntity('Amahani', upAxis, meshes['mesh'], skeletons['skin'], materials);
   var amahaniTransform = Transform.getTransform("root").addChild('Amahani');
   amahaniTransform.addEntity(ent);
   this.task.parsingProgress = 1.0;
