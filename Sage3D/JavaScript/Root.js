@@ -26,6 +26,7 @@ Root = function() {
 	this.camera = undefined;
 	
 	this.isLightingEnabled = true;
+	this.ambientLight = new Light("ambient", Light.TypeEnum.AMBIENT, [1.0, 1.0, 1.0, 1.0], 0.2, [1, 1, 1], undefined);
 	this.lights = [];
 	this.maxLights = 5; //must have the exact same value in the shader!
 	this.numberOfLights = 0;
@@ -217,11 +218,64 @@ Root.prototype.getFps = function() {
  * @param {Transform} parent
  */
 Root.prototype.addLight = function(name, type, color, intensity, direction, parent) {
-  
+  if (this.getNumberOfLights < 5) {
+    var light = new Light(name, type, color, intensity, direction, parent);
+    this.lights.push(light);
+    ++this.numberOfLights;
+  }
+  else {
+    alert("You currently reach the maximum number of lights.");
+  }
 };
 
 Root.prototype.removeLight = function(name) {
-  
+  var found = false;
+  for (var i = 0; this.lights[i]; ++i) {
+    if (this.lights[i].name == name) {
+      this.lights.splice(i, 1);
+      --this.numberOfLights;
+    }
+  }
+  if (found == false) {
+    alert("Impossible to remove "+name+". Not found.");
+  }
 };
 
-Root.prototype.getNumberOfLights = function() {};
+Root.prototype.getNumberOfLights = function() {
+  return this.numberOfLights;
+};
+
+Root.prototype.getLightsPositions = function() {
+  var Positions = [];
+  
+  for (var i = 0; this.lights[i]; ++i) {
+   Positions.push(lights[i].direction);
+  }
+};
+
+Root.prototype.getLightsDirections = function() {
+  var Directions = [];
+  
+  for (var i = 0; this.lights[i]; ++i) {
+    Directions.push(lights[i].direction);
+  }
+  return Directions;
+};
+
+Root.prototype.getLightsColors = function() {
+  var Colors = [];
+  
+  for (var i = 0; this.lights[i]; ++i) {
+    Colors.push(lights[i].color);
+  }
+  return Colors;
+};
+
+Root.prototype.getLightsIntensities = function() {
+  var Intensities = [];
+  
+  for (var i = 0; this.lights[i]; ++i) {
+    Intensities.push(lights[i].intensity);
+  }
+  return Intensities;
+};

@@ -21,6 +21,8 @@ function drawScene(elapsedTime)
   amahaniTransform.rotate((75 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
   var skeletonRoot     = Transform.getTransform("skeletonRoot");
   skeletonRoot.rotate((75 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
+  
+  document.getElementById("FPS").innerText = parseInt(Root.getInstance().actualFps).toString()+" fps";
 }
 
 function createCubeJoint(parent, joint, cubeEnt) {
@@ -68,6 +70,7 @@ function loadResources() {
 }
 
 function main() {
+  document.getElementById("go").style.visibility= 'hidden';
 	var root = Root.getInstance();
 	
 	root.init("viewport", loadResources, {R: 0.3, G: 0.3, B: 0.3, A: 1.0});
