@@ -267,13 +267,31 @@ Transform.prototype.render = function() {
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: root.getProjectionMatrix()}/*,
+		 value0: root.getProjectionMatrix()},
 		 
 		 {name: "uNMatrix",
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: this.computedMatrix.inverse()},
+		 value0: this.computedMatrix.inverse().transpose()},
+		 
+		 {name: "uAmbientColor",
+     type: "Float",
+     isArray: true,
+     numberOfElements: 3,
+     value0: root.getAmbientColor()},
+		 
+		 {name: "uDirectionalColor",
+     type: "Float",
+     isArray: true,
+     numberOfElements: 3,
+     value0: root.getDirectionalColor()},
+		 
+		 {name: "uLightingDirection",
+     type: "Float",
+     isArray: true,
+     numberOfElements: 3,
+     value0: root.getLightingDirection()}/*,
 		 
 		 {name: "uNumberOfLights",
 		 type:  "Int",
