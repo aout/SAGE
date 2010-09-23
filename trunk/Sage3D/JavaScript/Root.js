@@ -26,7 +26,7 @@ Root = function() {
 	this.camera = undefined;
 	
 	this.isLightingEnabled = true;
-	this.ambientLight = new Light("ambient", Light.TypeEnum.AMBIENT, [1.0, 1.0, 1.0, 1.0], 0.2, [1, 1, 1], undefined);
+	this.ambientLight = new Light("ambient", Light.TypeEnum.AMBIENT, [1.0, 1.0, 1.0, 1.0], 0.2, undefined);
 	this.lights = [];
 	this.maxLights = 5; //must have the exact same value in the shader!
 	this.numberOfLights = 0;
@@ -246,12 +246,11 @@ Root.prototype.getFps = function() {
  * @param {String} type
  * @param {Array} color
  * @param {Int} intensity
- * @param {Array} direction
  * @param {Transform} parent
  */
-Root.prototype.addLight = function(name, type, color, intensity, direction, parent) {
+Root.prototype.addLight = function(name, type, color, intensity, parent) {
   if (this.getNumberOfLights < 5) {
-    var light = new Light(name, type, color, intensity, direction, parent);
+    var light = new Light(name, type, color, intensity, parent);
     this.lights.push(light);
     ++this.numberOfLights;
   }
@@ -281,15 +280,20 @@ Root.prototype.getLightsPositions = function() {
   var Positions = [];
   
   for (var i = 0; this.lights[i]; ++i) {
-   Positions.push(lights[i].direction);
+    var transform = lights[i].parent;
+    Positions.push([tranform.computedMatrix.col(4).splice(3,1)]);
   }
+  return Positions;
 };
 
 Root.prototype.getLightsDirections = function() {
   var Directions = [];
   
   for (var i = 0; this.lights[i]; ++i) {
-    Directions.push(lights[i].direction);
+    var transform = lights[i].parent;
+    
+    var direction = transform.computedMatrix.x($V(1, 1, 1));
+    Directions.push(direction.elements);
   }
   return Directions;
 };

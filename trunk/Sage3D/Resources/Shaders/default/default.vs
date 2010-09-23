@@ -8,6 +8,12 @@ uniform mat4 uMVMatrix;
 uniform mat4 uEMatrix;
 uniform mat4 uPMatrix;
 
+uniform int uNumberOfLights;
+uniform vec3 uLightsPositions[5];
+uniform vec3 uLightsDirections[5];
+uniform vec4 uLightsColors[5];
+uniform int uLightsIntensities[5];
+
 varying vec2 vTextureCoord;
 
 void	main(void) {
