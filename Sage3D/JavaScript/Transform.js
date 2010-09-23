@@ -216,6 +216,8 @@ Transform.prototype.invert = function() {
  * Here we pass uniforms to the shader program
  */
 Transform.prototype.render = function() {
+  if (!this.isVisible)
+    return;
 	var hasChanged = false;
 	var root = Root.getInstance();
 	
@@ -262,7 +264,7 @@ Transform.prototype.render = function() {
 		 isMatrix: true,
 		 numberOfElements: 4,
 		 value0: root.getCamera().computedMatrix},
-		 
+		 		 
 		{name: "uPMatrix",
 		 type: "Float",
 		 isMatrix: true,
@@ -274,6 +276,11 @@ Transform.prototype.render = function() {
 		 isMatrix: true,
 		 numberOfElements: 4,
 		 value0: this.computedMatrix.inverse().transpose()},
+		 
+		 {name: "uLightingEnabled",
+		 type: "Int",
+		 numberOfElements: 1,
+		 value0: root.isLightingEnabled},
 		 
 		 {name: "uAmbientColor",
      type: "Float",
@@ -338,6 +345,8 @@ Transform.prototype.render = function() {
 };
 
 Transform.prototype.nextChild = function() {
+  if (!this.isVisible)
+    return null;
   if (this.actualChild >= this.children.length) {
     this.actualChild = 0;
     return null;
