@@ -19,8 +19,8 @@ function drawScene(elapsedTime)
 {
   var amahaniTransform     = Transform.getTransform("Amahani");
   amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
-  var skeletonRoot     = Transform.getTransform("skeletonRoot");
-  skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
+  //var skeletonRoot     = Transform.getTransform("skeletonRoot");
+  //skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
   
   document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
 }
@@ -47,13 +47,13 @@ function initScene()
   amahaniTransform.rotate(-90, [1.0, 0.0, 0.0]);
 	
 	var cameraTransform  = rootTransform.addChild("camera");
-	var skeletonRoot     = rootTransform.addChild("skeletonRoot");
+	/*var skeletonRoot     = rootTransform.addChild("skeletonRoot");
 	skeletonRoot.translate([1.0, 0.0, 0.0]);
-	skeletonRoot.rotate(-90, [1.0, 0.0, 0.0]);
+	skeletonRoot.rotate(-90, [1.0, 0.0, 0.0]);*/
 	root.getCamera().attach(cameraTransform);
 		
-	var ent = new Entity("cube_entity", [rm.getMeshByName('cube_mesh')], [rm.getTextureByName('cube_texture')]);
-	createCubeJoint(skeletonRoot, amahaniTransform.entities[0].skeleton.root, ent);
+	//var ent = new Entity("cube_entity", [rm.getMeshByName('cube_mesh')], [rm.getTextureByName('cube_texture')]);
+	//createCubeJoint(skeletonRoot, amahaniTransform.entities[0].skeleton.root, ent);
 
 	cameraTransform.translate([0, 1, 7]);
 	
@@ -64,8 +64,8 @@ function loadResources() {
 	var rm = ResourceManager.getInstance();
 	
 	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
-	rm.prepareMesh("cube_mesh", "cube");
-	rm.prepareTexture("cube_texture", "Resources/Textures/nehe.gif");
+	//rm.prepareMesh("cube_mesh", "cube");
+	//rm.prepareTexture("cube_texture", "Resources/Textures/nehe.gif");
 	rm.doLoad(initScene);
 }
 
