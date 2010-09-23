@@ -18,9 +18,9 @@ include("Root.js");
 function drawScene(elapsedTime)
 {
   var amahaniTransform     = Transform.getTransform("Amahani");
-  amahaniTransform.rotate((75 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
+  amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
   var skeletonRoot     = Transform.getTransform("skeletonRoot");
-  skeletonRoot.rotate((75 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
+  skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
   
   document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
 }
@@ -31,7 +31,7 @@ function createCubeJoint(parent, joint, cubeEnt) {
   transform.localMatrix = joint.localMatrix;
   
   for (var i = 0; i < joint.children.length; ++i) {
-    createCubeJoint(transform, joint.children[i], cubeEnt);
+    createCubeJoint(transform, joint.children[i], cubeEnt);;
   }
 }
 
