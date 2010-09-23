@@ -267,7 +267,7 @@ Transform.prototype.render = function() {
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: root.getProjectionMatrix()},
+		 value0: root.getProjectionMatrix()}/*,
 		 
 		 {name: "uNMatrix",
 		 type: "Float",
@@ -302,7 +302,7 @@ Transform.prototype.render = function() {
      type: "Float",
      isArray: true,
      numberOfElements: 1,
-     value0: root.getLightsIntensities()}
+     value0: root.getLightsIntensities()}*/
 	];
 	this.shaderProgram.setUniforms(uniforms);
 	
