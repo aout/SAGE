@@ -71,6 +71,8 @@ Transform = function(parent, name) {
 	 */
 	this.shaderProgram = undefined;
 	
+	this.actualChild = 0;
+	
 	if (this.parent != undefined) {
 		this.parent.children.push(this);
 		this.computedMatrix = this.parent.computedMatrix.x(this.localMatrix);
@@ -229,10 +231,10 @@ Transform.prototype.render = function() {
 		this.isParentMatrixChanged = false;
 		hasChanged = true;
 	}
+ if (this.shaderProgram == undefined) {
+    this.shaderProgram = root.getDefaultProgram();
+  }
 
-	if (this.shaderProgram == undefined) {
-		this.shaderProgram = root.getDefaultProgram();
-	}
   this.shaderProgram.use();
 
 /**
@@ -311,6 +313,13 @@ Transform.prototype.render = function() {
 	//Call render() on the children Transform
 	for (var i = 0; i < this.children.length; ++i) {
 		this.children[i].isParentMatrixChanged = hasChanged;
-		this.children[i].render();
 	}
+};
+
+Transform.prototype.nextChild = function() {
+  if (this.actualChild >= this.children.length) {
+    this.actualChild = 0;
+    return null;
+  }
+  return this.children[this.actualChild++];
 };

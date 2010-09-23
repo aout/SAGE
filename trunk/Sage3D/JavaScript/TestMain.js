@@ -22,7 +22,7 @@ function drawScene(elapsedTime)
   var skeletonRoot     = Transform.getTransform("skeletonRoot");
   skeletonRoot.rotate((75 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
   
-  document.getElementById("FPS").innerText = parseInt(Root.getInstance().actualFps).toString()+" fps";
+  document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
 }
 
 function createCubeJoint(parent, joint, cubeEnt) {
