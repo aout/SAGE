@@ -31,13 +31,13 @@ Joint = function(object) {
    * Matrix of the current Joint
    * @type {Matrix}
    */
-  this.localMatrix = object.locaMatrix;
+  this.localMatrix = object.localMatrix;
 
    /**
    * Inverse bind matrix of the current Joint
    * @type {Matrix}
    */
-  this.inverseBindMatrix = object.ibm;
+  this.inverseBindMatrix = object.inverseBindMatrix;
   
   /**
    * World matrix
