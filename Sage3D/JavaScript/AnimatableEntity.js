@@ -107,12 +107,73 @@ AnimatableEntity.prototype.calcMesh = function() {
     }
     if (!this.meshes[i]) {
       var mesh = new Mesh(this.name + '_' + i);
-    
-      for (var j = 0; j < this.geometry.triangles[i].inputs.length; ++j) {
-        mesh.addBuffer(this.geometry.triangles[i].inputs[j].semantic, this.webGL.ARRAY_BUFFER, buffers[j], Math.floor(buffers[j].length / this.geometry.triangles[i].inputs[j].source.stride), this.webGL.FLOAT, this.geometry.triangles[i].inputs[j].source.stride, this.webGL.STATIC_DRAW);
-      if (this.geometry.triangles[i].inputs[j].semantic == "POSITION") {
+		
+      for (var j = 0; j < triangles.inputs.length; ++j) {
+		//juste pour screenshot forum eip triangles -> lines
+		//MODIFS		
+		var newBuff = new Array();
+		for (var k = 0; k < triangles.count; ++k) {
+		
+			if (triangles.inputs[j].source.stride == 3) {
+				// p1(xyz), p2(xyz), p3(xyz)
+				// p1(xyz), p2(xyz), p2(xyz), p3(xyz), p3(xyz), p1(xyz)
+				var p1 = {
+					x:	buffers[j][k * 9 + 0],
+					y:	buffers[j][k * 9 + 1],
+					z:	buffers[j][k * 9 + 2]
+				};
+				var p2 = {
+					x:	buffers[j][k * 9 + 3],
+					y:	buffers[j][k * 9 + 4],
+					z:	buffers[j][k * 9 + 5]
+				};
+				var p3 = {
+					x:	buffers[j][k * 9 + 6],
+					y:	buffers[j][k * 9 + 7],
+					z:	buffers[j][k * 9 + 8]
+				};
+				
+				newBuff.push(p1.x); newBuff.push(p1.y); newBuff.push(p1.z);
+				newBuff.push(p2.x); newBuff.push(p2.y); newBuff.push(p2.z);
+				newBuff.push(p2.x); newBuff.push(p2.y); newBuff.push(p2.z);
+				newBuff.push(p3.x); newBuff.push(p3.y); newBuff.push(p3.z);
+				newBuff.push(p3.x); newBuff.push(p3.y); newBuff.push(p3.z);
+				newBuff.push(p1.x); newBuff.push(p1.y); newBuff.push(p1.z);
+			}
+			else if (triangles.inputs[j].source.stride == 2) {
+				// p1(uv), p2(uv), p3(uv)
+				// p1(uv), p2(uv), p2(uv), p3(uv), p3(uv), p1(uv)
+				var p1 = {
+					u:	buffers[j][k * 6 + 0],
+					v:	buffers[j][k * 6 + 1]
+				};
+				var p2 = {
+					u:	buffers[j][k * 6 + 2],
+					v:	buffers[j][k * 6 + 3]
+				};
+				var p3 = {
+					u:	buffers[j][k * 6 + 4],
+					v:	buffers[j][k * 6 + 5]
+				};
+				
+				newBuff.push(p1.u); newBuff.push(p1.v);
+				newBuff.push(p2.u); newBuff.push(p2.v);
+				newBuff.push(p2.u); newBuff.push(p2.v);
+				newBuff.push(p3.u); newBuff.push(p3.v);
+				newBuff.push(p3.u); newBuff.push(p3.v);
+				newBuff.push(p1.u); newBuff.push(p1.v);
+
+			}
+			else {
+				newBuff = buffers[j];
+			}
+		}
+		mesh.addBuffer(triangles.inputs[j].semantic, this.webGL.ARRAY_BUFFER, newBuff, Math.floor(newBuff.length / triangles.inputs[j].source.stride), this.webGL.FLOAT, triangles.inputs[j].source.stride, this.webGL.STATIC_DRAW);
+		//FIN MODIFS
+        //mesh.addBuffer(this.geometry.triangles[i].inputs[j].semantic, this.webGL.ARRAY_BUFFER, buffers[j], Math.floor(buffers[j].length / this.geometry.triangles[i].inputs[j].source.stride), this.webGL.FLOAT, this.geometry.triangles[i].inputs[j].source.stride, this.webGL.STATIC_DRAW);
+      if (triangles.inputs[j].semantic == "POSITION") {
           mesh.calcBBox(buffers[j]);
-          mesh.setDrawingBuffer(this.geometry.triangles[i].inputs[j].semantic);
+          mesh.setDrawingBuffer(triangles.inputs[j].semantic);
         }
        this.meshes[i] = mesh;
       }
