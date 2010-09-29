@@ -23,7 +23,7 @@ function drawScene(elapsedTime) {
   if (isRotating) {
     amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
     var skeletonRoot     = Transform.getTransform("skeletonRoot");
-    skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 0.0, 1.0]);
+    skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
   }
   document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
 }
@@ -52,7 +52,7 @@ function initScene()
 	var cameraTransform  = rootTransform.addChild("camera");
 	var skeletonRoot     = rootTransform.addChild("skeletonRoot");
 	skeletonRoot.translate([1.0, -1.0, -5.0]);
-	skeletonRoot.rotate(-90, [1.0, 0.0, 0.0]);
+	//skeletonRoot.rotate(-90, [1.0, 0.0, 0.0]);
 	skeletonRoot.isVisible = false;
 	root.getCamera().attach(cameraTransform);
 		

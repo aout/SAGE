@@ -24,6 +24,11 @@ ColladaLoader = function() {
 	this.task = undefined;
 };
 
+ColladaLoader.ZUpToYUpMatrix = $M([  [1.0, 0.0, 0.0, 0.0],
+                                     [0.0, 0.0, 1.0, 0.0],
+                                     [0.0, -1.0, 0.0, 0.0],
+                                     [0.0, 0.0, 0.0, 1.0]  ]);
+
 /**
  * Static member
  * ColladaLoader StatusEnum
@@ -162,7 +167,11 @@ ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {
     for (var i = 0; i < joints.length; ++i) {
       if (joints[i].name == sid) {
         jointIndex = i;
-        if (parent) {
+        if (!parent) {
+          //if (upAxis == 'Z_UP')
+          joints[i].localMatrix = joints[i].localMatrix.x(ColladaLoader.ZUpToYUpMatrix);
+        }
+        else {
           parent.children.push(joints[i]);
         }
         joints[i].parent = parent;
@@ -172,7 +181,7 @@ ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {
         for (var j = 0; j < transformNodes.snapshotLength; ++j) {
           switch (transformNodes.snapshotItem(j).nodeName) {
             case 'matrix':
-              joints[i].localMatrix = ColladaLoader.parseMatrixString(ColladaLoader.nodeText(transformNodes.snapshotItem(j)));
+              joints[i].localMatrix = joints[i].localMatrix.x(ColladaLoader.parseMatrixString(ColladaLoader.nodeText(transformNodes.snapshotItem(j))));
               break;
             case 'translate':
               break;
@@ -682,7 +691,7 @@ ColladaLoader.prototype.parse = function () {
           skin['bindShapeMatrix'] = Matrix.I(4);
         }
         else {
-          skin['bindShapeMatrix'] = ColladaLoader.ParseMatrixString(ColladaLoader.nodeText(bindShapeMatrixNode));
+          skin['bindShapeMatrix'] = ColladaLoader.parseMatrixString(ColladaLoader.nodeText(bindShapeMatrixNode));
           if (!skin['bindShapeMatrix']) {
             alert('Warning: invalid bind shape matrix. Assuming it\'s identity');
             skin['bindShapeMatrix'] = Matrix.I(4);
