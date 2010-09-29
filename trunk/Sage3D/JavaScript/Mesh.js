@@ -185,7 +185,7 @@ Mesh.prototype.draw = function(shaderProgram) {
 			gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
 		}
 		else if (this.drawingBuffer.bufferType == gl.ARRAY_BUFFER) {
-			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
+			gl.drawArrays(gl.LINES, 0, this.drawingBuffer.numItems);
 		}
 	}
 };
