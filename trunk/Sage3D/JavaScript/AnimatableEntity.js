@@ -13,6 +13,7 @@ include("Texture.js");
  * @param {TextureArray} textures Textures
  */
 AnimatableEntity = function(name, upAxis, geometry, skeleton, materials) {
+  this.currentAnimation = undefined;
   this.webGL = Root.getInstance().getWebGL();
   this.name = name;
   this.upAxis = upAxis;
@@ -179,4 +180,11 @@ AnimatableEntity.prototype.calcMesh = function() {
       }
     }
   }
+};
+/**
+ * Add entity to animator with his selected animation
+ */
+AnimatableEntity.prototype.animate = function(animeName){
+	//anim = parcour array anim to find animeName
+//animator::getinstance().addEntityToAnim(this, anim);
 };
