@@ -8,6 +8,30 @@ include("Entity.js");
 include("Texture.js");
 include("Joint.js");
 
+include("ColladaLoader/Accessor.js");
+include("ColladaLoader/Animation.js");
+include("ColladaLoader/Array.js");
+include("ColladaLoader/Channel.js");
+include("ColladaLoader/ColladaFile.js");
+include("ColladaLoader/Color.js");
+include("ColladaLoader/Controller.js");
+include("ColladaLoader/Effect.js");
+include("ColladaLoader/Float.js");
+include("ColladaLoader/Geometry.js");
+include("ColladaLoader/Image.js");
+include("ColladaLoader/Input.js");
+include("ColladaLoader/Material.js");
+include("ColladaLoader/Matrix.js");
+include("ColladaLoader/NewParam.js");
+include("ColladaLoader/Param.js");
+include("ColladaLoader/Phong.js");
+include("ColladaLoader/Sampler.js");
+include("ColladaLoader/Sampler2D.js");
+include("ColladaLoader/Source.js");
+include("ColladaLoader/Surface.js");
+include("ColladaLoader/Texture.js");
+include("ColladaLoader/Triangles.js");
+
 /**
  * ColladaLoader Class
  */
