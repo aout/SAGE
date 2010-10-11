@@ -1,11 +1,25 @@
-PreparEntities(NameFile)
-Derouler les mesh du file et appeler constructeur entity
-PreparEntity
-Call constructeur entity(Mesh = null, texture = null)
-Ressourcemanager avec map index name entities
-Get entities with name
-list entity
-list animation
+- Remplacer Sylvester par gl_matrix
+- Regarder JSDoc
+
+- input manager
+
+- resource manager
+
+- ColladaLoader
+	refonte vers objets
+
+- Diagramme de classes
+
+- Workflow :
+	ColladaLoader
+	Passe de rendu
+	Chargement resource
+	anim
+
+- Debug:
+	Ajout d'un affichage que des vertex
+	ajout visuel des transform
+
 
 - Anim
 Animator a map name animation
@@ -15,25 +29,12 @@ animation a timer
 suivant timer animation fais un truc bien defini.
 Donc possibilité d'accelerer et de pause
 
+http://tfc.duke.free.fr/ quelques calculs en C pas mal
+http://www.cyberkreations.com/kreationsedge/?page_id=30
+http://www.g-truc.net/article/glsl.pdf
+
+Formule pour calculer points, joints et poids :
+
+Vertexdest = SUM ( Vertexsource * Underlying_Bone_Final_Matrix * Underlying_Bone_Weight[Vertexsource])
+
 - Light
-
-Smart dev 
-Ajout d'un affichage que des vertex
-ajout visuel des transform
-
-
-Collada Loader
-
-Refonte du parser
-	- Parsing et creation du mesh --> done
-	- Parsing et creation du skeleton --> done
-	- Parsing, loading et creation des textures
-	- Parsing animation --> done
-
-	http://tfc.duke.free.fr/ quelques calculs en C pas mal
-	http://www.cyberkreations.com/kreationsedge/?page_id=30
-	http://www.g-truc.net/article/glsl.pdf
-
-	Formule pour calculer points, joints et poids :
-	
-	Vertexdest = SUM ( Vertexsource * Underlying_Bone_Final_Matrix * Underlying_Bone_Weight[Vertexsource])
