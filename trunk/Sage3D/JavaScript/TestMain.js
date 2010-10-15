@@ -74,8 +74,8 @@ function loadResources() {
 	rm.doLoad(initScene);
 }
 
-function main() {
-  document.getElementById("go").style.visibility= 'hidden';
+function main() {  
+  document.getElementById("go").style.visibility = 'hidden';
 	var root = Root.getInstance();
 	document.onkeydown = handleKeyDown;
   document.onkeyup = handleKeyUp;

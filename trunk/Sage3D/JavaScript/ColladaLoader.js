@@ -183,6 +183,14 @@ ColladaLoader.getNodes = function(xml, xpathexpr, ctxNode) {
   return xml.evaluate(xpathexpr, ctxNode, ColladaLoader.nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 };
 
+ColladaLoader.parseAttributes = function(obj, node) {
+  if (obj && obj.attributes && node) {
+    for (var attr in obj.attributes) {
+      obj.attributes[attr] = node.getAttribute(attr);
+    }
+  }
+};
+
 ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {
   
   var sid = currentNode.getAttribute('sid');
@@ -232,8 +240,12 @@ ColladaLoader.prototype.load = function(task, callback) {
 
   this.xhr.onreadystatechange = function () {
   	if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
-      self.xmlFile = self.xhr.responseXML;
-  	  self.parse();
+  	  
+  	  var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
+      test.parse();
+  	  
+      //self.xmlFile = self.xhr.responseXML;
+  	  //self.parse();
   	}
   };
 
