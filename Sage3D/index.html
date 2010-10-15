@@ -28,7 +28,7 @@
     
     #sage {
       background-color:rgb(30%,30%,30%);
-      width: 800px;
+      width: 1200px;
       height: 500px;
       margin-left: auto;
       margin-right: auto;
@@ -76,6 +76,37 @@
       font-size: 12px;
     }
     
+    #viewport {
+      float: left;
+      width: 800px;
+      height: 500px;
+    }
+    
+    #debugDiv {
+      float: right;
+      overflow: auto; 
+      padding: 2px;
+      margin: 2px;
+      background: grey;
+      width: 382px;
+      height: 482px;
+    }
+    
+    .info {
+      color: white;
+    }
+    
+    .success {
+      color: green;
+    }
+    
+    .warning {
+      color: orange;
+    }
+    
+    .error {
+      color: red;
+    }
     </style>
 	
 	<script src="Externals/sylvester.js" type="text/javascript"></script>
@@ -89,7 +120,13 @@
         <img id="name" src="Resources/Sage.png">
       </div>
       <div id="sage">
-        <canvas id="viewport" width="800px" height="500px">There is supposed to be an example drawing here, but it's not important.</canvas>
+        <canvas id="viewport">There is supposed to be an example drawing here, but it's not important.</canvas>
+        <div id="debugDiv" readonly="readonly">
+          <span class="info">info</span>
+          <span class="success">success</span>
+          <span class="warning">warning</span>
+          <span class="error">error</span><br />
+        </div>
         <span id="FPS"></span>
       </div>
 		<button id="go" onclick="main()">Go</button>
