@@ -16,7 +16,7 @@ Animator = function() {
  * Static member
  * ColladaLoader instance
  */
-Animator.instance = undefined;
+Animator.instance = [];
 
 /**
  * Static member
@@ -33,6 +33,27 @@ Animator.getInstance = function() {
  * @param {AnimatableEntity} animatableEntity AnimatableEntity
  * @param {Anime} anime Anime
  */
-ColladaLoader.addEntityToAnim = function(animatableEntity, anime){
+ColladaLoader.addAnimatableEntity = function(animatableEntity, anime){
+	animatableEntity.onAnime = anime; //put specific animation in onAnime
+	this.animatable.push(animatableEntity);
+};
 
+ColladaLoader.removeAnimatableEntity = function(animatableEntity){
+	for (var i; i < this.animatable.lenght; ++i)
+	{
+		if (animatable[i] == animatableEntity)
+		{
+			this.animatable.splice(i, 1);
+			return;
+		}
+	}
+};
+
+ColladaLoader.update = function(elapsedTime){
+	for (var i; i < this.animatable.lenght; ++i)
+	{
+		if (this.animatable[i].onAnime != null)
+		if ( this.animatable[i].onAnime.update(elapsedTime) == false )
+			this.animatable.splice(i, 1);	
+	}
 };
