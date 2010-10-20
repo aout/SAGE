@@ -48,10 +48,10 @@ ColladaLoader = function() {
 	this.task = undefined;
 };
 
-ColladaLoader.ZUpToYUpMatrix = $M([  [1.0, 0.0, 0.0, 0.0],
-                                     [0.0, 0.0, 1.0, 0.0],
-                                     [0.0, -1.0, 0.0, 0.0],
-                                     [0.0, 0.0, 0.0, 1.0]  ]);
+ColladaLoader.ZUpToYUpMatrix = mat4.create([1.0, 0.0, 0.0, 0.0,
+                                            0.0, 0.0, 1.0, 0.0,
+                                            0.0, -1.0, 0.0, 0.0,
+                                            0.0, 0.0, 0.0, 1.0]);
 
 /**
  * Static member
@@ -142,10 +142,10 @@ ColladaLoader.parseMatrixString = function(s) {
   if (tab.length != 16) {
     return null;
   }  
-  return $M([[tab[ 0], tab[ 1], tab[ 2], tab[ 3]],
-             [tab[ 4], tab[ 5], tab[ 6], tab[ 7]],
-             [tab[ 8], tab[ 9], tab[10], tab[11]],
-             [tab[12], tab[13], tab[14], tab[15]]]);
+  return mat4.create([tab[ 0], tab[ 1], tab[ 2], tab[ 3],
+                      tab[ 4], tab[ 5], tab[ 6], tab[ 7],
+                      tab[ 8], tab[ 9], tab[10], tab[11],
+                      tab[12], tab[13], tab[14], tab[15]]);
 }
 
 ColladaLoader.parseMatricesString = function(s) {
@@ -156,10 +156,10 @@ ColladaLoader.parseMatricesString = function(s) {
   
   var res = new Array(tab.length / 16);
   for (var i = 0; i < tab.length / 16; ++i) {
-    res[i] = $M([ [tab[i * 16 +  0], tab[i * 16 +  1], tab[i * 16 +  2], tab[i * 16 +  3]],
-                  [tab[i * 16 +  4], tab[i * 16 +  5], tab[i * 16 +  6], tab[i * 16 +  7]],
-                  [tab[i * 16 +  8], tab[i * 16 +  9], tab[i * 16 + 10], tab[i * 16 + 11]],
-                  [tab[i * 16 + 12], tab[i * 16 + 13], tab[i * 16 + 14], tab[i * 16 + 15]]  ]);
+    res[i] = mat4.create([ tab[i * 16 +  0], tab[i * 16 +  1], tab[i * 16 +  2], tab[i * 16 +  3],
+                           tab[i * 16 +  4], tab[i * 16 +  5], tab[i * 16 +  6], tab[i * 16 +  7],
+                           tab[i * 16 +  8], tab[i * 16 +  9], tab[i * 16 + 10], tab[i * 16 + 11],
+                           tab[i * 16 + 12], tab[i * 16 + 13], tab[i * 16 + 14], tab[i * 16 + 15]]);
   }
   return res;
 }
@@ -201,7 +201,7 @@ ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {
         jointIndex = i;
         if (!parent) {
           //if (upAxis == 'Z_UP')
-          joints[i].localMatrix = joints[i].localMatrix.x(ColladaLoader.ZUpToYUpMatrix);
+          mat4.multiply(joints[i].localMatrix, ColladaLoader.ZUpToYUpMatrix);
         }
         else {
           parent.children.push(joints[i]);
@@ -213,7 +213,7 @@ ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {
         for (var j = 0; j < transformNodes.snapshotLength; ++j) {
           switch (transformNodes.snapshotItem(j).nodeName) {
             case 'matrix':
-              joints[i].localMatrix = joints[i].localMatrix.x(ColladaLoader.parseMatrixString(ColladaLoader.nodeText(transformNodes.snapshotItem(j))));
+              mat4.multiply(joints[i].localMatrix, ColladaLoader.parseMatrixString(ColladaLoader.nodeText(transformNodes.snapshotItem(j))));
               break;
             case 'translate':
               break;
@@ -723,14 +723,16 @@ ColladaLoader.prototype.parse = function () {
         
         var bindShapeMatrixNode = ColladaLoader.getNode(this.xmlFile, 'c:bind_shape_matrix', skinNodes.snapshotItem(i));
         if (!bindShapeMatrixNode) {
-          //alert('Warning: no bind shape matrix. Assuming it\'s identity');
-          skin['bindShapeMatrix'] = Matrix.I(4);
+          alert('Warning: no bind shape matrix. Assuming it\'s identity');
+          skin['bindShapeMatrix'] = mat4.create();
+          mat4.identity(skin['bindShapeMatrix']);
         }
         else {
           skin['bindShapeMatrix'] = ColladaLoader.parseMatrixString(ColladaLoader.nodeText(bindShapeMatrixNode));
           if (!skin['bindShapeMatrix']) {
             alert('Warning: invalid bind shape matrix. Assuming it\'s identity');
-            skin['bindShapeMatrix'] = Matrix.I(4);
+            skin['bindShapeMatrix'] = mat4.create();
+            mat4.identity(skin['bindShapeMatrix']);
           }
         }
         
@@ -792,16 +794,19 @@ ColladaLoader.prototype.parse = function () {
           continue;
         }
         
-        skin['joints'] = new Array(skin['jointsNumber'])
+        skin['joints'] = new Array(skin['jointsNumber'])        
         for (var j = 0; j < skin['jointsNumber']; ++j) {
-          skin['joints'][j] = new Joint({
+          var obj = {
             name:               jointNameTab[j],
             inverseBindMatrix:  matricesTab[j],
-            localMatrix:        Matrix.I(4),
-            worldMatrix:        Matrix.I(4),
+            localMatrix:        mat4.create(),
+            worldMatrix:        mat4.create(),
             parent:             null,
             children:           []
-          });
+          }; 
+          mat4.identity(obj.localMatrix);
+          mat4.identity(obj.worldMatrix);          
+          skin['joints'][j] = new Joint(obj);
         }
         
         // weights
@@ -864,7 +869,7 @@ ColladaLoader.prototype.parse = function () {
       }
     }
 
-  var ent = new AnimatableEntity('Amahani', upAxis, meshes['mesh'], skeletons['skin'], materials);
+  var ent = new AnimatableEntity('Amahani', meshes['mesh'], skeletons['skin'], materials);
   var amahaniTransform = Transform.getTransform("root").addChild('Amahani');
   amahaniTransform.addEntity(ent);
   this.task.parsingProgress = 1.0;

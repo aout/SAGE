@@ -39,13 +39,14 @@ Transform = function(parent, name) {
 	 * Matrix of the current Transform
 	 * @type {Matrix}
 	 */
-	this.localMatrix = Matrix.I(4);
-
+	this.localMatrix = mat4.create();//Matrix.I(4);
+  mat4.identity(this.localMatrix);
 	/**
 	 * Computed matrix
 	 * @type {Matrix}
 	 */
-	this.computedMatrix = Matrix.I(4);
+	this.computedMatrix = mat4.create();
+	mat4.identity(this.computedMatrix);
 
 	/**
 	 * Determines if the contents must be display or not
@@ -75,7 +76,7 @@ Transform = function(parent, name) {
 	
 	if (this.parent != undefined) {
 		this.parent.children.push(this);
-		this.computedMatrix = this.parent.computedMatrix.x(this.localMatrix);
+		mat4.multiply(this.parent.computedMatrix, this.localMatrix, this.computedMatrix);
 	}
 };
 
@@ -177,7 +178,7 @@ Transform.prototype.removeEntity = function(name) {
  */
 Transform.prototype.translate = function(v) {
 	this.isLocalMatrixChanged = true;
-	this.localMatrix = this.localMatrix.x(Matrix.Translation($V([v[0],v[1],v[2]])).ensure4x4());
+	mat4.translate(this.localMatrix, vec3.create([v[0],v[1],v[2]]));
 	return this;
 };
 
@@ -189,7 +190,7 @@ Transform.prototype.translate = function(v) {
 Transform.prototype.rotate = function(ang, v) {
 	this.isLocalMatrixChanged = true;
 	var arad = ang * Math.PI / 180.0;
-	this.localMatrix = this.localMatrix.x(Matrix.Rotation(arad, $V([v[0], v[1], v[2]])).ensure4x4());
+	mat4.rotate(this.localMatrix, arad, vec3.create([v[0],v[1],v[2]]));
 	return this;
 };
 
@@ -198,8 +199,9 @@ Transform.prototype.rotate = function(ang, v) {
  * @param {FloatArray} Vector
  */
 Transform.prototype.scale = function(v) {
+  mat4.scale(this.localMatrix)
 	this.isLocalMatrixChanged = true;
-	this.localMatrix = this.localMatrix.x(Matrix.Diagonal([v[0], v[1], v[2], 1]));
+	mat4.transpose(this.localMatrix);
 	return this;
 };
 
@@ -208,7 +210,7 @@ Transform.prototype.scale = function(v) {
  */
 Transform.prototype.invert = function() {
 	this.isLocalMatrixChanged = true;
-	this.localMatrix = this.localMatrix.inv();
+	mat4.inverse(this.localMatrix);
 };
 
 /**
@@ -216,15 +218,13 @@ Transform.prototype.invert = function() {
  * Here we pass uniforms to the shader program
  */
 Transform.prototype.render = function() {
-  if (!this.isVisible)
-    return;
 	var hasChanged = false;
 	var root = Root.getInstance();
 	
 	//First, recompute the matrix if necessary
 	if (this.isLocalMatrixChanged === true || this.isParentMatrixChanged === true) {
 		if (this.parent != undefined) {
-			this.computedMatrix = this.parent.computedMatrix.x(this.localMatrix);
+			mat4.multiply(this.parent.computedMatrix, this.localMatrix, this.computedMatrix);
 		}
 		else {
 			this.computedMatrix = this.localMatrix;
@@ -264,44 +264,18 @@ Transform.prototype.render = function() {
 		 isMatrix: true,
 		 numberOfElements: 4,
 		 value0: root.getCamera().computedMatrix},
-		 		 
+		 
 		{name: "uPMatrix",
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: root.getProjectionMatrix()},
+		 value0: root.getProjectionMatrix()}/*,
 		 
 		 {name: "uNMatrix",
 		 type: "Float",
 		 isMatrix: true,
 		 numberOfElements: 4,
-		 value0: this.computedMatrix.inverse().transpose()},
-		 
-		 {name: "uLightingEnabled",
-		 type: "Int",
-		 numberOfElements: 1,
-		 value0: root.isLightingEnabled},
-		 
-		 {name: "uAmbientColor",
-     type: "Float",
-     numberOfElements: 3,
-     value0: root.getAmbientColor()[0],
-     value1: root.getAmbientColor()[1],
-     value2: root.getAmbientColor()[2]},
-		 
-		 {name: "uDirectionalColor",
-     type: "Float",
-     numberOfElements: 3,
-     value0: root.getDirectionalColor()[0],
-     value1: root.getDirectionalColor()[1],
-     value2: root.getDirectionalColor()[2]},
-		 
-		 {name: "uLightingDirection",
-     type: "Float",
-     numberOfElements: 3,
-     value0: root.getLightingDirection()[0],
-     value1: root.getLightingDirection()[1],
-     value2: root.getLightingDirection()[2]}/*,
+		 value0: this.computedMatrix.inverse()},
 		 
 		 {name: "uNumberOfLights",
 		 type:  "Int",
@@ -345,8 +319,6 @@ Transform.prototype.render = function() {
 };
 
 Transform.prototype.nextChild = function() {
-  if (!this.isVisible)
-    return null;
   if (this.actualChild >= this.children.length) {
     this.actualChild = 0;
     return null;

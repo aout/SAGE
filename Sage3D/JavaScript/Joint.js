@@ -74,7 +74,8 @@ Joint.prototype.destroy = function() {
  */
 Joint.prototype.translate = function(v) {
   this.isLocalMatrixChanged = true;
-  this.localMatrix = this.localMatrix.x(Matrix.Translation($V([v[0],v[1],v[2]])).ensure4x4());
+  //this.localMatrix = this.localMatrix.x(Matrix.Translation($V([v[0],v[1],v[2]])).ensure4x4());
+  this.localMatrix = this.localMatrix.x(mat4.translate(this.localMatrix, $V([v[0], v[1], v[2]])).ensure4x4());
   return this;
 };
 
@@ -86,7 +87,8 @@ Joint.prototype.translate = function(v) {
 Joint.prototype.rotate = function(ang, v) {
   this.isLocalMatrixChanged = true;
   var arad = ang * Math.PI / 180.0;
-  this.localMatrix = this.localMatrix.x(Matrix.Rotation(arad, $V([v[0], v[1], v[2]])).ensure4x4());
+ // this.localMatrix = this.localMatrix.x(Matrix.Rotation(arad, $V([v[0], v[1], v[2]])).ensure4x4());
+  this.localMatrix = this.localMatrix.x(mat4.rotate(this.localMatrix, arad, $V([v[0], v[1], v[2]])).ensure4x4());
   return this;
 };
 
@@ -96,7 +98,8 @@ Joint.prototype.rotate = function(ang, v) {
  */
 Joint.prototype.scale = function(v) {
   this.isLocalMatrixChanged = true;
-  this.localMatrix = this.localMatrix.x(Matrix.Diagonal([v[0], v[1], v[2], 1]));
+  //this.localMatrix = this.localMatrix.x(Matrix.Diagonal([v[0], v[1], v[2], 1]));
+  this.localMatrix = this.localMatrix.x(mat4.transpose([v[0], v[1], v[2], 1]));
   return this;
 };
 
@@ -105,7 +108,8 @@ Joint.prototype.scale = function(v) {
  */
 Joint.prototype.invert = function() {
   this.isLocalMatrixChanged = true;
-  this.localMatrix = this.localMatrix.inv();
+  //this.localMatrix = this.localMatrix.inv();
+  this.localMatrix = this.localMatrix.inverse(this.localMatrix);
 };
 
 /**

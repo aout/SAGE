@@ -20,7 +20,8 @@ Root = function() {
 	this.webGL = undefined;
 	this.status = Root.StatusEnum.ROOT_NONE;
 	
-	this.projectionMatrix = Matrix.I(4);
+	this.projectionMatrix = mat4.create();
+	mat4.identity(this.projectionMatrix);
 	this.defaultProgram = undefined;
 	this.rootTransform = undefined;
 	this.camera = undefined;
@@ -34,10 +35,6 @@ Root = function() {
 	this.lightsDirections = [];
 	this.lightsColors = [];
 	this.lightsIntensities = [];
-	
-	this.ambientColor = [0.1, 0.1, 0.1];
-	this.directionalColor = [1.0, 1.0, 1.0];
-	this.lightingDirection = $V([-1.0, -1.0, 0.0]).toUnitVector().x(-1).flatten();
 	
 	this.maxFps = 200;
 	this.actualFps = 0.0;
@@ -101,9 +98,9 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 
 	//make perspective
 	if (projection != undefined)
-		this.projectionMatrix = makePerspective(projection.fovy, projection.aspect, projection.znear, projection.zfar);
+		this.projectionMatrix = mat4.perspective(projection.fovy, projection.aspect, projection.znear, projection.zfar);
 	else
-		this.projectionMatrix = makePerspective(45, this.viewPort.width / this.viewPort.height, 0.1, 100.0);
+		this.projectionMatrix = mat4.perspective(45, this.viewPort.width / this.viewPort.height, 0.1, 100.0);
 
 	this.webGL.enable(this.webGL.DEPTH_TEST);
 	this.webGL.depthFunc(this.webGL.LEQUAL);
@@ -318,16 +315,4 @@ Root.prototype.getLightsIntensities = function() {
     Intensities.push(lights[i].intensity);
   }
   return Intensities;
-};
-
-Root.prototype.getAmbientColor = function() {
-  return this.ambientColor;
-};
-
-Root.prototype.getDirectionalColor = function() {
-  return this.directionalColor;
-};
-
-Root.prototype.getLightingDirection = function() {
-  return this.lightingDirection;
 };
