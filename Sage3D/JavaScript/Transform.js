@@ -178,7 +178,7 @@ Transform.prototype.removeEntity = function(name) {
  */
 Transform.prototype.translate = function(v) {
 	this.isLocalMatrixChanged = true;
-	mat4.translate(this.localMatrix, vec3.create([v[0],v[1],v[2]]));
+	mat4.translate(this.localMatrix, vec3.create(v));
 	return this;
 };
 
@@ -190,7 +190,7 @@ Transform.prototype.translate = function(v) {
 Transform.prototype.rotate = function(ang, v) {
 	this.isLocalMatrixChanged = true;
 	var arad = ang * Math.PI / 180.0;
-	mat4.rotate(this.localMatrix, arad, vec3.create([v[0],v[1],v[2]]));
+	mat4.rotate(this.localMatrix, arad, vec3.create(v));
 	return this;
 };
 
@@ -199,9 +199,8 @@ Transform.prototype.rotate = function(ang, v) {
  * @param {FloatArray} Vector
  */
 Transform.prototype.scale = function(v) {
-  mat4.scale(this.localMatrix)
 	this.isLocalMatrixChanged = true;
-	mat4.transpose(this.localMatrix);
+	mat4.scale(this.localMatrix, vec3.create(v));
 	return this;
 };
 
@@ -218,6 +217,9 @@ Transform.prototype.invert = function() {
  * Here we pass uniforms to the shader program
  */
 Transform.prototype.render = function() {
+  if (!this.isVisible)
+    return;
+
 	var hasChanged = false;
 	var root = Root.getInstance();
 	
@@ -252,49 +254,79 @@ Transform.prototype.render = function() {
  *  value3: xxx} <- don't define these is only 1 value
  */
 
-	var uniforms = [
-		{name: "uMVMatrix",
-		 type: "Float",
-		 isMatrix: true,
-		 numberOfElements: 4,
-		 value0: this.computedMatrix},
-		 
- 		{name: "uEMatrix",
-		 type: "Float",
-		 isMatrix: true,
-		 numberOfElements: 4,
-		 value0: root.getCamera().computedMatrix},
-		 
-		{name: "uPMatrix",
-		 type: "Float",
-		 isMatrix: true,
-		 numberOfElements: 4,
-		 value0: root.getProjectionMatrix()}/*,
-		 
-		 {name: "uNMatrix",
-		 type: "Float",
-		 isMatrix: true,
-		 numberOfElements: 4,
-		 value0: this.computedMatrix.inverse()},
-		 
-		 {name: "uNumberOfLights",
-		 type:  "Int",
-		 numberOfElements: 1,
-		 value0: root.getNumberOfLights()},
-		 
-		 {name: "uLightsPositions",
+  var normalMatrix = mat4.create(this.computedMatrix);
+  mat4.inverse(normalMatrix);
+  mat4.transpose(normalMatrix);
+
+  var uniforms = [
+    {name: "uMVMatrix",
+     type: "Float",
+     isMatrix: true,
+     numberOfElements: 4,
+     value0: this.computedMatrix},
+     
+    {name: "uEMatrix",
+     type: "Float",
+     isMatrix: true,
+     numberOfElements: 4,
+     value0: root.getCamera().computedMatrix},
+         
+    {name: "uPMatrix",
+     type: "Float",
+     isMatrix: true,
+     numberOfElements: 4,
+     value0: root.getProjectionMatrix()},
+     
+     {name: "uNMatrix",
+     type: "Float",
+     isMatrix: true,
+     numberOfElements: 4,
+     value0: normalMatrix},
+     
+     {name: "uLightingEnabled",
+     type: "Int",
+     numberOfElements: 1,
+     value0: root.isLightingEnabled},
+     
+     {name: "uAmbientColor",
+     type: "Float",
+     numberOfElements: 3,
+     value0: root.getAmbientColor()[0],
+     value1: root.getAmbientColor()[1],
+     value2: root.getAmbientColor()[2]},
+     
+     {name: "uDirectionalColor",
+     type: "Float",
+     numberOfElements: 3,
+     value0: root.getDirectionalColor()[0],
+     value1: root.getDirectionalColor()[1],
+     value2: root.getDirectionalColor()[2]},
+     
+     {name: "uLightingDirection",
+     type: "Float",
+     numberOfElements: 3,
+     value0: root.getLightingDirection()[0],
+     value1: root.getLightingDirection()[1],
+     value2: root.getLightingDirection()[2]}/*,
+     
+     {name: "uNumberOfLights",
+     type:  "Int",
+     numberOfElements: 1,
+     value0: root.getNumberOfLights()},
+     
+     {name: "uLightsPositions",
      type: "Float",
      isArray: true,
      numberOfElements: 3,
      value0: root.getLightsPositions()},
-		 
-		 {name: "uLightsDirections",
-		 type: "Float",
-		 isArray: true,
-		 numberOfElements: 3,
-		 value0: root.getLightsDirections()},
-		 
-		 {name: "uLightsColors",
+     
+     {name: "uLightsDirections",
+     type: "Float",
+     isArray: true,
+     numberOfElements: 3,
+     value0: root.getLightsDirections()},
+     
+     {name: "uLightsColors",
      type: "Float",
      isArray: true,
      numberOfElements: 4,
@@ -305,7 +337,7 @@ Transform.prototype.render = function() {
      isArray: true,
      numberOfElements: 1,
      value0: root.getLightsIntensities()}*/
-	];
+  ];
 	this.shaderProgram.setUniforms(uniforms);
 	
 	for (var i = 0; i < this.entities.length; ++i) {
@@ -319,6 +351,8 @@ Transform.prototype.render = function() {
 };
 
 Transform.prototype.nextChild = function() {
+  if (!this.isVisible)
+    return null;
   if (this.actualChild >= this.children.length) {
     this.actualChild = 0;
     return null;

@@ -12,6 +12,7 @@ ColladaLoader_ColladaFile = function(task, xml, callback, debugDivId, verbose) {
   this.libraryAnimations = [];
   this.libraryAnimationClips = [];
   this.libraryControllers = [];
+  this.libraryEffects = [];
   this.libraryGeometries = [];
   this.libraryImages = [];
   this.libraryMaterials = [];
@@ -45,6 +46,7 @@ ColladaLoader_ColladaFile.prototype.parse = function() {
     return false;
   this.parseUpAxis();
   this.loadImages();
+  this.parseEffects();
   this.parseMaterials();
   this.parseGeometries();
   this.parseControllers();
@@ -116,6 +118,25 @@ ColladaLoader_ColladaFile.prototype.loadImages = function() {
     var image = new ColladaLoader_Image(this);
     if (image.parse(imageNodes.snapshotItem(i))) {
       this.libraryImages.push(image);
+    }
+  }
+};
+
+ColladaLoader_ColladaFile.prototype.parseEffects = function() {
+  
+  if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading effects</span><br />'; }
+  
+  var libraryEffectsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_images');
+  if (!libraryEffectsNode) {
+    if (this.debug) { this.debug.innerHTML += '<span class="warning">Couldn\'t find &lt;library_effects&gt;</span><br />'; }
+    return;
+  }
+  
+  var effectNodes = ColladaLoader.getNodes(this.xml, 'c:effect');
+  for (var i = 0; i < effectNodes.snapshotLength; i++) {
+    var effect = new ColladaLoader_Effect(this);
+    if (effect.parse(effectNodes.snapshotItem(i))) {
+      this.libraryEffects.push(image);
     }
   }
 };
