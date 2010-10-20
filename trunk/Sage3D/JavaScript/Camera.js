@@ -27,9 +27,10 @@ Camera = function(name, transform) {
 	 * Computed matrix
 	 * @type {Matrix}
 	 */
-	this.computedMatrix = Matrix.I(4);
+	this.computedMatrix = mat4.create();
+	mat4.identity(this.computedMatrix);
 
-	this.computedMatrix = this.parent.computedMatrix.inv();
+	mat4.inverse(this.computedMatrix);
 };
 
 /**
@@ -38,7 +39,7 @@ Camera = function(name, transform) {
  */
 Camera.prototype.attach = function(transform) {
 	this.parent = transform;
-	this.computedMatrix = this.parent.computedMatrix.inv();
+	mat4.inverse(this.parent.computedMatrix, this.computedMatrix);
 }
 
 /**
@@ -53,8 +54,9 @@ Camera.prototype.attach = function(transform) {
  * @param {Float} uy Is up axis
  * @param {Float} uz Is up axis
  */
+ 
 Camera.prototype.lookAt = function(ex, ey, ez, tx, ty, tz, ux, uy, uz) {
-	this.computedMatrix = makeLookAt(ex, ey, ez, tx, ty, tz, ux, uy, uz);
+//	this.computedMatrix = makeLookAt(ex, ey, ez, tx, ty, tz, ux, uy, uz);
 }
 
 /**
@@ -71,7 +73,7 @@ Camera.prototype.update = function() {
 	for (var i = parentTransforms.length - 1; i >= 0; --i) {
 		if (parentTransforms[i].isLocalMatrixChanged === true || parentTransforms[i].isParentMatrixChanged === true) {
 			if (parentTransforms[i].parent != undefined) {
-				parentTransforms[i].computedMatrix = parentTransforms[i].parent.computedMatrix.x(parentTransforms[i].localMatrix);
+				mat4.multiply(parentTransforms[i].parent.computedMatrix, parentTransforms[i].localMatrix, parentTransforms[i].computedMatrix);
 			}
 			else {
 				parentTransforms[i].computedMatrix = parentTransforms[i].localMatrix;
@@ -83,6 +85,5 @@ Camera.prototype.update = function() {
 			}
 		}		
 	}
-	
-	this.computedMatrix = this.parent.computedMatrix.inv();
+	mat4.inverse(this.parent.computedMatrix, this.computedMatrix);
 }
