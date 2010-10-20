@@ -28,9 +28,7 @@ Camera = function(name, transform) {
 	 * @type {Matrix}
 	 */
 	this.computedMatrix = mat4.create();
-	mat4.identity(this.computedMatrix);
-
-	mat4.inverse(this.computedMatrix);
+	mat4.inverse(this.parent.computedMatrix, this.computedMatrix);
 };
 
 /**

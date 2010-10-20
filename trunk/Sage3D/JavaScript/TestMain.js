@@ -278,16 +278,28 @@ function blue() {
   Root.getInstance().directionalColor = [0.0, 0.0, 1.0];
 }
 function front() {
-  Root.getInstance().lightingDirection = $V([0.0, -1.0, -1.0]).toUnitVector().x(-1).flatten();
+  var lightingDirection = vec3.create([0.0, -1.0, -1.0]);
+  vec3.normalize(lightingDirection);
+  vec3.negate(lightingDirection);
+  Root.getInstance().lightingDirection = lightingDirection;
 }
 function right() {
-  Root.getInstance().lightingDirection = $V([-1.0, -1.0, 0.0]).toUnitVector().x(-1).flatten();
+  var lightingDirection = vec3.create([-1.0, -1.0, 0.0]);
+  vec3.normalize(lightingDirection);
+  vec3.negate(lightingDirection);
+  Root.getInstance().lightingDirection = lightingDirection;
 }
 function left() {
-  Root.getInstance().lightingDirection = $V([1.0, -1.0, 0.0]).toUnitVector().x(-1).flatten();
+  var lightingDirection = vec3.create([1.0, -1.0, 0.0]);
+  vec3.normalize(lightingDirection);
+  vec3.negate(lightingDirection);
+  Root.getInstance().lightingDirection = lightingDirection;
 }
 function back() {
-  Root.getInstance().lightingDirection = $V([0.0, -1.0, 1.0]).toUnitVector().x(-1).flatten();
+  var lightingDirection = vec3.create([0.0, -1.0, 1.0]);
+  vec3.normalize(lightingDirection);
+  vec3.negate(lightingDirection);
+  Root.getInstance().lightingDirection = lightingDirection;
 }
 function toggleLight() {
   Root.getInstance().isLightingEnabled = !Root.getInstance().isLightingEnabled;

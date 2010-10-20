@@ -16,20 +16,14 @@ include("ColladaLoader/ColladaFile.js");
 include("ColladaLoader/Color.js");
 include("ColladaLoader/Controller.js");
 include("ColladaLoader/Effect.js");
-include("ColladaLoader/Float.js");
 include("ColladaLoader/Geometry.js");
 include("ColladaLoader/Image.js");
 include("ColladaLoader/Input.js");
 include("ColladaLoader/Material.js");
 include("ColladaLoader/Matrix.js");
-include("ColladaLoader/NewParam.js");
-include("ColladaLoader/Param.js");
-include("ColladaLoader/Phong.js");
 include("ColladaLoader/Sampler.js");
 include("ColladaLoader/Sampler2D.js");
-include("ColladaLoader/Source.js");
 include("ColladaLoader/Surface.js");
-include("ColladaLoader/Texture.js");
 include("ColladaLoader/Triangles.js");
 
 /**
@@ -241,11 +235,11 @@ ColladaLoader.prototype.load = function(task, callback) {
   this.xhr.onreadystatechange = function () {
   	if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
   	  
-  	  var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
-      test.parse();
+  	  //var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
+      //test.parse();
   	  
-      //self.xmlFile = self.xhr.responseXML;
-  	  //self.parse();
+      self.xmlFile = self.xhr.responseXML;
+  	  self.parse();
   	}
   };
 
@@ -869,7 +863,7 @@ ColladaLoader.prototype.parse = function () {
       }
     }
 
-  var ent = new AnimatableEntity('Amahani', meshes['mesh'], skeletons['skin'], materials);
+  var ent = new AnimatableEntity('Amahani', upAxis, meshes['mesh'], skeletons['skin'], materials);
   var amahaniTransform = Transform.getTransform("root").addChild('Amahani');
   amahaniTransform.addEntity(ent);
   this.task.parsingProgress = 1.0;

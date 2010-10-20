@@ -36,6 +36,12 @@ Root = function() {
 	this.lightsColors = [];
 	this.lightsIntensities = [];
 	
+	this.ambientColor = [0.1, 0.1, 0.1];
+  this.directionalColor = [1.0, 1.0, 1.0];
+  this.lightingDirection = vec3.create([-1.0, -1.0, 0.0]);
+  vec3.normalize(this.lightingDirection);
+  vec3.negate(this.lightingDirection);
+	
 	this.maxFps = 200;
 	this.actualFps = 0.0;
 	this.drawInterval = undefined;
@@ -315,4 +321,16 @@ Root.prototype.getLightsIntensities = function() {
     Intensities.push(lights[i].intensity);
   }
   return Intensities;
+};
+
+Root.prototype.getAmbientColor = function() {
+  return this.ambientColor;
+};
+
+Root.prototype.getDirectionalColor = function() {
+  return this.directionalColor;
+};
+
+Root.prototype.getLightingDirection = function() {
+  return this.lightingDirection;
 };
