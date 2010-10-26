@@ -11,7 +11,6 @@ ColladaLoader_Image = function(ColladaFile) {
   
   this.image = new Image();
   
-  
   this.attributes = {
     id: undefined,
     name: undefined,

@@ -23,6 +23,7 @@ include("ColladaLoader/Material.js");
 include("ColladaLoader/Matrix.js");
 include("ColladaLoader/Sampler.js");
 include("ColladaLoader/Sampler2D.js");
+include("ColladaLoader/ShadedSurface.js");
 include("ColladaLoader/Surface.js");
 include("ColladaLoader/Triangles.js");
 
