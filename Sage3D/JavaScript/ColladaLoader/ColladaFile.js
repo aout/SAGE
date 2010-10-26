@@ -126,23 +126,37 @@ ColladaLoader_ColladaFile.prototype.parseEffects = function() {
   
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading effects</span><br />'; }
   
-  var libraryEffectsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_images');
+  var libraryEffectsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_effects');
   if (!libraryEffectsNode) {
     if (this.debug) { this.debug.innerHTML += '<span class="warning">Couldn\'t find &lt;library_effects&gt;</span><br />'; }
     return;
   }
   
-  var effectNodes = ColladaLoader.getNodes(this.xml, 'c:effect');
+  var effectNodes = ColladaLoader.getNodes(this.xml, 'c:effect', libraryEffectsNode);
   for (var i = 0; i < effectNodes.snapshotLength; i++) {
     var effect = new ColladaLoader_Effect(this);
     if (effect.parse(effectNodes.snapshotItem(i))) {
-      this.libraryEffects.push(image);
+      this.libraryEffects.push(effect);
     }
   }
 };
 
 ColladaLoader_ColladaFile.prototype.parseMaterials = function() {
+  if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading materials</span><br />'; }
   
+  var libraryMaterialsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_materials');
+  if (!libraryMaterialsNode) {
+    if (this.debug) { this.debug.innerHTML += '<span class="error">Couldn\'t find &lt;library_materials&gt;</span><br />'; }
+    return;
+  }
+  
+  var materialNodes = ColladaLoader.getNodes(this.xml, 'c:material', libraryMaterialsNode)
+  for (var i = 0; i < materialNodes.snapshotLength; i++) {
+    var material = new ColladaLoader_Material(this);
+    if (material.parse(materialNodes.snapshotItem(i))) {
+      this.libraryMaterials.push(material);
+    }
+  }
 };
 
 ColladaLoader_ColladaFile.prototype.parseGeometries = function() {
