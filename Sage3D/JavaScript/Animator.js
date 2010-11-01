@@ -9,7 +9,7 @@ include("AnimatableEntity.js");
  * Animator Class
  */
 Animator = function() {
-	this.animatable = undefined;
+	this.animatable = [];
 };
 
 /**
@@ -39,19 +39,16 @@ ColladaLoader.addAnimatableEntity = function(animatableEntity, anime){
 };
 
 ColladaLoader.removeAnimatableEntity = function(animatableEntity){
-	for (var i; i < this.animatable.lenght; ++i)
-	{
-		if (animatable[i] == animatableEntity)
-		{
+	for (var i; i < this.animatable.lenght; ++i){
+		if (animatable[i] == animatableEntity){
 			this.animatable.splice(i, 1);
 			return;
 		}
 	}
 };
 
-ColladaLoader.update = function(elapsedTime){
-	for (var i; i < this.animatable.lenght; ++i)
-	{
+ColladaLoader.prototype.update = function(elapsedTime){
+	for (var i; i < this.animatable.lenght; ++i){
 		if (this.animatable[i].onAnime != null)
 		if ( this.animatable[i].onAnime.update(elapsedTime) == false )
 			this.animatable.splice(i, 1);	
