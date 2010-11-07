@@ -160,7 +160,21 @@ ColladaLoader_ColladaFile.prototype.parseMaterials = function() {
 };
 
 ColladaLoader_ColladaFile.prototype.parseGeometries = function() {
+  if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading geometries</span><br />'; }
   
+  var libraryGeometriesNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_geometries');
+  if (!libraryGeometriesNode) {
+    if (this.debug) { this.debug.innerHTML += '<span class="error">Couldn\'t find &lt;library_geometries&gt;</span><br />'; }
+    return;
+  }
+  
+  var geometryNodes = ColladaLoader.getNodes(this.xml, 'c:geometry', libraryGeometriesNode)
+  for (var i = 0; i < geometryNodes.snapshotLength; i++) {
+    var geometry = new ColladaLoader_Geometry(this);
+    if (geometry.parse(geometryNodes.snapshotItem(i))) {
+      this.libraryGeometries.push(geometry);
+    }
+  }
 };
 
 ColladaLoader_ColladaFile.prototype.parseControllers = function() {
