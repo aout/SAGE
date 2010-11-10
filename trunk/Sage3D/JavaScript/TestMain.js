@@ -347,11 +347,11 @@ float t = VectorDot(normal, p1 - camera_local) / dot; verif poly devant la cam
               Vector c = p3 - collide;
               Vector verif = a.normalize() + b.normalize() + c.normalize(); si verif est normalize alors c'est dans le poly
 			   if( VectorLongeur(verif) > 1 ) continue;
-			   Vector3d distance = camera_local - collide; coordonné depuis l'origine soit Cam
+			   Vector3d distance = camera_local - collide; coordonnï¿½ depuis l'origine soit Cam
 			   if( VectorLongeur(distance) < min_distance || min_distance == -1) //calc la longueur
               {
-                   final_collide = collide; // on met à jour le point de collision trouvé
-                   min_distance = VectorLongeur(distance); // on met à jour la distance
+                   final_collide = collide; // on met ï¿½ jour le point de collision trouvï¿½
+                   min_distance = VectorLongeur(distance); // on met ï¿½ jour la distance
               }
 
 			  }

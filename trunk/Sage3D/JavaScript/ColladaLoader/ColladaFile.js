@@ -178,7 +178,21 @@ ColladaLoader_ColladaFile.prototype.parseGeometries = function() {
 };
 
 ColladaLoader_ColladaFile.prototype.parseControllers = function() {
+  if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading controllers</span><br />'; }
   
+  var libraryControllersNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_controllers');
+  if (!libraryControllersNode) {
+    if (this.debug) { this.debug.innerHTML += '<span class="warning">Couldn\'t find &lt;library_controllers&gt;</span><br />'; }
+    return;
+  }
+  
+  var controllerNodes = ColladaLoader.getNodes(this.xml, 'c:controller', libraryControllersNode)
+  for (var i = 0; i < controllerNodes.snapshotLength; i++) {
+    var controller = new ColladaLoader_Controller(this);
+    if (controller.parse(controllerNodes.snapshotItem(i))) {
+      this.libraryControllers.push(controller);
+    }
+  }  
 };
 
 ColladaLoader_ColladaFile.prototype.parseAnimations = function() {

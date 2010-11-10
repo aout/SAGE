@@ -24,6 +24,7 @@ include("ColladaLoader/Matrix.js");
 include("ColladaLoader/Sampler.js");
 include("ColladaLoader/Sampler2D.js");
 include("ColladaLoader/ShadedSurface.js");
+include("ColladaLoader/Source.js");
 include("ColladaLoader/Surface.js");
 include("ColladaLoader/Triangles.js");
 
@@ -98,6 +99,12 @@ ColladaLoader.nodeText = function(n) {
   return ColladaLoader.trim(s);
 };
 
+ColladaLoader.parseNameListString = function(s) {
+  if (s == "")
+    return [];
+  return s.split(/\s+/);
+};
+
 /**
  * Static member
  * ParseFloatListString parse a string
@@ -159,6 +166,14 @@ ColladaLoader.parseMatricesString = function(s) {
   return res;
 }
 
+ColladaLoader.parseAttributes = function(obj, node) {
+  if (obj && obj.attributes && node) {
+    for (var attr in obj.attributes) {
+      obj.attributes[attr] = node.getAttribute(attr);
+    }
+  }
+};
+
 ColladaLoader.nsResolver = function(prefix) {
       var ns = {
         'c' : 'http://www.collada.org/2005/11/COLLADASchema'
@@ -176,14 +191,6 @@ ColladaLoader.getNodes = function(xml, xpathexpr, ctxNode) {
   if (ctxNode == null)
     ctxNode = xml;
   return xml.evaluate(xpathexpr, ctxNode, ColladaLoader.nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-};
-
-ColladaLoader.parseAttributes = function(obj, node) {
-  if (obj && obj.attributes && node) {
-    for (var attr in obj.attributes) {
-      obj.attributes[attr] = node.getAttribute(attr);
-    }
-  }
 };
 
 ColladaLoader.organizeJoints = function(xml, currentNode, joints, parent) {

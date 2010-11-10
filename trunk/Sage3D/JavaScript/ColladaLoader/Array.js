@@ -12,7 +12,7 @@ ColladaLoader_Array = function(ColladaFile) {
   this.attributes = {
     id: undefined,
     name: undefined,
-	count: undefined
+		count: undefined
   };
   
 };
@@ -45,7 +45,12 @@ ColladaLoader_Array.prototype.parse = function(node) {
 	case ColladaLoader_Array.typeEnum.float_array: this.data = ColladaLoader.parseFloatListString(ColladaLoader.nodeText(node)); break;
 	case ColladaLoader_Array.typeEnum.int_array: this.data = ColladaLoader.parseIntListString(ColladaLoader.nodeText(node)); break;
   }
-    
+  
+  if (this.data.length != this.attributes.count) {
+  	if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Array ' + this.attributes.id + ' contains ' + this.data.length + ' elements while \'count\' is ' + this.attributes.count + '</span><br />'; }
+  	return false;
+  }
+  
   if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="info">Array ' + this.attributes.id + ' loaded</span><br />'; }
   return true;
 };
