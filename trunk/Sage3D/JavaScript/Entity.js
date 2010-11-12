@@ -54,12 +54,12 @@ Entity.prototype.addMesh = function(mesh) {
  * Draw the entity
  * @param {Program} shaderProgram Shader program 
  */
-Entity.prototype.draw = function(shaderProgram) {
+Entity.prototype.draw = function(shaderProgram, depthProgram) {
 	for (var i = 0; i < this.textures.length; ++i) {
 		this.textures[i].active(shaderProgram);
 	}
 
   for (var i = 0; i < this.meshes.length; ++i) {
-    this.meshes[i].draw(shaderProgram);
+    this.meshes[i].draw(shaderProgram, depthProgram);
   }
 };

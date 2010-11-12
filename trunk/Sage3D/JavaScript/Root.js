@@ -23,6 +23,7 @@ Root = function() {
 	this.projectionMatrix = mat4.create();
 	mat4.identity(this.projectionMatrix);
 	this.defaultProgram = undefined;
+	this.depthProgram = undefined;
 	this.rootTransform = undefined;
 	this.camera = undefined;
 	
@@ -120,6 +121,7 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 	//WebGL	initialization!
 	//default shader
 	this.defaultProgram = new Program("Default", "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs", callback);
+	this.depthProgram = new Program("Depth", "Resources/Shaders/default/default.vs", "Resources/Shaders/depth/depth.fs", null);
 	
 	this.canDraw = true;
 	return true;
@@ -128,9 +130,14 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 Root.prototype.getWebGL = function() {
 	return this.webGL;
 };
-
+Root.prototype.getViewPort = function() {
+	return this.viewPort;
+};
 Root.prototype.getDefaultProgram = function() {
 	return this.defaultProgram;
+};
+Root.prototype.getDepthProgram = function() {
+	return this.depthProgram;
 };
 
 Root.prototype.getProjectionMatrix = function() {

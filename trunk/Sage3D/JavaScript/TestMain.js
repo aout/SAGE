@@ -48,6 +48,10 @@ function initScene()
 	
   var amahaniTransform = Transform.getTransform("Amahani");
   amahaniTransform.translate([-1.0, -1.0, -5.0]);
+
+  var cubeTransform  = rootTransform.addChild("cube");
+  amahaniTransform.translate([-1.0, -1.0, -10.0]);
+
 	
 	var cameraTransform  = rootTransform.addChild("camera");
 	var skeletonRoot     = rootTransform.addChild("skeletonRoot");
@@ -79,7 +83,7 @@ function main() {
 	var root = Root.getInstance();
 	document.onkeydown = handleKeyDown;
   document.onkeyup = handleKeyUp;
-	root.init("viewport", loadResources, {R: 0.3, G: 0.3, B: 0.3, A: 1.0});
+	root.init("viewport", loadResources, {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
 }
 
 if (typeof KeyEvent == "undefined") {
