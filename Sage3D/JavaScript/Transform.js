@@ -71,6 +71,7 @@ Transform = function(parent, name) {
 	 * @type {Program}
 	 */
 	this.shaderProgram = undefined;
+	this.depthProgram = undefined;
 	
 	this.actualChild = 0;
 	
@@ -240,6 +241,10 @@ Transform.prototype.render = function() {
   }
 
   this.shaderProgram.use();
+  
+ if (this.depthProgram == undefined) {
+    this.depthProgram = root.getDepthProgram();
+  }
 
 /**
  * Example of uniform
@@ -340,8 +345,11 @@ Transform.prototype.render = function() {
   ];
 	this.shaderProgram.setUniforms(uniforms);
 	
+	// this.depthProgram.use();
+	  this.depthProgram.setUniforms(uniforms);
+
 	for (var i = 0; i < this.entities.length; ++i) {
-		this.entities[i].draw(this.shaderProgram);
+		this.entities[i].draw(this.shaderProgram, this.depthProgram);
 	}
 	
 	//Call render() on the children Transform

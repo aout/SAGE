@@ -113,7 +113,6 @@ ColladaLoader.parseFloatListString = function(s) {
   if (s == "")
     return [];
 
-  // this is horrible
   var ss = s.split(/\s+/);
   var res = Array(ss.length);
   for (var i = 0, j = 0; i < ss.length; i++) {
@@ -128,7 +127,6 @@ ColladaLoader.parseIntListString = function(s) {
   if (s == "")
     return [];
 
-  // this is horrible
   var ss = s.split(/\s+/);
   var res = Array(ss.length);
   for (var i = 0, j = 0; i < ss.length; i++) {
@@ -137,6 +135,26 @@ ColladaLoader.parseIntListString = function(s) {
     res[j++] = parseInt(ss[i]);
   }
   return res;
+};
+
+ColladaLoader.parseBoolListString = function(s) {
+  if (s == "")
+    return [];
+
+  var ss = s.split(/\s+/);
+  var res = Array(ss.length);
+  for (var i = 0, j = 0; i < ss.length; i++) {
+    if (ss[i].length == 0)
+      continue;
+    res[j++] = ss[i] == "true" ? true : false;
+  }
+  return res;
+};
+
+ColladaLoader.parseNameListString = function(s) {
+  if (s == "")
+    return [];
+  return s.split(/\s+/);
 };
 
 ColladaLoader.parseMatrixString = function(s) {
@@ -243,11 +261,11 @@ ColladaLoader.prototype.load = function(task, callback) {
   this.xhr.onreadystatechange = function () {
   	if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
   	  
-  	  var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
-      test.parse();
+  	 // var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
+     // test.parse();
   	  
-      //self.xmlFile = self.xhr.responseXML;
-  	  //self.parse();
+      self.xmlFile = self.xhr.responseXML;
+  	  self.parse();
   	}
   };
 
