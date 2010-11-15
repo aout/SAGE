@@ -315,6 +315,9 @@ function toggleSkeleton() {
   var skeletonRoot = Transform.getTransform("skeletonRoot");
   skeletonRoot.isVisible = !skeletonRoot.isVisible;
 }
+function setMousePosition(event) {
+	Root.getInstance().setMousePosition(event);
+}
 /*function picking(e) { 
 var vectorMouse = vec3.create([0.0, 0.0, 0.0]);
 vectorMouse.x = e.pageX;

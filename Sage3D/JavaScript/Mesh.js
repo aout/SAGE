@@ -11,10 +11,7 @@ Mesh = function (name) {
 	this.webGL = Root.getInstance().getWebGL();
 	this.name = name;
 	this.buffers = [];
-	this.depthFrameBuffer = this.webGL.createFramebuffer();
 	this.drawingBuffer = null;
-	var renderBuf = this.webGL.createRenderbuffer();
-	var depthTexture = this.webGL.createTexture();
 
 
 	this.BBox = {
@@ -182,29 +179,27 @@ Mesh.prototype.draw = function(shaderProgram, depthProgram) {
 	if (this.drawingBuffer != null) {
 		var gl = Root.getInstance().getWebGL();
 		
-	//gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
-	//gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, Root.getInstance().getViewPort().width, Root.getInstance().getViewPort().height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
 	/*gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 */
-	gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthBuffer);
-	gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderBuf);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, Root.getInstance().getViewPort().width, Root.getInstance().getViewPort().height);
- 	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
-	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.depthTexture, 0);
-	gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderBuf);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	
+	gl.activeTexture(1 + this.webGL.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, Root.getInstance().getDepthTexture());
+
 	if (depthProgram == undefined)
 		  depthProgram = Root.getInstance().getDepthProgram();
 		//depthProgram.use();
-		//depthProgram.setAttributes(this.buffers);
-		//gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
-		//gl.bindTexture(gl.TEXTURE_2D, null);
-		//FINBD A WAY TO REBIND DEFAULT TEXT
+		depthProgram.setAttributes(this.buffers);
+		gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
+		if(Root.getInstance().getMousePositionX() != undefined)
+			var position = Root.getInstance().getMousePositionX();
+
+		
+		this.webGL.activeTexture(this.webGL.TEXTURE0);
 		if (shaderProgram == undefined)
 			shaderProgram = Root.getInstance().getDefaultProgram();
 		shaderProgram.use();
