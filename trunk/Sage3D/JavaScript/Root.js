@@ -51,6 +51,13 @@ Root = function() {
 	this.renderedFrames = 0;
 	this.lastRender = undefined;
 	
+	this.depthFrameBuffer;
+	this.renderBuf;
+	this.depthTexture;
+
+	this.mousePositionX = undefined;
+	this.mousePositionY = undefined;
+	this.vectorMouse = undefined;
 	this.onRender = undefined;
 };
 
@@ -123,6 +130,24 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 	this.defaultProgram = new Program("Default", "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs", callback);
 	this.depthProgram = new Program("Depth", "Resources/Shaders/default/default.vs", "Resources/Shaders/depth/depth.fs", null);
 	
+	this.depthFrameBuffer = this.webGL.createFramebuffer();
+	this.renderBuf = this.webGL.createRenderbuffer();
+	this.depthTexture = this.webGL.createTexture();
+	
+	this.webGL.activeTexture(1 + this.webGL.TEXTURE0);
+
+	this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.depthTexture);
+	this.webGL.texImage2D(this.webGL.TEXTURE_2D, 0, this.webGL.RGBA, this.viewPort.width, this.viewPort.height, 0, this.webGL.RGBA, this.webGL.UNSIGNED_BYTE, null);
+	this.webGL.bindFramebuffer(this.webGL.FRAMEBUFFER, this.depthBuffer);
+	this.webGL.bindRenderbuffer(this.webGL.RENDERBUFFER, this.renderBuf);
+    this.webGL.renderbufferStorage(this.webGL.RENDERBUFFER, this.webGL.DEPTH_COMPONENT16, this.viewPort.width, this.viewPort.height);
+ 	this.webGL.bindRenderbuffer(this.webGL.RENDERBUFFER, null);
+
+	this.webGL.framebufferTexture2D(this.webGL.FRAMEBUFFER, this.webGL.COLOR_ATTACHMENT0, this.webGL.TEXTURE_2D, this.depthTexture, 0);
+	this.webGL.framebufferRenderbuffer(this.webGL.FRAMEBUFFER, this.webGL.DEPTH_ATTACHMENT, this.webGL.RENDERBUFFER, this.renderBuf);
+	this.webGL.bindFramebuffer(this.webGL.FRAMEBUFFER, null);
+	
+	this.webGL.activeTexture(this.webGL.TEXTURE0);
 	this.canDraw = true;
 	return true;
 };
@@ -341,3 +366,17 @@ Root.prototype.getDirectionalColor = function() {
 Root.prototype.getLightingDirection = function() {
   return this.lightingDirection;
 };
+
+Root.prototype.getDepthTexture = function() {
+  return this.depthTexture;
+};
+Root.prototype.getMousePositionX = function() {
+  return this.mousePositionX;
+};
+Root.prototype.getMousePositionY = function() {
+  return this.mousePositionY;
+};
+Root.prototype.setMousePosition = function(event){
+	this.mousePositionX = event.pageX;
+	this.mousePositionY = event.pageY;
+}
