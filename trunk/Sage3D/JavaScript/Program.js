@@ -30,8 +30,7 @@ Program.StatusEnum = {
 	PROGRAM_GETTING		: 1,
 	PROGRAM_COMPILING	: 2,
 	PROGRAM_READY		: 3,
-	PROGRAM_USING		: 4,
-	SHADER_ERROR		: 5	
+	SHADER_ERROR		: 4	
 };
 
 Program.prototype.load = function(vertexShader, fragmentShader, callback) {
@@ -123,15 +122,19 @@ Program.prototype.compile = function(callback) {
 	}
 };
 
+Program.prototype.isUsing = function() {
+	return (this.program == this.webGL.getParameter(this.webGL.CURRENT_PROGRAM));
+};
+
 Program.prototype.use = function() {
-	if (this.status == Program.StatusEnum.PROGRAM_USING || this.status != Program.StatusEnum.PROGRAM_READY)
-		return this.status;
-	this.webGL.useProgram(this.program);
-	this.status = Program.StatusEnum.PROGRAM_USING;
+	if (this.status == Program.StatusEnum.PROGRAM_READY && this.isUsing() == false) {
+		this.webGL.useProgram(this.program);		
+	}
+	return this.status;
 };
 
 Program.prototype.setUniforms = function(tab) {
-	if (this.status != Program.StatusEnum.PROGRAM_USING)
+	if (this.isUsing() == false)
 		return false;
 	this.uniforms = tab;
 	for (var i = 0; i < this.uniforms.length; ++i) {
@@ -235,7 +238,7 @@ Program.prototype.setUniforms = function(tab) {
 };
 
 Program.prototype.setAttributes = function(buffers) {
-	if (this.status != Program.StatusEnum.PROGRAM_USING)
+	if (this.isUsing() == false)
 		return false;
 	for (var i = 0; i < buffers.length; ++i) {
 		var buffer = buffers[i];

@@ -13,14 +13,15 @@ ColladaLoader_Source = function(ColladaFile) {
     name: undefined
   };
   
-  this.accessor = {};
-  
-  this.accessor.attributes = {
-  	count: undefined,
-	offset: undefined,
-	source: undefined,
-	stride: undefined
+  this.accessor = {
+  	attributes: {
+			count: undefined,
+			offset: undefined,
+			source: undefined,
+			stride: undefined
+		  }  	
   };
+  
   
 };
 

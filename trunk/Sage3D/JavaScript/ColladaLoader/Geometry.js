@@ -49,10 +49,18 @@ ColladaLoader_Geometry.prototype.parse = function(node) {
   
   ColladaLoader.parseAttributes(this.vertices, verticesNode);
   var verticesInputNodes = ColladaLoader.getNodes(this.colladaFile.xml, 'c:input', verticesNode);
+  var verticesCount = -1;
   for (var i = 0; i < verticesInputNodes.snapshotLength; ++i) {
 	  var input = new ColladaLoader_Input(this.colladaFile);
 	  if (input.parse(verticesInputNodes.snapshotItem(i), this.sources)) {
 	  	this.vertices.inputs.push(input);
+	  	if (verticesCount == -1) {
+	  		verticesCount = this.vertices.inputs[i].source.attributes.count;
+	  	}
+	  	else if (verticesCount != this.vertices.inputs[i].source.accessor.attributes.count) {
+	  		if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Vertices attributes didn\t have the same length in ' + this.attributes.id + '</span><br />'; }
+	  		return false;
+	  	}
 	  }
   }
   
