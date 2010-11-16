@@ -39,8 +39,8 @@ Light.StatusEnum = {
  * Light Type
  */
 Light.TypeEnum = {
-	AMBIENT			: 0, // ambient (global) light of the scene
-	DIRECTIONAL	: 1, // vector directed light (laser, sunlight, moonlight...)
-	SPOTLIGHT		: 2, // conic light (spots, lamps...)
-	POINTLIGHT	: 3, // spherical light (bulbs, sun in a very wide scene, fire...)
+	LIGHT_AMBIENT			: 0, // ambient (global) light of the scene
+	LIGHT_DIRECTIONAL	: 1, // vector directed light (sunlight, moonlight...)
+	LIGHT_SPOTLIGHT		: 2, // conic light (spots, lamps...)
+	LIGHT_POINTLIGHT	: 3, // spherical light (bulbs, sun in a very wide scene, fire...)
 };
