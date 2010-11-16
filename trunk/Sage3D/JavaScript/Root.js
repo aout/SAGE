@@ -59,8 +59,11 @@ Root = function(){
     this.renderBuf;
     this.depthTexture;
 
-    this.mousePositionX = undefined;
-    this.mousePositionY = undefined;
+this.mousePosition = {
+	x: 0,
+	y: 0,
+	}
+	this.hasClick = false;
     this.vectorMouse = undefined;
     this.onRender = undefined;
 };
@@ -143,6 +146,13 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
     this.webGL.activeTexture(1 + this.webGL.TEXTURE0);
 
     this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.depthTexture);
+	
+	/*this.webGL.texParameteri(this.webGL.TEXTURE_2D, this.webGL.TEXTURE_MAG_FILTER, this.webGL.NEAREST);
+	 this.webGL.texParameteri(this.webGL.TEXTURE_2D, this.webGL.TEXTURE_MIN_FILTER, this.webGL.NEAREST);
+	 this.webGL.texParameteri(this.webGL.TEXTURE_2D, this.webGL.TEXTURE_WRAP_S, this.webGL.CLAMP_TO_EDGE);
+	 this.webGL.texParameteri(this.webGL.TEXTURE_2D, this.webGL.TEXTURE_WRAP_T, this.webGL.CLAMP_TO_EDGE);*/
+	 
+
     this.webGL.texImage2D(this.webGL.TEXTURE_2D, 0, this.webGL.RGBA, this.viewPort.width, this.viewPort.height, 0, this.webGL.RGBA, this.webGL.UNSIGNED_BYTE, null);
     this.webGL.bindFramebuffer(this.webGL.FRAMEBUFFER, this.depthBuffer);
     this.webGL.bindRenderbuffer(this.webGL.RENDERBUFFER, this.renderBuf);
@@ -161,7 +171,7 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 Root.prototype.getWebGL = function(){
     return this.webGL;
 };
-Root.prototype.getViewPort = function(){
+Root.prototype.getViewport = function(){
     return this.viewPort;
 };
 Root.prototype.getDefaultProgram = function(){
@@ -386,13 +396,18 @@ Root.prototype.getLightingDirection = function(){
 Root.prototype.getDepthTexture = function(){
     return this.depthTexture;
 };
-Root.prototype.getMousePositionX = function(){
-    return this.mousePositionX;
+Root.prototype.getMousePosition = function(){
+    return this.mousePosition;
 };
-Root.prototype.getMousePositionY = function(){
-    return this.mousePositionY;
+Root.prototype.getHasClick = function(){
+    return this.hasClick;
 };
+Root.prototype.setHasClick = function(click){
+    this.hasClick = click;
+};
+
 Root.prototype.setMousePosition = function(event){
-    this.mousePositionX = event.pageX;
-    this.mousePositionY = event.pageY;
+    this.mousePosition.x = event.pageX;
+    this.mousePosition.y = event.pageY;
+	this.hasClick = true;
 }

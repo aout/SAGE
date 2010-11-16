@@ -345,7 +345,7 @@ Transform.prototype.render = function() {
   ];
 	this.shaderProgram.setUniforms(uniforms);
 	
-	// this.depthProgram.use();
+	 this.depthProgram.use();
 	  this.depthProgram.setUniforms(uniforms);
 
 	for (var i = 0; i < this.entities.length; ++i) {
