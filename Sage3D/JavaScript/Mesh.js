@@ -179,44 +179,37 @@ Mesh.prototype.draw = function(shaderProgram, depthProgram) {
 	if (this.drawingBuffer != null) {
 		var gl = Root.getInstance().getWebGL();
 		
-
-	/*gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-*/
-
-	
-	gl.activeTexture(1 + this.webGL.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, Root.getInstance().getDepthTexture());
-
-	if (depthProgram == undefined)
-		  depthProgram = Root.getInstance().getDepthProgram();
-		//depthProgram.use();
-		depthProgram.setAttributes(this.buffers);
-		gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
-		if(Root.getInstance().getMousePositionX() != undefined)
-			var position = Root.getInstance().getMousePositionX();
-
 		
+
+		gl.activeTexture(1 + this.webGL.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, Root.getInstance().getDepthTexture());
+		if (depthProgram == undefined) 
+			depthProgram = Root.getInstance().getDepthProgram();
+		depthProgram.use();
+		depthProgram.setAttributes(this.buffers);
+		gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
+		if (Root.getInstance().getHasClick() == true) {
+			var position = Root.getInstance().getMousePosition();
+			var data = new Uint8Array(4);
+			gl.readPixels(position.x, position.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
+			var test = data[0];
+		}
+
 		this.webGL.activeTexture(this.webGL.TEXTURE0);
 		if (shaderProgram == undefined)
 			shaderProgram = Root.getInstance().getDefaultProgram();
 		shaderProgram.use();
 		shaderProgram.setAttributes(this.buffers);
 		gl.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
-	var data = new Uint8Array( 4);
-gl.readPixels(400, 250, 1, 1, gl.RGBA,gl.UNSIGNED_BYTE, data);
 		if (this.drawingBuffer.bufferType == gl.ELEMENT_ARRAY_BUFFER) {
 			gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
 		}
 		else if (this.drawingBuffer.bufferType == gl.ARRAY_BUFFER) {
 			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
 		}
-		
-gl.readPixels(400, 250, 1, 1, gl.RGBA,gl.UNSIGNED_BYTE, data);
-	var i =0;
+			var i =0;
 	++i;
+	Root.getInstance().setHasClick(false);
 	}
 };
 
