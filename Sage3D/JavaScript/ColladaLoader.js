@@ -743,7 +743,7 @@ ColladaLoader.prototype.parse = function () {
         
         var bindShapeMatrixNode = ColladaLoader.getNode(this.xmlFile, 'c:bind_shape_matrix', skinNodes.snapshotItem(i));
         if (!bindShapeMatrixNode) {
-          alert('Warning: no bind shape matrix. Assuming it\'s identity');
+          //alert('Warning: no bind shape matrix. Assuming it\'s identity');
           skin['bindShapeMatrix'] = mat4.create();
           mat4.identity(skin['bindShapeMatrix']);
         }
