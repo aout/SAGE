@@ -71,7 +71,6 @@ Transform = function(parent, name) {
 	 * @type {Program}
 	 */
 	this.shaderProgram = undefined;
-	this.depthProgram = undefined;
 	
 	this.actualChild = 0;
 	
@@ -242,9 +241,6 @@ Transform.prototype.render = function() {
 
   this.shaderProgram.use();
   
- if (this.depthProgram == undefined) {
-    this.depthProgram = root.getDepthProgram();
-  }
 
 /**
  * Example of uniform
@@ -254,9 +250,9 @@ Transform.prototype.render = function() {
  *  isMatrix: true | false | undefined,
  *  numberOfElements: 1 - 4,
  *  value0: xxx,
- *  value1: xxx, <- don't define these is only 1 value
- *  value2: xxx, <- don't define these is only 1 value
- *  value3: xxx} <- don't define these is only 1 value
+ *  value1: xxx, <- don't define these if only 1 value
+ *  value2: xxx, <- don't define these if only 1 value
+ *  value3: xxx} <- don't define these if only 1 value
  */
 
   var normalMatrix = mat4.create(this.computedMatrix);
@@ -344,12 +340,9 @@ Transform.prototype.render = function() {
      value0: root.getLightsIntensities()}*/
   ];
 	this.shaderProgram.setUniforms(uniforms);
-	
-	 this.depthProgram.use();
-	  this.depthProgram.setUniforms(uniforms);
 
 	for (var i = 0; i < this.entities.length; ++i) {
-		this.entities[i].draw(this.shaderProgram, this.depthProgram);
+		this.entities[i].draw(this.shaderProgram);
 	}
 	
 	//Call render() on the children Transform

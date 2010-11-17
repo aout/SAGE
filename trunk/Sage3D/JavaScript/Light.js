@@ -18,6 +18,7 @@ Light = function(name, type, color, intensity, parent) {
 	this.type = type;
 	this.color = color;
 	this.intensity = intensity;
+	this.coneRadius = undefined; //need to use Cos then
 	this.parent = parent;
 	
 	this.Status = Light.StatusEnum.LIGHT_NONE;

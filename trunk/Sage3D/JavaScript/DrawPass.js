@@ -27,26 +27,25 @@ DrawPass = function(name, order){
     this.isValid = false;
 
     // Shaders to use
-    this.fragmentShader = null;
-    this.vertexShader = null;
-
+    this.program = undefined;
+    
     // Shader Attributes
-    this.attributes = [];
+    this.attributes = undefined;
 
     // Must be SCREEN or TEXTURE
     this.target = DrawPass.TargetTypeEnum.DRAWPASS_TARGET_SCREEN;
 
     // Draw Pass Buffers
-    this.frameBuffer = null;
-    this.renderBuffer = null
-    this.textureBuffer = null;
+    this.frameBuffer = undefined;
+    this.renderBuffer = undefined;
+    this.textureBuffer = undefined;
 
 
     // Function Callbacks
-    this.onStart = null;
-    this.onElementRenderStart = null;
-    this.onElementRenderEnd = null;
-    this.onEnd = null;
+    this.onStart = function(){};  // Attributes setup will most likely be here
+    this.onElementRenderStart = function(){};
+    this.onElementRenderEnd = function(){};
+    this.onEnd = function(){};
 }
 
 DrawPass.TargetTypeEnum = {
@@ -56,11 +55,12 @@ DrawPass.TargetTypeEnum = {
 
 // Draw !
 DrawPass.prototype.draw = function(){
+    // Callback
     this.onStart();
 
     // Rendering Stuff
     var prev = null;
-    var actual = root.rootTransform;
+    var actual = this.RenderTreeRoot;
     var next = null;
 
     while (actual){
@@ -72,7 +72,7 @@ DrawPass.prototype.draw = function(){
             actual.render();
 
             // Callback
-            tthis.onElementRenderEnd();
+            this.onElementRenderEnd();
         }
         next = actual.nextChild();
         if (!next){
@@ -91,7 +91,7 @@ DrawPass.prototype.draw = function(){
 }
 
 // Checks Draw Pass Validity
-DrawPass.prototype.Validate = function(){
+DrawPass.prototype.validate = function(){
     this.isValid = true;
     return this.isValid;
 };
@@ -99,37 +99,47 @@ DrawPass.prototype.Validate = function(){
 // Sets Standard Buffers of the draw pass
 DrawPass.prototype.setDefaultBuffers = function(){
     var GL = this.webGL;
-
-    this.frameBuffer = GL.createFrameBuffer();
-    GL.bindFrameBuffer(GL.FRAMEBUFFER, this.frameBuffer);
-    this.frameBuffer.width = Root.getInstance().width;
-    this.frameBuffer.height = Root.getInstance().height;
-
-    this.textureBuffer = GL.createTexture();
-    GL.bindTexture(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR);
-    GL.textParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR_MIPMAP_NEAREST);
-    GL.generateMipmap(GL.TEXTURE_2D);
-    GL.textImage2D(GL.TEXTURE_2D, 0, GL.RGBA, this.frameBuffer.width, this.frameBuffer.height, 0, GL.RGBA, GL.UNSIGNED_BYTE, null);
-
-    this.renderBuffer = GL.createRenderBuffer();
-    GL.bindRenderBuffer(GL.RENDERBUFFER, this.renderBuffer);
-    GL.renderbufferStorage(GL.RENDERBUFFER, GL.DEPTH_COMPONENT16, this.frameBuffer.width, this.frameBuffer.height);
-
-    GL.bindTexture(GL.TEXTURE_2D, null);
-    GL.bindRenderBuffer(GL.RENDERBUFFER, null);
-    GL.bindFrameBuffer(GL.FRAMEBUFFER, 0);
+    if (this.target == DrawPass.TargetTypeEnum.DRAWPASS_TEXTURE){
+        // FrameBuffer
+        this.frameBuffer = GL.createFramebuffer();
+        GL.bindFramebuffer(GL.FRAMEBUFFER, this.frameBuffer);
+        this.frameBuffer.width = Root.getInstance().width;
+        this.frameBuffer.height = Root.getInstance().height;
+        
+        // Texture
+        this.textureBuffer = GL.createTexture();
+        GL.bindTexture(GL.TEXTURE_2D, this.textureBuffer);
+        GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR);
+        GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR_MIPMAP_NEAREST);
+        GL.generateMipmap(GL.TEXTURE_2D);
+        GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, this.frameBuffer.width, this.frameBuffer.height, 0, GL.RGBA, GL.UNSIGNED_BYTE, null);
+    
+        // RenderBuffer
+        this.renderBuffer = GL.createRenderbuffer();
+        GL.bindRenderbuffer(GL.RENDERBUFFER, this.renderBuffer);
+        GL.renderbufferStorage(GL.RENDERBUFFER, GL.DEPTH_COMPONENT16, this.frameBuffer.width, this.frameBuffer.height);
+    
+        // Then Unbind to continue
+        GL.bindTexture(GL.TEXTURE_2D, null);
+        GL.bindRenderbuffer(GL.RENDERBUFFER, null);
+    }
+        // Always Unbind the FrameBuffer to continue displaying on screen
+        GL.bindFramebuffer(GL.FRAMEBUFFER, null);
 };
 
 // Binds current buffers to draw
 DrawPass.prototype.bindBuffers = function(){
-    var GL = this.webGL;
+   var GL = this.webGL;
 
-    GL.bindFrameBuffer(GL.FRAMEBUFFER, this.frameBuffer);
-    GL.bindRenderBuffer(GL.RENDERBUFFER, this.renderBuffer);
     if (this.target == DrawPass.TargetTypeEnum.DRAWPASS_TEXTURE){
+        GL.bindFramebuffer(GL.FRAMEBUFFER, this.frameBuffer);
         GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, this.textureBuffer, 0);
+        GL.bindRenderbuffer(GL.RENDERBUFFER, this.renderBuffer);
+        GL.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, this.renderBuffer);
     }
-    GL.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, this.renderBuffer);
+    else if (this.target == DrawPass.TargetTypeEnum.DRAWPASS_TARGET_SCREEN) {
+        GL.bindFramebuffer(GL.FRAMEBUFFER, null);
+    }
 };
 
 // Generates a default light pass for a single light
@@ -144,5 +154,14 @@ DrawPass.prototype.generateDepthPass = function(){
 
 // Generates a final beauty pass
 DrawPass.prototype.generateBeautyPass = function(){
-
+    this.setDefaultBuffers();
+    this.program = Root.getInstance().renderer.getDefaultProgram();
+    this.onStart = function() {
+       this.bindBuffers();
+       this.program.use();
+       
+       //this.webGL.validateProgram(this.program.program);
+       //var info = this.webGL.getProgramInfoLog(this.program.program);
     };
+    this.validate();
+};
