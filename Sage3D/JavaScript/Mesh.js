@@ -178,24 +178,6 @@ Mesh.prototype.calcBBox = function(vertices) {
 Mesh.prototype.draw = function(shaderProgram, depthProgram) {
 	if (this.drawingBuffer != null) {
 		var gl = Root.getInstance().getWebGL();
-		
-		
-
-		gl.activeTexture(1 + this.webGL.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, Root.getInstance().getDepthTexture());
-		if (depthProgram == undefined) 
-			depthProgram = Root.getInstance().getDepthProgram();
-		depthProgram.use();
-		depthProgram.setAttributes(this.buffers);
-		gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
-		if (Root.getInstance().getHasClick() == true) {
-			var position = Root.getInstance().getMousePosition();
-			var data = new Uint8Array(4);
-			gl.readPixels(position.x, position.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-			var test = data[0];
-		}
-
-		this.webGL.activeTexture(this.webGL.TEXTURE0);
 		if (shaderProgram == undefined)
 			shaderProgram = Root.getInstance().getDefaultProgram();
 		shaderProgram.use();

@@ -15,18 +15,22 @@ Renderer = function(){
     this.renderMode = Renderer.RenderModeEnum.RENDERER_FORWARD;
 
     this.multipassRendering = true;
+    
+    this.defaultProgram = new Program("Default", "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs", null);
 
     // Array of draw passes, most likely to be performance passes (depth, light, picking...)
     this.drawPasses = [];
 
     // Last draw pass, commonly called beauty pass due to its complexity
-    this.beautyPass = null;
+    this.beautyPass = undefined;
 
     //Callbacks
-    this.onRenderStart = null;
-    this.onRenderEnd = null;
-    this.onBeautyPassStart = null;
-    this.onBeautyPassEnd = null;
+    this.onRenderStart = function(){};
+    this.onRenderEnd = function(){};
+    this.onDrawPassStart = function(){};
+    this.onDrawPassEnd = function(){};
+    this.onBeautyPassStart = function(){};
+    this.onBeautyPassEnd = function(){};
 
     // Lights's relative constants
     this.MAX_LIGHTS = 50;
@@ -54,15 +58,25 @@ Renderer.prototype.render = function(){
 
     // Use Multipass only in Forward Rendering Mode
     if (this.renderMode == Renderer.RenderModeEnum.RENDERER_FORWARD){
-        // Here goes the distance calculations to determine which lights will be activated
-        // 4 closest lights are per-pixel lights
-        // 4 other lights are vertex-lit
-        // the rest might be used in a Spherical Harmonic (that will most likely never be implemented)
-        // Performance passes
+        /**
+         * Here goes the distance calculations to determine which lights will be activated
+         * 4 closest lights are per-pixel lights
+         * 4 other lights are vertex-lit
+         * the rest might be used in a Spherical Harmonic (that will most likely never be implemented)
+         */
+         
+        //Performance passes
         if (this.isMultipassRenderingEnabled){
             for (var i = 0; i < this.drawPasses.length; ++i){
                 if (this.drawPasses[i].isEnabled){
+                    // Callback
+                    this.onDrawPassStart();
+                    
+                    // Draw Pass Render
                     this.drawPasses[i].draw();
+                    
+                    // Callback
+                    this.onDrawPassEnd();
                 }
             }
         }
@@ -81,8 +95,15 @@ Renderer.prototype.render = function(){
 
 // Generates and sets a default beauty pass
 Renderer.prototype.setDefaultBeautyPass = function(){
+    var pass = new DrawPass("BEAUTY_PASS", 0);
+    pass.generateBeautyPass();
+    this.beautyPass = pass;
+};
 
-    };
+// Returns Default Program
+Renderer.prototype.getDefaultProgram = function() {
+  return this.defaultProgram;
+};
 
 // Checks availability of multipass rendering
 Renderer.prototype.isMultipassRenderingEnabled = function(){

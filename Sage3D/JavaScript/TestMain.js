@@ -64,8 +64,6 @@ function initScene()
 	createCubeJoint(skeletonRoot, amahaniTransform.entities[0].skeleton.root, ent);
 
 	cameraTransform.translate([0, 0, 0]);
-  
-	
 	root.startRendering(drawScene);
 }
 
