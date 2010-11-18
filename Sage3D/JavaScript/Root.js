@@ -22,7 +22,12 @@ Root = function(){
     this.webGL = undefined;
     this.status = Root.StatusEnum.ROOT_NONE;
     this.renderer = undefined;
-
+    
+    this.callbacks = {
+      onRenderStart: [],
+      onRenderEnd : []
+    };
+    
     this.projectionMatrix = mat4.create();
     mat4.identity(this.projectionMatrix);
     this.defaultProgram = undefined;
@@ -75,6 +80,11 @@ Root.StatusEnum = {
     ROOT_PAUSED: 5,
     ROOT_STOPPED: 6,
     ROOT_ERROR: 7
+};
+
+Root.HookEnum = {
+    ROOT_HOOK_ONRENDERSTART: 0,
+    ROOT_HOOK_ONRENDEREND: 1
 };
 
 Root.instance = undefined;
@@ -216,8 +226,7 @@ Root.prototype.isWebGLEnabled = function(){
  * Start the Render Loop
  * @param {Array} callbacks Array of callback functions to be executed
  */
-Root.prototype.startRendering = function(callback){
-    this.onRender = callback;
+Root.prototype.startRendering = function(){
     var TimePerFrame = 1000 / this.maxFps;
     this.drawInterval = setInterval(this.draw, TimePerFrame);
     this.fpsInterval = setInterval(this.getFps, 500);
@@ -237,23 +246,28 @@ Root.prototype.draw = function(){
     }
 
     root.canDraw = false;
-
+    
     if (root.lastRender == undefined){
         root.lastRender = new Date().getTime();
     }
     var elapsedTime = new Date().getTime() - root.lastRender;
     ++root.renderedFrames;
-
+    
     root.webGL.clear(root.webGL.COLOR_BUFFER_BIT | root.webGL.DEPTH_BUFFER_BIT);
-
-    if (root.onRender != undefined){
+    
+    root.executeCallbackArray(elapsedTime, root.callbacks.onRenderStart);
+      
+    /*if (root.onRender != undefined){
         root.onRender(elapsedTime);
-    }
+    }*/
+    
     root.camera.update();
 
     root.renderer.render();
 
     root.lastRender = new Date().getTime();
+
+    root.executeCallbackArray(elapsedTime, root.callbacks.onRenderEnd);
 
     root.canDraw = true;
 };
@@ -369,4 +383,50 @@ Root.prototype.setMousePosition = function(event){
     this.mousePosition.x = event.pageX;
     this.mousePosition.y = event.pageY;
 	this.hasClick = true;
-}
+};
+
+Root.prototype.executeCallbackArray = function(elapsedTime, callbackArray){
+  for(var i = 0; i <= callbackArray.length; ++i){
+     if(callbackArray[i] != undefined && callbackArray[i] != null){
+       if(callbackArray[i].code != undefined && callbackArray[i].code != null) {
+         callbackArray[i].code(elapsedTime);
+       }
+     }
+  }
+};
+
+Root.prototype.addCallbackToCallbackArray = function(name, callback, hookEnum){
+  if (hookEnum == Root.HookEnum.ROOT_HOOK_ONRENDERSTART){
+    var callback;
+    callback.name = name;
+    callback.code = callback;
+    this.callbacks.onRenderStart.push(callback);
+    return true;
+  }
+   if (hookEnum == Root.HookEnum.ROOT_HOOK_ONRENDEREND){
+    var callback;
+    callback.name = name;
+    callback.code = callback;
+    this.callbacks.onRenderEnd.push(callback);
+    return true;
+  }
+  return false;
+};
+
+Root.prototype.removeCallbackFromCallbackArray = function(name, hookEnum){
+  var ret = null;
+  if (hookEnum == Root.HookEnum.ROOT_HOOK_ONRENDERSTART){
+    for (var i = 0; i < callbacks.onRenderStart.length; ++i){
+      if (callbacks.onRenderStart[i].name == name){
+         ret = this.callbacks.onRenderStart[i].name.splice(i, 1); 
+      }
+    }
+  }
+   if (hookEnum == Root.HookEnum.ROOT_HOOK_ONRENDEREND){
+     for (var i = 0; i < callbacks.onRenderEnd.length; ++i){
+      if (callbacks.onRenderStop[i].name == name){
+         ret = this.callbacks.onRenderEnd[i].name.splice(i, 1); 
+      }
+    }
+  }
+};

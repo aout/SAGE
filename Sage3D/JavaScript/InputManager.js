@@ -1,28 +1,142 @@
 if (gIncludedFiles == undefined)
-  alert("You must include this file");
-  
+ alert("You must include this file");
+
 gIncludedFiles.push("InputManager.js");
-include("sage3d.js");
 include("transform.js");
 
 
 /**
  * Input Class
  */
-/*
-function InputManager
-{  
-    var keyStatus = {};
-    var mouseButton = "";
-    var tElapsed = "";
-    var constant_move = 1.5;
-    var constant_rot = 90;
-    var transform = Transform.getTransform("freeCam");
-    var move = constant_move * (elapsed / 1000.0);
-    var rot = constant_rot * (elapsed / 1000.0);
-    
-    if (typeof KeyEvent == "undefined") {
-    var KeyEvent = {
+
+InputManager = function(){
+    this.keyStatus = {};
+    this.mouseButton = "";
+
+    this.tabArray = [];
+    this.tabArray["CANCEL"] = InputManager.keyEventEnum.DOM_VK_CANCEL;
+    this.tabArray["HELP"] = InputManager.keyEventEnum.DOM_VK_HELP;
+    this.tabArray["BACKSPACE"] = InputManager.keyEventEnum.DOM_VK_BACK_SPACE;
+    this.tabArray["TAB"] = InputManager.keyEventEnum.DOM_VK_TAB;
+    this.tabArray["CLEAR"] = InputManager.keyEventEnum.DOM_VK_CLEAR;
+    this.tabArray["RETURN"] = InputManager.keyEventEnum.DOM_VK_RETURN;
+    this.tabArray["ENTER"] = InputManager.keyEventEnum.DOM_VK_ENTER;
+    this.tabArray["SHIFT"] = InputManager.keyEventEnum.DOM_VK_SHIFT;
+    this.tabArray["CONTROL"] = InputManager.keyEventEnum.DOM_VK_CONTROL;
+    this.tabArray["ALT"] = InputManager.keyEventEnum.DOM_VK_ALT;
+    this.tabArray["PAUSE"] = InputManager.keyEventEnum.DOM_VK_PAUSE;
+    this.tabArray["CAPSLOCK"] = InputManager.keyEventEnum.DOM_VK_CAPS_LOCK;
+    this.tabArray["ESCAPE"] = InputManager.keyEventEnum.DOM_VK_ESCAPE;
+    this.tabArray["SPACE"] = InputManager.keyEventEnum.DOM_VK_SPACE;
+    this.tabArray["PAGEUP"] = InputManager.keyEventEnum.DOM_VK_PAGE_UP;
+    this.tabArray["PAGEDOWN"] = InputManager.keyEventEnum.DOM_VK_PAGE_DOWN;
+    this.tabArray["END"] = InputManager.keyEventEnum.DOM_VK_END;
+    this.tabArray["HOME"] = InputManager.keyEventEnum.DOM_VK_HOME;
+    this.tabArray["LEFT"] = InputManager.keyEventEnum.DOM_VK_LEFT;
+    this.tabArray["UP"] = InputManager.keyEventEnum.DOM_VK_UP;
+    this.tabArray["RIGHT"] = InputManager.keyEventEnum.DOM_VK_RIGHT;
+    this.tabArray["DONW"] = InputManager.keyEventEnum.DOM_VK_DOWN;
+    this.tabArray["PRINTSCREEN"] = InputManager.keyEventEnum.DOM_VK_PRINTSCREEN;
+    this.tabArray["INSERT"] = InputManager.keyEventEnum.DOM_VK_INSERT;
+    this.tabArray["DELETE"] = InputManager.keyEventEnum.DOM_VK_DELETE;
+    this.tabArray["0"] = InputManager.keyEventEnum.DOM_VK_0;
+    this.tabArray["1"] = InputManager.keyEventEnum.DOM_VK_1;
+    this.tabArray["2"] = InputManager.keyEventEnum.DOM_VK_2;
+    this.tabArray["3"] = InputManager.keyEventEnum.DOM_VK_3;
+    this.tabArray["4"] = InputManager.keyEventEnum.DOM_VK_4;
+    this.tabArray["5"] = InputManager.keyEventEnum.DOM_VK_5;
+    this.tabArray["6"] = InputManager.keyEventEnum.DOM_VK_6;
+    this.tabArray["7"] = InputManager.keyEventEnum.DOM_VK_7;
+    this.tabArray["8"] = InputManager.keyEventEnum.DOM_VK_8;
+    this.tabArray["9"] = InputManager.keyEventEnum.DOM_VK_9;
+    this.tabArray["SEMICOLON"] = InputManager.keyEventEnum.DOM_VK_SEMICOLON;
+    this.tabArray["EQUAL"] = InputManager.keyEventEnum.DOM_VK_EQUALS;
+    this.tabArray["A"] = InputManager.keyEventEnum.DOM_VK_A;
+    this.tabArray["B"] = InputManager.keyEventEnum.DOM_VK_B;
+    this.tabArray["C"] = InputManager.keyEventEnum.DOM_VK_C;
+    this.tabArray["D"] = InputManager.keyEventEnum.DOM_VK_D;
+    this.tabArray["E"] = InputManager.keyEventEnum.DOM_VK_E;
+    this.tabArray["F"] = InputManager.keyEventEnum.DOM_VK_F;
+    this.tabArray["G"] = InputManager.keyEventEnum.DOM_VK_G;
+    this.tabArray["H"] = InputManager.keyEventEnum.DOM_VK_H;
+    this.tabArray["I"] = InputManager.keyEventEnum.DOM_VK_I;
+    this.tabArray["J"] = InputManager.keyEventEnum.DOM_VK_J;
+    this.tabArray["K"] = InputManager.keyEventEnum.DOM_VK_K;
+    this.tabArray["L"] = InputManager.keyEventEnum.DOM_VK_L;
+    this.tabArray["M"] = InputManager.keyEventEnum.DOM_VK_M;
+    this.tabArray["N"] = InputManager.keyEventEnum.DOM_VK_N;
+    this.tabArray["O"] = InputManager.keyEventEnum.DOM_VK_O;
+    this.tabArray["P"] = InputManager.keyEventEnum.DOM_VK_P;
+    this.tabArray["Q"] = InputManager.keyEventEnum.DOM_VK_Q;
+    this.tabArray["R"] = InputManager.keyEventEnum.DOM_VK_R;
+    this.tabArray["S"] = InputManager.keyEventEnum.DOM_VK_S;
+    this.tabArray["T"] = InputManager.keyEventEnum.DOM_VK_T;
+    this.tabArray["U"] = InputManager.keyEventEnum.DOM_VK_U;
+    this.tabArray["V"] = InputManager.keyEventEnum.DOM_VK_V;
+    this.tabArray["W"] = InputManager.keyEventEnum.DOM_VK_W;
+    this.tabArray["X"] = InputManager.keyEventEnum.DOM_VK_X;
+    this.tabArray["Y"] = InputManager.keyEventEnum.DOM_VK_Y;
+    this.tabArray["Z"] = InputManager.keyEventEnum.DOM_VK_Z;
+    this.tabArray["CONTEXTMENU"] = InputManager.keyEventEnum.DOM_VK_CONTEXT_MENU;
+    this.tabArray["NUMPAD0"] = InputManager.keyEventEnum.DOM_VK_NUMPAD0;
+    this.tabArray["NUMPAD1"] = InputManager.keyEventEnum.DOM_VK_NUMPAD1;
+    this.tabArray["NUMPAD2"] = InputManager.keyEventEnum.DOM_VK_NUMPAD2;
+    this.tabArray["NUMPAD3"] = InputManager.keyEventEnum.DOM_VK_NUMPAD3;
+    this.tabArray["NUMPAD4"] = InputManager.keyEventEnum.DOM_VK_NUMPAD4;
+    this.tabArray["NUMPAD5"] = InputManager.keyEventEnum.DOM_VK_NUMPAD5;
+    this.tabArray["NUMPAD6"] = InputManager.keyEventEnum.DOM_VK_NUMPAD6;
+    this.tabArray["NUMPAD7"] = InputManager.keyEventEnum.DOM_VK_NUMPAD7;
+    this.tabArray["NUMPAD8"] = InputManager.keyEventEnum.DOM_VK_NUMPAD8;
+    this.tabArray["NUMPAD9"] = InputManager.keyEventEnum.DOM_VK_NUMPAD9;
+    this.tabArray["MULTIPLY"] = InputManager.keyEventEnum.DOM_VK_MULTIPLY;
+    this.tabArray["ADD"] = InputManager.keyEventEnum.DOM_VK_ADD;
+    this.tabArray["SEPARATOR"] = InputManager.keyEventEnum.DOM_VK_SEPARATOR;
+    this.tabArray["SUBSTRACT"] = InputManager.keyEventEnum.DOM_VK_SUBTRACT;
+    this.tabArray["DECIMAL"] = InputManager.keyEventEnum.DOM_VK_DECIMAL;
+    this.tabArray["DIVIDE"] = InputManager.keyEventEnum.DOM_VK_DIVIDE;
+    this.tabArray["F1"] = InputManager.keyEventEnum.DOM_VK_F1;
+    this.tabArray["F2"] = InputManager.keyEventEnum.DOM_VK_F2;
+    this.tabArray["F3"] = InputManager.keyEventEnum.DOM_VK_F3;
+    this.tabArray["F4"] = InputManager.keyEventEnum.DOM_VK_F4;
+    this.tabArray["F5"] = InputManager.keyEventEnum.DOM_VK_F5;
+    this.tabArray["F6"] = InputManager.keyEventEnum.DOM_VK_F6;
+    this.tabArray["F7"] = InputManager.keyEventEnum.DOM_VK_F7;
+    this.tabArray["F8"] = InputManager.keyEventEnum.DOM_VK_F8;
+    this.tabArray["F9"] = InputManager.keyEventEnum.DOM_VK_F9;
+    this.tabArray["F10"] = InputManager.keyEventEnum.DOM_VK_F10;
+    this.tabArray["F11"] = InputManager.keyEventEnum.DOM_VK_F11;
+    this.tabArray["F12"] = InputManager.keyEventEnum.DOM_VK_F12;
+    this.tabArray["F13"] = InputManager.keyEventEnum.DOM_VK_F13;
+    this.tabArray["F14"] = InputManager.keyEventEnum.DOM_VK_F14;
+    this.tabArray["F15"] = InputManager.keyEventEnum.DOM_VK_F15;
+    this.tabArray["F16"] = InputManager.keyEventEnum.DOM_VK_F16;
+    this.tabArray["F17"] = InputManager.keyEventEnum.DOM_VK_F17;
+    this.tabArray["F18"] = InputManager.keyEventEnum.DOM_VK_F18;
+    this.tabArray["F19"] = InputManager.keyEventEnum.DOM_VK_F19;
+    this.tabArray["F20"] = InputManager.keyEventEnum.DOM_VK_F20;
+    this.tabArray["F21"] = InputManager.keyEventEnum.DOM_VK_F21;
+    this.tabArray["F22"] = InputManager.keyEventEnum.DOM_VK_F22;
+    this.tabArray["F23"] = InputManager.keyEventEnum.DOM_VK_F23;
+    this.tabArray["F24"] = InputManager.keyEventEnum.DOM_VK_F24;
+    this.tabArray["NUMLOCK"] = InputManager.keyEventEnum.DOM_VK_NUM_LOCK;
+    this.tabArray["SCROLLLOCK"] = InputManager.keyEventEnum.DOM_VK_SCROLL_LOCK;
+    this.tabArray["COMMA"] = InputManager.keyEventEnum.DOM_VK_COMMA;
+    this.tabArray["PERIOD"] = InputManager.keyEventEnum.DOM_VK_PERIOD;
+    this.tabArray["SLASH"] = InputManager.keyEventEnum.DOM_VK_SLASH;
+    this.tabArray["BACKQUOTE"] = InputManager.keyEventEnum.DOM_VK_BACK_QUOTE;
+    this.tabArray["OPENBRACKET"] = InputManager.keyEventEnum.DOM_VK_OPEN_BRACKET;
+    this.tabArray["BACKSLASH"] = InputManager.keyEventEnum.DOM_VK_BACK_SLASH;
+    this.tabArray["CLOSEBRACKET"] = InputManager.keyEventEnum.DOM_VK_CLOSE_BRACKET;
+    this.tabArray["QUOTE"] = InputManager.keyEventEnum.DOM_VK_QUOTE;
+    this.tabArray["META"] = InputManager.keyEventEnum.DOM_VK_META;
+
+    document.addEventListener('keyup', this.KeyUp, false);
+    document.addEventListener('keydown', this.KeyDown, false);
+    document.addEventListener('mousedown', this.MouseDown, false);
+    document.addEventListener("mouseup", this.MouseUp, false)
+};
+
+InputManager.keyEventEnum = {
         DOM_VK_CANCEL: 3,
         DOM_VK_HELP: 6,
         DOM_VK_BACK_SPACE: 8,
@@ -139,222 +253,53 @@ function InputManager
         DOM_VK_QUOTE: 222,
         DOM_VK_META: 224
     };
-}
 
-var tabArray[];
-tabArray["CANCEL"]      =         DOM_VK_CANCEL;
-tabArray["HELP"]        =         DOM_VK_HELP;
-tabArray["BACKSPACE"]   =         DOM_VK_BACK_SPACE;
-tabArray["TAB"]         =         DOM_VK_TAB;
-tabArray["CLEAR"]       =         DOM_VK_CLEAR;
-tabArray["RETURN"]      =         DOM_VK_RETURN;
-tabArray["ENTER"]       =         DOM_VK_ENTER;
-tabArray["SHIFT"]       =         DOM_VK_SHIFT;
-tabArray["CONTROL"]     =         DOM_VK_CONTROL;
-tabArray["ALT"]         =         DOM_VK_ALT;
-tabArray["PAUSE"]       =         DOM_VK_PAUSE;
-tabArray["CAPSLOCK"]    =         DOM_VK_CAPS_LOCK;
-tabArray["ESCAPE"]      =         DOM_VK_ESCAPE;
-tabArray["SPACE"]       =         DOM_VK_SPACE;
-tabArray["PAGEUP"]      =         DOM_VK_PAGE_UP;
-tabArray["PAGEDOWN"]    =         DOM_VK_PAGE_DOWN;
-tabArray["END"]         =         DOM_VK_END;
-tabArray["HOME"]        =         DOM_VK_HOME;
-tabArray["LEFT"]        =         DOM_VK_LEFT;
-tabArray["UP"]          =         DOM_VK_UP;
-tabArray["RIGHT"]       =         DOM_VK_RIGHT;
-tabArray["DONW"]        =         DOM_VK_DOWN;
-tabArray["PRINTSCREEN"] =         DOM_VK_PRINTSCREEN;
-tabArray["INSERT"]      =         DOM_VK_INSERT;
-tabArray["DELETE"]      =         DOM_VK_DELETE;
-tabArray["0"]           =         DOM_VK_0;
-tabArray["1"]           =         DOM_VK_1;
-tabArray["2"]           =         DOM_VK_2;
-tabArray["3"]           =         DOM_VK_3;
-tabArray["4"]           =         DOM_VK_4;
-tabArray["5"]           =         DOM_VK_5;
-tabArray["6"]           =         DOM_VK_6;
-tabArray["7"]           =         DOM_VK_7;
-tabArray["8"]           =         DOM_VK_8;
-tabArray["9"]           =         DOM_VK_9;
-tabArray["SEMICOLON"]   =         DOM_VK_SEMICOLON;
-tabArray["EQUAL"]       =         DOM_VK_EQUALS;
-tabArray["A"]           =         DOM_VK_A;
-tabArray["B"]           =         DOM_VK_B;
-tabArray["C"]           =         DOM_VK_C;
-tabArray["D"]           =         DOM_VK_D;
-tabArray["E"]           =         DOM_VK_E;
-tabArray["F"]           =         DOM_VK_F;
-tabArray["G"]           =         DOM_VK_G;
-tabArray["H"]           =         DOM_VK_H;
-tabArray["I"]           =         DOM_VK_I;
-tabArray["J"]           =         DOM_VK_J;
-tabArray["K"]           =         DOM_VK_K;
-tabArray["L"]           =         DOM_VK_L;
-tabArray["M"]           =         DOM_VK_M;
-tabArray["N"]           =         DOM_VK_N;
-tabArray["O"]           =         DOM_VK_O;
-tabArray["P"]           =         DOM_VK_P;
-tabArray["Q"]           =         DOM_VK_Q;
-tabArray["R"]           =         DOM_VK_R;
-tabArray["S"]           =         DOM_VK_S;
-tabArray["T"]           =         DOM_VK_T;
-tabArray["U"]           =         DOM_VK_U;
-tabArray["V"]           =         DOM_VK_V;
-tabArray["W"]           =         DOM_VK_W;
-tabArray["X"]           =         DOM_VK_X;
-tabArray["Y"]           =         DOM_VK_Y;
-tabArray["Z"]           =         DOM_VK_Z;
-tabArray["CONTEXTMENU"] =         DOM_VK_CONTEXT_MENU;
-tabArray["NUMPAD0"]     =         DOM_VK_NUMPAD0;
-tabArray["NUMPAD1"]     =         DOM_VK_NUMPAD1;
-tabArray["NUMPAD2"]     =         DOM_VK_NUMPAD2;
-tabArray["NUMPAD3"]     =         DOM_VK_NUMPAD3;
-tabArray["NUMPAD4"]     =         DOM_VK_NUMPAD4;
-tabArray["NUMPAD5"]     =         DOM_VK_NUMPAD5;
-tabArray["NUMPAD6"]     =         DOM_VK_NUMPAD6;
-tabArray["NUMPAD7"]     =         DOM_VK_NUMPAD7;
-tabArray["NUMPAD8"]     =         DOM_VK_NUMPAD8;
-tabArray["NUMPAD9"]     =         DOM_VK_NUMPAD9;
-tabArray["MULTIPLY"]    =         DOM_VK_MULTIPLY;
-tabArray["ADD"]         =         DOM_VK_ADD;
-tabArray["SEPARATOR"]   =         DOM_VK_SEPARATOR;
-tabArray["SUBSTRACT"]   =         DOM_VK_SUBTRACT;
-tabArray["DECIMAL"]     =         DOM_VK_DECIMAL;
-tabArray["DIVIDE"]      =         DOM_VK_DIVIDE;
-tabArray["F1"]          =         DOM_VK_F1;
-tabArray["F2"]          =         DOM_VK_F2;
-tabArray["F3"]          =         DOM_VK_F3;
-tabArray["F4"]          =         DOM_VK_F4;
-tabArray["F5"]          =         DOM_VK_F5;
-tabArray["F6"]          =         DOM_VK_F6;
-tabArray["F7"]          =         DOM_VK_F7;
-tabArray["F8"]          =         DOM_VK_F8;
-tabArray["F9"]          =         DOM_VK_F9;
-tabArray["F10"]         =         DOM_VK_F10;
-tabArray["F11"]         =         DOM_VK_F11;
-tabArray["F12"]         =         DOM_VK_F12;
-tabArray["F13"]         =         DOM_VK_F13;
-tabArray["F14"]         =         DOM_VK_F14;
-tabArray["F15"]         =         DOM_VK_F15;
-tabArray["F16"]         =         DOM_VK_F16;
-tabArray["F17"]         =         DOM_VK_F17;
-tabArray["F18"]         =         DOM_VK_F18;
-tabArray["F19"]         =         DOM_VK_F19;
-tabArray["F20"]         =         DOM_VK_F20;
-tabArray["F21"]         =         DOM_VK_F21;
-tabArray["F22"]         =         DOM_VK_F22;
-tabArray["F23"]         =         DOM_VK_F23;
-tabArray["F24"]         =         DOM_VK_F24;
-tabArray["NUMLOCK"]     =         DOM_VK_NUM_LOCK;
-tabArray["SCROLLLOCK"]  =         DOM_VK_SCROLL_LOCK;
-tabArray["COMMA"]       =         DOM_VK_COMMA;
-tabArray["PERIOD"]      =         DOM_VK_PERIOD;
-tabArray["SLASH"]       =         DOM_VK_SLASH;
-tabArray["BACKQUOTE"]   =         DOM_VK_BACK_QUOTE;
-tabArray["OPENBRACKET"] =         DOM_VK_OPEN_BRACKET;
-tabArray["BACKSLASH"]   =         DOM_VK_BACK_SLASH;
-tabArray["CLOSEBRACKET"]=         DOM_VK_CLOSE_BRACKET;
-tabArray["QUOTE"]       =         DOM_VK_QUOTE;
-tabArray["META"]        =         DOM_VK_META;
-    
-    document.addEventListener('keyup',KeyUp,false);
-    document.addEventListener('keydown',KeyDown,false);
-    document.addEventListener('mousedown', MouseDown, false);
-    document.addEventListener("mouseup", MouseUp, false)
-    
-   this.getElapsed(elapsedTime);
-   {
-     elapsed = elapsedTime;
-   }
-   this.keyUp = function(event) 
-   {
-     keyStatus[event.keyCode] = false;
-   }
-   this.keyDown = function(event) 
-   {
-     keyStatus[event.keyCode] = true;
-   }
-   this.ListenKeyUp = function(KeyCode, function())  
-   {  
-      if (keyStatus[tabArray[KeyCode]] == true)
-      {
-        function();
-      }
-   }
-   this.ListenKeyDown = function(KeyCode)
-   {
-      keyStatus[tabArray[KeyCode]] = false;
-   }
-   this.mouseUp = function(event)
-   {
-        if (event.button & 1)
-          {
-             mouseButton = "LeftButton";
-          }
-        if (event.button & 2)
-          {
-             mouseButton = "RightButton";
-          }
-         if (event.button & 4)
-          {
-             mouseButton = "MiddleButton";
-          }    
-   }
-   this.mouseDown = function(event)
-   {
-     mouseButton = "";
-   }
-   this.ListenMouseUp = function(Button, callback)
-   {
-      if (Button == mouseButton)
-      {
+InputManager.prototype.keyUp = function(event){
+    keyStatus[event.keyCode] = false;
+};
+
+InputManager.prototype.keyDown = function(event){
+    keyStatus[event.keyCode] = true;
+};
+
+InputManager.prototype.mouseUp = function(event){
+    if (event.button & 1)
+    {
+        this.mouseButton = "LeftButton";
+    }
+    if (event.button & 2)
+    {
+        this.mouseButton = "RightButton";
+    }
+    if (event.button & 4)
+    {
+        this.mouseButton = "MiddleButton";
+    }
+};
+
+InputManager.prototype.mouseDown = function(event){
+    mouseButton += event.button;
+};
+
+InputManager.prototype.bindKeyUp = function(KeyCode, callback){
+    if (InputManager.keyEventEnum[this.tabArray[KeyCode]] == true)
+    {
+        if (callback)
         callback();
-      }
-   }
-   this.ListenMouseDown = function(Button)
-   {
-    mouseButton = ""; 
-   }
-   
-}
+    }
+};
 
-InputManager.prototype.Z = function()
-{
-  transform.translate([0.0, 0.0, -move]);
-}
+InputManager.prototype.bindKeyDown = function(KeyCode){
+    InputManager.keyEventEnum[this.tabArray[KeyCode]] = false;
+};
 
-InputManager.prototype.S = function()
-{
-  transform.translate([0.0, 0.0, move]);
-}
+InputManager.prototype.bindMouseUp = function(Button, callback){
+    if (Button == this.mouseButton)
+    {
+        callback();
+    }
+};
 
-InputManager.prototype.Q = function()
-{
-  transform.rotate(rot, [0.0, 1.0, 0.0]);
-}
-
-InputManager.prototype.D = function()
-{
-  transform.rotate(-rot, [0.0, 1.0, 0.0]);
-}
-
-InputManager.prototype.UP = function()
-{
-  transform.rotate(rot, [1.0, 0.0, 0.0]);
-}
-
-InputManager.prototype.DOWN = function()
-{
-  transform.rotate(-rot, [1.0, 0.0, 0.0]);
-}
-
-InputManager.prototype.LEFT = function()
-{
-  transform.rotate(rot, [0.0, 0.0, 1.0]);
-}
-InputManager.prototype.RIGHT = function()
-{
-  transform.rotate(-rot, [0.0, 0.0, 1.0]);
-}
-*/
+InputManager.prototype.bindMouseDown = function(Button){
+    mouseButton -= event.button;
+};
