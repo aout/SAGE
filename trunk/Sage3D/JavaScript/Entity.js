@@ -4,23 +4,21 @@ if (gIncludedFiles == undefined)
 gIncludedFiles.push("Entity.js");
 
 include("Mesh.js");
-include("Texture.js");
 
 /**
  * Entity Class
  * @param {String} name Name
  * @param {Mesh} mesh Meshes
- * @param {TextureArray} textures Textures
  */
-Entity = function(name, meshes, textures) {
+Entity = function(name, meshes) {
 	this.name = name;
 	this.meshes = meshes;
-	this.textures = textures;
 };
 
 /**
  * Destroy
  */
+/*
 Entity.prototype.destroy = function() {
 	for (var i = 0; i < this.meshes.length; ++i) {
 	 this.meshes[i].destroy();
@@ -32,15 +30,7 @@ Entity.prototype.destroy = function() {
 		delete this.textures[i];
 	}
 	delete this.textures;
-}
-
-/**
- * Add a texture to the entity
- * @param {Texture} texture Texture Object
- */
-Entity.prototype.addTexture = function(texture) {
-	this.textures.push(texture);
-};
+}*/
 
 /**
  * Add a mesh to the Entity
@@ -55,10 +45,6 @@ Entity.prototype.addMesh = function(mesh) {
  * @param {Program} shaderProgram Shader program 
  */
 Entity.prototype.draw = function(shaderProgram) {
-	for (var i = 0; i < this.textures.length; ++i) {
-		this.textures[i].active(shaderProgram);
-	}
-
   for (var i = 0; i < this.meshes.length; ++i) {
     this.meshes[i].draw(shaderProgram);
   }

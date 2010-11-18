@@ -18,16 +18,18 @@ include("Root.js");
 var isRotating = false;
 
 function drawScene(elapsedTime) {
+  /*
   handleKeys(elapsedTime);
   var amahaniTransform = Transform.getTransform("Amahani");
   if (isRotating) {
     amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
     var skeletonRoot     = Transform.getTransform("skeletonRoot");
     skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
-  }
+  }*/
   document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
 }
 
+/*
 function createCubeJoint(parent, joint, cubeEnt) {
   
   var transform = parent.addChild(joint.name);
@@ -37,10 +39,11 @@ function createCubeJoint(parent, joint, cubeEnt) {
   for (var i = 0; i < joint.children.length; ++i) {
     createCubeJoint(transform, joint.children[i], cubeEnt);
   }
-}
+}*/
 
 function initScene()
 {
+  /*
 	var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
 	
@@ -63,17 +66,11 @@ function initScene()
 	var ent = new Entity("cube_entity", [rm.getMeshByName('cube_mesh')], [rm.getTextureByName('cube_texture')]);
 	createCubeJoint(skeletonRoot, amahaniTransform.entities[0].skeleton.root, ent);
 
-	cameraTransform.translate([0, 0, 0]);
+	cameraTransform.translate([0, 0, 0]);*/
 	root.startRendering(drawScene);
 }
 
 function loadResources() {
-	var rm = ResourceManager.getInstance();
-	
-	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
-	rm.prepareMesh("cube_mesh", "cube");
-	rm.prepareTexture("cube_texture", "Resources/Textures/nehe.gif");
-	rm.doLoad(initScene);
 }
 
 function main() {  
@@ -316,63 +313,3 @@ function toggleSkeleton() {
 function setMousePosition(event) {
 	Root.getInstance().setMousePosition(event);
 }
-/*function picking(e) { 
-var vectorMouse = vec3.create([0.0, 0.0, 0.0]);
-vectorMouse.x = e.pageX;
-vectorMouse.Y = e.pageY;
-vectorMouse.z = 5;
-
-var vector = vectorMouse - getCamPos();
-
-for (int i = 0; i < listObjectLenght; ++i)
-{
-Object obj = listObject[i];
-
- var cameraMatrice = GetCamera.getMatrice("camera");
- Matrix matriceObjet = obj.getMatrix() 
- Matrix cameraLocal = matrice_objet.invers() * camera;
-
- float min_distance = -1.0f;
-
- Vector final_collide;
-
-for (int i = 0; i < listPolygoneLenght; ++i)
-{
-Polygone poly = listPolygone[i];
-vector polyvector1 = poly.vertex1 - poly.vertex2;
-vector polyvector2 = poly.vertex1 - poly.vertex3;
-Vector normale = VectorCrossProduct(v1, v2).normalize; normal des vecteur 
-float dot = VectorDot(normal, rayon); scalaire des vecteur verif vecteur pas parralele au plan
-              if( dot >= 0) continue;
-float t = VectorDot(normal, p1 - camera_local) / dot; verif poly devant la cam
-      if( t < 0) continue;
-	  Vector collide = camera_local + rayon * t; point de collision
-	   Vector a = p1 - collide;
-              Vector b = p2 - collide;
-              Vector c = p3 - collide;
-              Vector verif = a.normalize() + b.normalize() + c.normalize(); si verif est normalize alors c'est dans le poly
-			   if( VectorLongeur(verif) > 1 ) continue;
-			   Vector3d distance = camera_local - collide; coordonn� depuis l'origine soit Cam
-			   if( VectorLongeur(distance) < min_distance || min_distance == -1) //calc la longueur
-              {
-                   final_collide = collide; // on met � jour le point de collision trouv�
-                   min_distance = VectorLongeur(distance); // on met � jour la distance
-              }
-
-			  }
-}
-drawVector(vector, 50);
-}
-
-drawVector(vector3, distance);
-{
-	var newPoint = camPosition + distance*vector3
-	line = getCamPos() + newPoint;
-	
-	var mesh = new Mesh(name);
-	mesh.addBuffer("POSITION", gl.ARRAY_BUFFER, line, 2, gl.FLOAT, 3, gl.STATIC_DRAW);
-	mesh.setDrawingBuffer("POSITION");
-}
- */
-
-
