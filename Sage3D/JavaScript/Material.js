@@ -75,6 +75,11 @@ Material.prototype.load = function(emission, ambient, diffuse, specular, shinine
         }, arguments[i].minFilter, arguments[i].magFilter);    
     }
   }
+  if (!textureUnit) {
+    this.status = Material.StatusEnum.MATERIAL_READY;
+    var debug = document.evaluate('//div[@id="debugDiv"]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    debug.innerHTML += '<span class="success">Material '+ self.name + ' created successfuly</span><br />';
+  }
 };
 
 Material.prototype.load = function(colladaShadedSurface) {
@@ -117,8 +122,22 @@ Material.prototype.load = function(colladaShadedSurface) {
 	    }
 	  }
 	}
+	if (!textureUnit) {
+	  this.status = Material.StatusEnum.MATERIAL_READY;
+	  var debug = document.evaluate('//div[@id="debugDiv"]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    debug.innerHTML += '<span class="success">Material '+ self.name + ' created successfuly</span><br />';
+	}
 };
 
 
 Material.prototype.active = function(shaderProgram) {
+  if (this.status != Material.StatusEnum.MATERIAL_READY) {
+    return false;
+  }
+  for (var item in this.components) {
+    if (this.components[item] instanceof Texture) {
+      this.components[item].active(shaderProgram);
+    }
+  }
+  return true;
 };
