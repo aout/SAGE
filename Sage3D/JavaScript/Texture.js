@@ -55,7 +55,7 @@ Texture.prototype.destroy = function() {
  * @param {Function} callback
  */
 Texture.prototype.load = function(unitTexture, url, callback, minfilter, magfilter) {
-	if (unitTexture < 0 || unitTexture > 31) {
+	if (unitTexture < 0 || unitTexture > 8) {
 		this.status = Texture.StatusEnum.TEXTURE_ERROR;
 		this.error = "Bad unit texture";
 		return this.status;
@@ -79,6 +79,10 @@ Texture.prototype.load = function(unitTexture, url, callback, minfilter, magfilt
 	var self = this;
 	
 	this.image = new Image();
+	this.image.onerror = function() {
+		self.status = Texture.StatusEnum.TEXTURE_ERROR;
+		delete self.image;
+	};
 	this.image.onload = function() {
 		self.status = Texture.StatusEnum.TEXTURE_BINDING;
 		self.glTexture = self.webGL.createTexture();
