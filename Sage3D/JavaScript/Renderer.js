@@ -17,7 +17,8 @@ Renderer = function(){
     this.multipassRendering = true;
     
     this.defaultProgram = new Program("Default", "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs", null);
-
+    this.currentProgram = this.defaultProgram;
+    
     // Array of draw passes, most likely to be performance passes (depth, light, picking...)
     this.drawPasses = [];
 
@@ -69,6 +70,9 @@ Renderer.prototype.render = function(){
         if (this.isMultipassRenderingEnabled){
             for (var i = 0; i < this.drawPasses.length; ++i){
                 if (this.drawPasses[i].isEnabled){
+                    // Set Program to use
+                    this.currentProgram = this.drawPasses[i].program;
+                  
                     // Callback
                     this.onDrawPassStart();
                     
@@ -80,6 +84,9 @@ Renderer.prototype.render = function(){
                 }
             }
         }
+        // Set Program to use
+        this.currentProgram = this.beautyPass.program;
+        
         // Callback
         this.onBeautyPassStart();
 
@@ -103,6 +110,11 @@ Renderer.prototype.setDefaultBeautyPass = function(){
 // Returns Default Program
 Renderer.prototype.getDefaultProgram = function() {
   return this.defaultProgram;
+};
+
+// Returns currently in use shader
+Renderer.prototype.getCurrentProgram = function() {
+  return this.currentProgram;
 };
 
 // Checks availability of multipass rendering
@@ -216,6 +228,7 @@ Renderer.prototype.disableLight = function(name){
  */
 
 // Enables built-in Light Rendering
+// This basically changes the default shader to support multiple light sources
 Renderer.prototype.enableLightRendering = function(){
 
     };
