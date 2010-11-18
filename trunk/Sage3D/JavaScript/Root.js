@@ -9,6 +9,7 @@ include("Entity.js");
 include("Joint.js");
 include("Light.js");
 include("Mesh.js");
+include("Material.js");
 include("Primitives.js");
 include("Program.js");
 include("ResourceManager.js");
@@ -146,8 +147,13 @@ Root.prototype.getWebGL = function(){
 Root.prototype.getViewport = function(){
     return this.viewPort;
 };
+
 Root.prototype.getDefaultProgram = function(){
     return this.renderer.getDefaultProgram();
+};
+
+Root.prototype.getCurrentProgram = function(){
+    return this.renderer.getCurrentProgram();
 };
 
 Root.prototype.getRenderer = function() {

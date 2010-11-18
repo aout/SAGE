@@ -82,6 +82,9 @@ Texture.prototype.load = function(unitTexture, url, callback, minfilter, magfilt
 	this.image.onerror = function() {
 		self.status = Texture.StatusEnum.TEXTURE_ERROR;
 		delete self.image;
+    if (callback != undefined) {
+      callback(self);
+    }
 	};
 	this.image.onload = function() {
 		self.status = Texture.StatusEnum.TEXTURE_BINDING;

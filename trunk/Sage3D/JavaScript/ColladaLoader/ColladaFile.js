@@ -58,10 +58,10 @@ ColladaLoader_ColladaFile.prototype.parse = function() {
   }
   if (this.parseControllers()) {
 	  if (this.parseAnimations()) {
-	  	this.parseAnimationClips();
+	  	//this.parseAnimationClips();
 	  }
   }
-  
+  this.generateEntity();
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Parsing file done</span><br />'; }
 };
 
@@ -246,4 +246,11 @@ ColladaLoader_ColladaFile.prototype.parseAnimations = function() {
 
 ColladaLoader_ColladaFile.prototype.parseAnimationClips = function() {
   
+};
+
+ColladaLoader_ColladaFile.prototype.generateEntity = function() {
+  for (var i = 0; i < this.libraryMaterials.length; ++i) {
+    var material = new Material(this.libraryMaterials[i].attributes.id);
+    material.load(this.libraryMaterials[i].effect.shadedSurface);
+  }
 };
