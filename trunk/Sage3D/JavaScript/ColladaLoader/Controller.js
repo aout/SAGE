@@ -26,6 +26,8 @@ ColladaLoader_Controller = function(ColladaFile) {
 	  	name: undefined
 	 };
   
+  this.skeleton = undefined;
+  
 };
 
 ColladaLoader_Controller.prototype.parse = function(node) {
@@ -133,6 +135,11 @@ ColladaLoader_Controller.prototype.parse = function(node) {
 	}	
 	
 	this.vertexWeights.v = ColladaLoader.parseIntListString(ColladaLoader.nodeText(vNode));
+	
+	this.skeleton = new ColladaLoader_Skeleton(this);
+	if (!this.skeleton.parse()) {
+		return false;
+	}
 	
 	if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="info">Controller ' + this.attributes.id + ' loaded</span><br />'; }
 	return true;
