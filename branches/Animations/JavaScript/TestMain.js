@@ -19,7 +19,7 @@ include("InputManager.js");
 var isRotating = false;
 
 function drawScene(elapsedTime) {
-  
+  /*
   var amahaniTransform = Transform.getTransform("Amahani");
   if (isRotating) {
     amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
@@ -40,32 +40,43 @@ function createCubeJoint(parent, joint, cubeEnt) {
     createCubeJoint(transform, joint.children[i], cubeEnt);
   }
 }*/
+var titi = 0;
+var tutu = 0;
+function toto(elapsedTime) {
+  titi += elapsedTime;
+}
+function tata(elapsedTime) {
+  tutu += elapsedTime;
+}
 
 function initScene()
 {
-  /*
+  
 	var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
 	var input = new InputManager();
 	
-	input.bindKeyDown("B", function(){alert();})
+	input.bindKey("B", toto);
+	input.bindMouse("MOUSE_LEFT", tata);
 	
 	var rootTransform    = Transform.getTransform("root");
-	
+	/*
   var amahaniTransform = Transform.getTransform("Amahani");
   amahaniTransform.translate([-1.0, -1.0, -5.0]);
 
   var cubeTransform  = rootTransform.addChild("cube");
   amahaniTransform.translate([-1.0, -1.0, -10.0]);
 
-	
+	*/
 	var cameraTransform  = rootTransform.addChild("camera");
+	
+	/*
 	var skeletonRoot     = rootTransform.addChild("skeletonRoot");
 	skeletonRoot.translate([1.0, -1.0, -5.0]);
 	//skeletonRoot.rotate(-90, [1.0, 0.0, 0.0]);
-	skeletonRoot.isVisible = false;
+	skeletonRoot.isVisible = false;*/
 	root.getCamera().attach(cameraTransform);
-		
+	/*	
 	var ent = new Entity("cube_entity", [rm.getMeshByName('cube_mesh')], [rm.getTextureByName('cube_texture')]);
 	createCubeJoint(skeletonRoot, amahaniTransform.entities[0].skeleton.root, ent);
 
@@ -81,7 +92,7 @@ function loadResources() {
 function main() {  
   document.getElementById("go").style.visibility = 'hidden';
 	var root = Root.getInstance();
-	root.init("viewport", loadResources, {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
+	root.init("viewport", initScene, {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
 }
 
 function clearLight() {
