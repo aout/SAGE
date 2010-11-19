@@ -13,3 +13,21 @@ ColladaLoader_Joint = function() {
   
   this.transformations = [];
 };
+
+ColladaLoader_Joint.prototype.generateLocalMatrix = function(time) {
+	var ret = mat4.create();
+	mat4.identity(ret);
+	
+	for (var i = 0; i < this.transformations.length; ++i) {
+		if (this.transformations[i] instanceof ColladaLoader_Matrix) {
+			mat4.multiply(ret, this.transformations[i].generateTransformation(time));
+		} else if (this.transformations[i] instanceof ColladaLoader_Translate) {
+			mat4.translate(ret, this.transformations[i].generateTransformation(time));		
+		} else if (this.transformations[i] instanceof ColladaLoader_Rotate) {
+			var rotate = this.transformations[i].generateTransformation(time);
+			mat4.rotate(ret, rotate[3], rotate);		
+		}		
+	}
+	
+	return ret;
+};

@@ -8,22 +8,22 @@ ColladaLoader_Rotate = function(ColladaFile) {
 	
 	this.X = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};
 	
 	this.Y = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};
 	
 	this.Z = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};
 	
 	this.ANGLE = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};
 	
 	this.attributes = {
@@ -43,4 +43,8 @@ ColladaLoader_Rotate.prototype.parse = function(node) {
 	this.Z.value = tab[2];
 	this.ANGLE.value = tab[3];
 	return true;
+};
+
+ColladaLoader_Matrix.prototype.generateTransformation = function(time) {
+	
 };

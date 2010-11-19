@@ -12,6 +12,8 @@ ColladaLoader_Skeleton = function(controller) {
 	this.vertexWeights = [];
 	
 	this.hasAnimations = false;
+	this.minTime = 0;
+	this.maxTime = 0;
 };
 
 ColladaLoader_Skeleton.prototype.organizeJoints  = function(currentNode, parent) {
@@ -177,4 +179,10 @@ ColladaLoader_Skeleton.prototype.parse = function() {
 	}
 	
 	return true;
+};
+
+ColladaLoader_Skeleton.prototype.generateSkeletons = function(precision) {
+	for (var time = this.minTime; time <= this.maxTime; time += precision) {
+		
+	}
 };
