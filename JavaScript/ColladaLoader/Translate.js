@@ -8,17 +8,17 @@ ColladaLoader_Translate = function(ColladaFile) {
 	
 	this.X = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};
 	
 	this.Y = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};
 	
 	this.Z = {
 		value: 0,
-		animations: []
+		animation: undefined
 	};	
 	
 	this.attributes = {
@@ -37,4 +37,8 @@ ColladaLoader_Translate.prototype.parse = function(node) {
 	this.Y.value = tab[1];
 	this.Z.value = tab[2];
 	return true;
+};
+
+ColladaLoader_Matrix.prototype.generateTransformation = function(time) {
+	
 };

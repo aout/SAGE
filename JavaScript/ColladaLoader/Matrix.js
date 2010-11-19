@@ -8,7 +8,7 @@ ColladaLoader_Matrix = function(ColladaFile) {
 	
 	this.matrix = {
 		value: undefined,
-		animations: []
+		animation: undefined
 	};
 	
 	this.attributes = {
@@ -24,4 +24,8 @@ ColladaLoader_Matrix.prototype.parse = function(node) {
 		return false;
 	}
 	return true;
+};
+
+ColladaLoader_Matrix.prototype.generateTransformation = function(time) {
+	
 };

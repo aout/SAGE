@@ -16,6 +16,7 @@ ColladaLoader_ColladaFile = function(task, xml, callback, debugDivId, verbose) {
   this.libraryGeometries = [];
   this.libraryImages = [];
   this.libraryMaterials = [];
+  this.entities = [];
   
   this.upAxis = undefined;
   
@@ -249,6 +250,14 @@ ColladaLoader_ColladaFile.prototype.parseAnimationClips = function() {
 };
 
 ColladaLoader_ColladaFile.prototype.generateEntity = function() {
+	
+	for (var i = 0; i < this.libraryControllers.length; ++i) {
+		var skeleton = this.libraryControllers[i].skeleton;
+		if (skeleton.hasAnimations) {
+			var skeletons = skeleton.generateSkeletons(1.0 / 30.0);
+		}
+	}
+	
   for (var i = 0; i < this.libraryMaterials.length; ++i) {
     var material = new Material(this.libraryMaterials[i].attributes.id);
     material.load(this.libraryMaterials[i].effect.shadedSurface);
