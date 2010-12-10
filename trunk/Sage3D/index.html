@@ -5,7 +5,7 @@
         <title>Test Page</title>
 		<style type="text/css">
 		body {
-		  background-color:rgb(40%,40%,40%);
+		  background-color:rgb(23,14,7);
 		}
 		
 		#banner {
@@ -116,16 +116,9 @@
     <body>
       <div id="banner">
         <img id="logo" src="Resources/Logo.png">
-        <img id="name" src="Resources/Sage.png">
       </div>
       <div id="sage">
-        <canvas id="viewport" width="800" height="500" onclick="setMousePosition(event)">There is supposed to be an example drawing here, but it's not important.</canvas>
-        <div id="debugDiv" readonly="readonly">
-          <span class="info">info</span>
-          <span class="success">success</span>
-          <span class="warning">warning</span>
-          <span class="error">error</span><br />
-        </div>
+        <canvas id="viewport" width="800" height="500">There is supposed to be an example drawing here, but it's not important.</canvas>
         <span id="FPS"></span>
       </div>
 		<button id="go" onclick="main()">Go</button>

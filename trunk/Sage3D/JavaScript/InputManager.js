@@ -10,8 +10,7 @@ gIncludedFiles.push("InputManager.js");
 InputManager = function(){
     this.root = Root.getInstance();
         
-    //TODO : root.registerNewModule();
-    this.root.inputManager = this;
+    this.root.registerModule('INPUT_MANAGER', this);
     
     this.keyStatus = [];
     this.mouseButtonStatus = [];
@@ -30,7 +29,7 @@ InputManager = function(){
     this.keyBinds = [];
     this.mouseBinds = [];
   
-    this.root.addCallbackToCallbackArray("INPUT_MANAGER_UPDATE", this.update, Root.HookEnum.ROOT_HOOK_ONRENDEREND);
+    this.root.callbacks.addCallback("INPUT_MANAGER_UPDATE", this.update, 'ROOT_HOOK_ONRENDEREND');
 
     this.buttonToString = [];
     this.buttonToString[InputManager.mouseEventEnum.MOUSE_BUTTON_LEFT] = "MOUSE_LEFT";
@@ -401,21 +400,21 @@ InputManager.keyEventEnum = {
     };
 
 InputManager.prototype.keyUp = function(event){
-    Root.getInstance().inputManager.keyStatus[event.keyCode] = false;
+    Root.getInstance().getModule('INPUT_MANAGER').keyStatus[event.keyCode] = false;
 };
 
 InputManager.prototype.keyDown = function(event){
-    Root.getInstance().inputManager.keyStatus[event.keyCode] = true;
+    Root.getInstance().getModule('INPUT_MANAGER').keyStatus[event.keyCode] = true;
 };
 
 InputManager.prototype.mouseUp = function(event){
-    var input = Root.getInstance().inputManager;
+    var input = Root.getInstance().getModule('INPUT_MANAGER');
     input.mouseButtonStatus[event.button] = false;
     input.isDragging = false;
 };
 
 InputManager.prototype.mouseDown = function(event){
-    var input = Root.getInstance().inputManager;
+    var input = Root.getInstance().getModule('INPUT_MANAGER');
     input.mouseButtonStatus[event.button] = true;
     input.isDragging = true;
 };
@@ -423,7 +422,7 @@ InputManager.prototype.mouseDown = function(event){
 
 //TODO: provide more X/Y values (page, client...)
 InputManager.prototype.mouseMove = function(event) {
-    var input = Root.getInstance().inputManager;
+    var input = Root.getInstance().getModule('INPUT_MANAGER');
     input.mousePos.x = event.screenX;
     input.mousePos.y = event.screenY;
 };
@@ -445,8 +444,10 @@ InputManager.prototype.bindMouse = function(buttonString, callback){
 };
 
 // This function is added to the root onRenderEnd Callback
+// BE CAREFUL BECAUSE ITS RAISED BY A CALLBACK (SCOPE IS LOST)
 InputManager.prototype.update = function(elapsedTime){
-    var input = Root.getInstance().inputManager;
+    //Get back the scope
+    var input = Root.getInstance().getModule('INPUT_MANAGER');
     
     for (var i = 0; i < input.keyBinds.length; ++i) {
       if (input.keyStatus[input.keyBinds[i].keyCode] == true) {

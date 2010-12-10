@@ -19,34 +19,7 @@ include("InputManager.js");
 var isRotating = false;
 
 function drawScene(elapsedTime) {
-  /*
-  var amahaniTransform = Transform.getTransform("Amahani");
-  if (isRotating) {
-    amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
-    var skeletonRoot     = Transform.getTransform("skeletonRoot");
-    skeletonRoot.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
-  }*/
-  document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
-}
-
-/*
-function createCubeJoint(parent, joint, cubeEnt) {
-  
-  var transform = parent.addChild(joint.name);
-  transform.addEntity(cubeEnt);
-  transform.localMatrix = joint.localMatrix;
-  
-  for (var i = 0; i < joint.children.length; ++i) {
-    createCubeJoint(transform, joint.children[i], cubeEnt);
-  }
-}*/
-var titi = 0;
-var tutu = 0;
-function toto(elapsedTime) {
-  titi += elapsedTime;
-}
-function tata(elapsedTime) {
-  tutu += elapsedTime;
+  document.getElementById("FPS").innerHTML = Root.getInstance().getFps()+" fps";
 }
 
 function initScene()
@@ -54,35 +27,15 @@ function initScene()
   
 	var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
-	var input = new InputManager();
-	
-	input.bindKey("B", toto);
-	input.bindMouse("MOUSE_LEFT", tata);
+	var im = new InputManager();
 	
 	var rootTransform    = Transform.getTransform("root");
-	/*
-  var amahaniTransform = Transform.getTransform("Amahani");
-  amahaniTransform.translate([-1.0, -1.0, -5.0]);
-
-  var cubeTransform  = rootTransform.addChild("cube");
-  amahaniTransform.translate([-1.0, -1.0, -10.0]);
-
-	*/
+	
 	var cameraTransform  = rootTransform.addChild("camera");
 	
-	/*
-	var skeletonRoot     = rootTransform.addChild("skeletonRoot");
-	skeletonRoot.translate([1.0, -1.0, -5.0]);
-	//skeletonRoot.rotate(-90, [1.0, 0.0, 0.0]);
-	skeletonRoot.isVisible = false;*/
 	root.getCamera().attach(cameraTransform);
-	/*	
-	var ent = new Entity("cube_entity", [rm.getMeshByName('cube_mesh')], [rm.getTextureByName('cube_texture')]);
-	createCubeJoint(skeletonRoot, amahaniTransform.entities[0].skeleton.root, ent);
-
-	cameraTransform.translate([0, 0, 0]);*/
 	
-	root.addCallbackToCallbackArray("DRAW_SCENE", drawScene, Root.HookEnum.ROOT_HOOK_ONRENDERSTART);
+	root.callbacks.addCallback('DRAW_SCENE', drawScene, 'ROOT_HOOK_ONRENDERSTART');
 	root.startRendering();
 }
 
@@ -139,9 +92,5 @@ function toggleRotation() {
   isRotating = !isRotating;
 }
 function toggleSkeleton() {
-  var skeletonRoot = Transform.getTransform("skeletonRoot");
-  skeletonRoot.isVisible = !skeletonRoot.isVisible;
-}
-function setMousePosition(event) {
-	Root.getInstance().setMousePosition(event);
+
 }
