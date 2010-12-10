@@ -42,21 +42,27 @@ DrawPass = function(name, order){
 
 
     // Function Callbacks
-    this.onStart = function(){};  // Attributes setup will most likely be here
-    this.onElementRenderStart = function(){};
-    this.onElementRenderEnd = function(){};
-    this.onEnd = function(){};
-}
+    this.callbacks = new CallbackHooks(DrawPass.Hooks);
+};
 
+// Draw Pass Type Enum
 DrawPass.TargetTypeEnum = {
     DRAWPASS_TARGET_SCREEN: 0,
     DRAWPASS_TARGET_TEXTURE: 1
 };
 
+// Draw Pass Hooks
+DrawPass.Hooks = {
+  DRAWPASS_HOOK_ONSTART: 2,
+  DRAWPASS_HOOK_ONEND: 2,
+  DRAWPASS_HOOK_ONELEMENTRENDERSTART: 1,
+  DRAWPASS_HOOK_ONELEMENTRENDEREND: 1
+};
+
 // Draw !
-DrawPass.prototype.draw = function(){
+DrawPass.prototype.draw = function(elapsedTime){
     // Callback
-    this.onStart();
+    this.callbacks.executeCallbacks('DRAWPASS_HOOK_ONSTART', elapsedTime);
 
     // Rendering Stuff
     var prev = null;
@@ -66,13 +72,13 @@ DrawPass.prototype.draw = function(){
     while (actual){
         if (!prev || actual != prev.parent){
             // Callback
-            this.onElementRenderStart();
+            this.callbacks.executeCallbacks('DRAWPASS_HOOK_ONELEMENTRENDERSTART', elapsedTime);
 
             // Element Render
             actual.render();
 
             // Callback
-            this.onElementRenderEnd();
+            this.callbacks.executeCallbacks('DRAWPASS_HOOK_ONELEMENTRENDEREND', elapsedTime);
         }
         next = actual.nextChild();
         if (!next){
@@ -87,7 +93,7 @@ DrawPass.prototype.draw = function(){
         actual = next;
     }
 
-    this.onEnd();
+    this.callbacks.executeCallbacks('DRAWPASS_HOOK_ONEND', elapsedTime);
 }
 
 // Checks Draw Pass Validity
@@ -128,16 +134,19 @@ DrawPass.prototype.setDefaultBuffers = function(){
 };
 
 // Binds current buffers to draw
+// CAREFUL : YOU LOSE THE SCOPE IF RAISED BY A CALLBACK
 DrawPass.prototype.bindBuffers = function(){
-   var GL = this.webGL;
-
-    if (this.target == DrawPass.TargetTypeEnum.DRAWPASS_TEXTURE){
-        GL.bindFramebuffer(GL.FRAMEBUFFER, this.frameBuffer);
-        GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, this.textureBuffer, 0);
-        GL.bindRenderbuffer(GL.RENDERBUFFER, this.renderBuffer);
-        GL.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, this.renderBuffer);
+   // Get back the scope
+   var drawPass = Root.getInstance().getRenderer().getCurrentDrawPass();
+   var GL = drawPass.webGL;
+   
+    if (drawPass.target == DrawPass.TargetTypeEnum.DRAWPASS_TEXTURE){
+        GL.bindFramebuffer(GL.FRAMEBUFFER, drawPass.frameBuffer);
+        GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, drawPass.textureBuffer, 0);
+        GL.bindRenderbuffer(GL.RENDERBUFFER, drawPass.renderBuffer);
+        GL.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, drawPass.renderBuffer);
     }
-    else if (this.target == DrawPass.TargetTypeEnum.DRAWPASS_TARGET_SCREEN) {
+    else if (drawPass.target == DrawPass.TargetTypeEnum.DRAWPASS_TARGET_SCREEN) {
         GL.bindFramebuffer(GL.FRAMEBUFFER, null);
     }
 };
@@ -156,12 +165,9 @@ DrawPass.prototype.generateDepthPass = function(){
 DrawPass.prototype.generateBeautyPass = function(){
     this.setDefaultBuffers();
     this.program = Root.getInstance().renderer.getDefaultProgram();
-    this.onStart = function() {
-       this.bindBuffers();
-       this.program.use();
-       
-       //this.webGL.validateProgram(this.program.program);
-       //var info = this.webGL.getProgramInfoLog(this.program.program);
-    };
+    
+    this.callbacks.addCallback('BIND_BUFFERS', this.bindBuffers, 'DRAWPASS_HOOK_ONSTART');
+    this.callbacks.addCallback('USE_PROGRAM', this.program.use, 'DRAWPASS_HOOK_ONSTART');
+
     this.validate();
 };
