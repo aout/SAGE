@@ -109,7 +109,7 @@ Texture.prototype.active = function(shaderProgram) {
 	if (this.status != Texture.StatusEnum.TEXTURE_READY)
 		return this.status;
 	if (shaderProgram == undefined)
-		shaderProgram = Root.getInstance().getDefaultProgram();
+		shaderProgram = Root.getInstance().getCurrentProgram();
 	shaderProgram.use();
 	this.webGL.activeTexture(this.unitTexture + this.webGL.TEXTURE0);
 	this.webGL.bindTexture(this.webGL.TEXTURE_2D, this.glTexture);
