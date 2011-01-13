@@ -9,19 +9,26 @@ include("Entity.js");
 include("Joint.js");
 include("Light.js");
 include("Mesh.js");
+//include("Material.js");
 include("Primitives.js");
 include("Program.js");
 include("ResourceManager.js");
 include("Texture.js");
 include("Transform.js");
 include("Renderer.js");
+include("CallbackHooks.js");
 
 Root = function(){
     this.viewPort = undefined;
     this.webGL = undefined;
     this.status = Root.StatusEnum.ROOT_NONE;
+    this.version = "SAGE V0.6 Alpha 3";
+    
+    this.modules = {};
     this.renderer = undefined;
-
+    
+    this.callbacks = new CallbackHooks(Root.HookEnum);
+    
     this.projectionMatrix = mat4.create();
     mat4.identity(this.projectionMatrix);
     this.defaultProgram = undefined;
@@ -31,6 +38,13 @@ Root = function(){
     this.width = null;
     this.height = null;
 
+    this.maxFps = 60;
+    this.actualFps = 0.0;
+    this.drawInterval = undefined;
+    this.lastRender = undefined;
+
+
+    // GOING AWAY IN THE NEXT RELEASE
     this.isLightingEnabled = true;
     this.ambientLight = new Light("ambient", Light.TypeEnum.AMBIENT, [1.0, 1.0, 1.0, 1.0], 0.2, undefined);
     this.lights = [];
@@ -46,23 +60,7 @@ Root = function(){
     this.directionalColor = [1.0, 1.0, 1.0];
     this.lightingDirection = vec3.create([ - 1.0, -1.0, 0.0]);
     vec3.normalize(this.lightingDirection);
-    vec3.negate(this.lightingDirection);
-
-    this.maxFps = 200;
-    this.actualFps = 0.0;
-    this.drawInterval = undefined;
-    this.fpsInterval = undefined;
-
-    this.renderedFrames = 0;
-    this.lastRender = undefined;
-
-this.mousePosition = {
-	x: 0,
-	y: 0,
-	}
-	this.hasClick = false;
-    this.vectorMouse = undefined;
-    this.onRender = undefined;
+    vec3.negate(this.lightingDirection);  
 };
 
 Root.StatusEnum = {
@@ -74,6 +72,11 @@ Root.StatusEnum = {
     ROOT_PAUSED: 5,
     ROOT_STOPPED: 6,
     ROOT_ERROR: 7
+};
+
+Root.HookEnum = {
+    ROOT_HOOK_ONRENDERSTART: 4,
+    ROOT_HOOK_ONRENDEREND: 4
 };
 
 Root.instance = undefined;
@@ -136,6 +139,9 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
     this.renderer = new Renderer();
     this.renderer.setDefaultBeautyPass();
     this.canDraw = true;
+    
+    this.lastRender = new Date().getTime();
+    
     callback();
     return true;
 };
@@ -143,11 +149,17 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 Root.prototype.getWebGL = function(){
     return this.webGL;
 };
+
 Root.prototype.getViewport = function(){
     return this.viewPort;
 };
+
 Root.prototype.getDefaultProgram = function(){
     return this.renderer.getDefaultProgram();
+};
+
+Root.prototype.getCurrentProgram = function(){
+    return this.renderer.getCurrentProgram();
 };
 
 Root.prototype.getRenderer = function() {
@@ -210,11 +222,9 @@ Root.prototype.isWebGLEnabled = function(){
  * Start the Render Loop
  * @param {Array} callbacks Array of callback functions to be executed
  */
-Root.prototype.startRendering = function(callback){
-    this.onRender = callback;
+Root.prototype.startRendering = function(){
     var TimePerFrame = 1000 / this.maxFps;
     this.drawInterval = setInterval(this.draw, TimePerFrame);
-    this.fpsInterval = setInterval(this.getFps, 500);
 };
 
 /**
@@ -223,40 +233,89 @@ Root.prototype.startRendering = function(callback){
  * @param {Time} elapsedTime Time (ms) passed between two frames
  */
 Root.prototype.draw = function(){
-
+    // Get back the scope because setInterval causes us to lose it
     var root = Root.getInstance();
-
+    
+    // Avoid multiple asynchronous calls
     if (!root.canDraw){
         return;
     }
-
     root.canDraw = false;
-
-    if (root.lastRender == undefined){
-        root.lastRender = new Date().getTime();
-    }
+    
+    // Calculate Elapsed Time since Last Render
     var elapsedTime = new Date().getTime() - root.lastRender;
-    ++root.renderedFrames;
-
-    root.webGL.clear(root.webGL.COLOR_BUFFER_BIT | root.webGL.DEPTH_BUFFER_BIT);
-
-    if (root.onRender != undefined){
-        root.onRender(elapsedTime);
+    if (elapsedTime == 0) {
+      elapsedTime = 1;
     }
+    // Calculate actual FPS
+    root.actualFps = 1000 / elapsedTime;
+    
+    // Clear screen for a fresh start
+    root.webGL.clear(root.webGL.COLOR_BUFFER_BIT | root.webGL.DEPTH_BUFFER_BIT);
+    
+    // Start Callback
+    root.callbacks.executeCallbacks('ROOT_HOOK_ONRENDERSTART', elapsedTime);
+    
+    // Update the Camera before Render
     root.camera.update();
 
-    root.renderer.render();
+    // Here we call the Renderer which handle advanced rendering techniques
+    root.renderer.render(elapsedTime);
 
+    // End Callback
+    root.callbacks.executeCallbacks('ROOT_HOOK_ONRENDEREND', elapsedTime);
+
+    // Save Timestamp for next render
     root.lastRender = new Date().getTime();
-
     root.canDraw = true;
 };
 
+// Returns current FPS
 Root.prototype.getFps = function(){
-    var root = Root.getInstance();
-    root.actualFps = root.renderedFrames * 2;
-    root.renderedFrames = 0;
+    return Math.round(Root.getInstance().actualFps);
 };
+
+// Registers a new module so it can be accessed easily inside the engine
+// Returns the added module or null if fails
+Root.prototype.registerModule = function(name, toAddModule) {
+  var addedModule = null;
+  if (this.modules.hasOwnProperty(name) == false) {
+    this.modules[name] = {};
+    this.modules[name].module = toAddModule;
+    addedModule = this.modules[name];
+  }
+  return addedModule;
+};
+
+// Unregisters a particular module from the module list and returns it
+Root.prototype.unregisterModule = function(name) {
+  var module = null;
+  if (this.modules.hasOwnProperty(name)) {
+    module = this.modules[name];
+    this.modules[name].module = null;
+    this.modules[name]= null;
+  }
+  else {
+    return module;
+  }
+};
+
+// Return a particular module from the module list or null if fails
+Root.prototype.getModule = function(name) {
+  if (this.modules.hasOwnProperty(name)) {
+    return this.modules[name].module;
+  }
+  else {
+    return null;
+  }
+};
+
+/**
+ * 
+ * THIS IS GOING AWAY IN THE NEXT BUILD
+ * 
+ */
+
 
 /**
  * Adds a new light into the current scene.
@@ -345,22 +404,3 @@ Root.prototype.getDirectionalColor = function(){
 Root.prototype.getLightingDirection = function(){
     return this.lightingDirection;
 };
-
-Root.prototype.getDepthTexture = function(){
-    return this.depthTexture;
-};
-Root.prototype.getMousePosition = function(){
-    return this.mousePosition;
-};
-Root.prototype.getHasClick = function(){
-    return this.hasClick;
-};
-Root.prototype.setHasClick = function(click){
-    this.hasClick = click;
-};
-
-Root.prototype.setMousePosition = function(event){
-    this.mousePosition.x = event.pageX;
-    this.mousePosition.y = event.pageY;
-	this.hasClick = true;
-}

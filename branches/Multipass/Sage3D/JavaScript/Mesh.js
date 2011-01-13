@@ -12,8 +12,6 @@ Mesh = function (name) {
 	this.name = name;
 	this.buffers = [];
 	this.drawingBuffer = null;
-
-
 	this.BBox = {
 		x: { min: -Infinity, max: Infinity },
 		y: { min: -Infinity, max: Infinity },
@@ -175,11 +173,11 @@ Mesh.prototype.calcBBox = function(vertices) {
  * Draw the mesh
  * @param {Program} shaderProgram
  */
-Mesh.prototype.draw = function(shaderProgram, depthProgram) {
+Mesh.prototype.draw = function(shaderProgram) {
 	if (this.drawingBuffer != null) {
 		var gl = Root.getInstance().getWebGL();
 		if (shaderProgram == undefined)
-			shaderProgram = Root.getInstance().getDefaultProgram();
+			shaderProgram = Root.getInstance().getCurrentprogram();
 		shaderProgram.use();
 		shaderProgram.setAttributes(this.buffers);
 		gl.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
@@ -189,9 +187,6 @@ Mesh.prototype.draw = function(shaderProgram, depthProgram) {
 		else if (this.drawingBuffer.bufferType == gl.ARRAY_BUFFER) {
 			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
 		}
-			var i =0;
-	++i;
-	Root.getInstance().setHasClick(false);
 	}
 };
 
