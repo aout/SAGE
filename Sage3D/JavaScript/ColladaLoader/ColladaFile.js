@@ -42,26 +42,18 @@ ColladaLoader_ColladaFile.prototype.parse = function() {
   
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Beginning parsing file</span><br />'; }
   
-  if (!this.parseVersion()) {
+  if (!this.parseVersion())
     return false;
-  }
   this.parseUpAxis();
   this.loadImages();
-  if (!this.parseEffects()) {
-  	return false;
-  }
-  if (!this.parseMaterials()) {
-  	return false;
-  }
-  if (!this.parseGeometries()) {
-  	return false;
-  }
-  if (this.parseControllers()) {
-	  if (this.parseAnimations()) {
-	  	//this.parseAnimationClips();
-	  }
-  }
-  this.generateEntity();
+  this.parseEffects();
+  this.parseMaterials();
+  this.parseGeometries();
+  this.parseControllers();
+  this.parseAnimations();
+  this.parseAnimationClips();
+  this.parseVisualScene();
+  
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Parsing file done</span><br />'; }
 };
 
@@ -137,7 +129,7 @@ ColladaLoader_ColladaFile.prototype.parseEffects = function() {
   var libraryEffectsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_effects');
   if (!libraryEffectsNode) {
     if (this.debug) { this.debug.innerHTML += '<span class="warning">Couldn\'t find &lt;library_effects&gt;</span><br />'; }
-    return false;
+    return;
   }
   
   var effectNodes = ColladaLoader.getNodes(this.xml, 'c:effect', libraryEffectsNode);
@@ -147,20 +139,15 @@ ColladaLoader_ColladaFile.prototype.parseEffects = function() {
       this.libraryEffects.push(effect);
     }
   }
-  if (!this.libraryEffects.length) {
-  	return false;
-  }
-  return true;
 };
 
 ColladaLoader_ColladaFile.prototype.parseMaterials = function() {
-	
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading materials</span><br />'; }
   
   var libraryMaterialsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_materials');
   if (!libraryMaterialsNode) {
     if (this.debug) { this.debug.innerHTML += '<span class="error">Couldn\'t find &lt;library_materials&gt;</span><br />'; }
-    return false;
+    return;
   }
   
   var materialNodes = ColladaLoader.getNodes(this.xml, 'c:material', libraryMaterialsNode)
@@ -170,11 +157,6 @@ ColladaLoader_ColladaFile.prototype.parseMaterials = function() {
       this.libraryMaterials.push(material);
     }
   }
-  
-  if (!this.libraryMaterials.length) {
-  	return false;
-  }
-  return true;
 };
 
 ColladaLoader_ColladaFile.prototype.parseGeometries = function() {
@@ -183,7 +165,7 @@ ColladaLoader_ColladaFile.prototype.parseGeometries = function() {
   var libraryGeometriesNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_geometries');
   if (!libraryGeometriesNode) {
     if (this.debug) { this.debug.innerHTML += '<span class="error">Couldn\'t find &lt;library_geometries&gt;</span><br />'; }
-    return false;
+    return;
   }
   
   var geometryNodes = ColladaLoader.getNodes(this.xml, 'c:geometry', libraryGeometriesNode)
@@ -193,11 +175,6 @@ ColladaLoader_ColladaFile.prototype.parseGeometries = function() {
       this.libraryGeometries.push(geometry);
     }
   }
-  
-  if (!this.libraryGeometries.length) {
-  	return false;
-  }
-  return true;
 };
 
 ColladaLoader_ColladaFile.prototype.parseControllers = function() {
@@ -206,7 +183,7 @@ ColladaLoader_ColladaFile.prototype.parseControllers = function() {
   var libraryControllersNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_controllers');
   if (!libraryControllersNode) {
     if (this.debug) { this.debug.innerHTML += '<span class="warning">Couldn\'t find &lt;library_controllers&gt;</span><br />'; }
-    return false;
+    return;
   }
   
   var controllerNodes = ColladaLoader.getNodes(this.xml, 'c:controller', libraryControllersNode)
@@ -215,42 +192,17 @@ ColladaLoader_ColladaFile.prototype.parseControllers = function() {
     if (controller.parse(controllerNodes.snapshotItem(i))) {
       this.libraryControllers.push(controller);
     }
-  }
-  if (!this.libraryControllers.length) {
-  	return false;
-  }
-  return true;
+  }  
 };
 
 ColladaLoader_ColladaFile.prototype.parseAnimations = function() {
-  if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Loading animations</span><br />'; }
   
-  var libraryAnimationsNode = ColladaLoader.getNode(this.xml, '/c:COLLADA/c:library_animations');
-  if (!libraryAnimationsNode) {
-    if (this.debug) { this.debug.innerHTML += '<span class="warning">Couldn\'t find &lt;library_animations&gt;</span><br />'; }
-    return false;
-  }
-  
-  var animationNodes = ColladaLoader.getNodes(this.xml, 'c:animation', libraryAnimationsNode)
-  for (var i = 0; i < animationNodes.snapshotLength; i++) {
-    var animation = new ColladaLoader_Animation(this);
-    if (animation.parse(animationNodes.snapshotItem(i))) {
-      this.libraryAnimations.push(animation);
-    }
-  }
-  if (!this.libraryAnimations.length) {
-  	return false;
-  }
-  return true;
 };
 
 ColladaLoader_ColladaFile.prototype.parseAnimationClips = function() {
   
 };
 
-ColladaLoader_ColladaFile.prototype.generateEntity = function() {
-  for (var i = 0; i < this.libraryMaterials.length; ++i) {
-    var material = new Material(this.libraryMaterials[i].attributes.id);
-    material.load(this.libraryMaterials[i].effect.shadedSurface);
-  }
+ColladaLoader_ColladaFile.prototype.parseVisualScene = function() {
+  
 };

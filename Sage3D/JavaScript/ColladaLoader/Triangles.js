@@ -17,8 +17,6 @@ ColladaLoader_Triangles = function(ColladaFile) {
     material: undefined
   };
   
-  this.material = undefined;
-  
   this.buffers = {};
   
 };

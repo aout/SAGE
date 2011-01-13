@@ -236,7 +236,7 @@ Transform.prototype.render = function() {
 		hasChanged = true;
 	}
  if (this.shaderProgram == undefined) {
-    this.shaderProgram = root.getCurrentProgram();
+    this.shaderProgram = root.getDefaultProgram();
   }
 
   this.shaderProgram.use();

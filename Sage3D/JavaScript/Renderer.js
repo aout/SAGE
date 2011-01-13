@@ -3,7 +3,6 @@ if (gIncludedFiles == undefined)
 gIncludedFiles.push("Renderer.js");
 
 include("DrawPass.js");
-include("CallbackHooks.js");
 
 /**
  * Renderer Class
@@ -15,23 +14,23 @@ Renderer = function(){
     // Render Mode
     this.renderMode = Renderer.RenderModeEnum.RENDERER_FORWARD;
 
-    // Advanced Rendering Techniques
     this.multipassRendering = true;
-    this.dynamicLightRange = false;
     
     this.defaultProgram = new Program("Default", "Resources/Shaders/default/default.vs", "Resources/Shaders/default/default.fs", null);
-    this.currentProgram = this.defaultProgram;
-    
-    this.currentDrawpass = undefined;
-    
-    // Array of draw passes, most likely to be performance passes (depth, lights, picking...)
+
+    // Array of draw passes, most likely to be performance passes (depth, light, picking...)
     this.drawPasses = [];
 
     // Last draw pass, commonly called beauty pass due to its complexity
     this.beautyPass = undefined;
 
     //Callbacks
-    this.callbacks = new CallbackHooks(Renderer.HookEnum)
+    this.onRenderStart = function(){};
+    this.onRenderEnd = function(){};
+    this.onDrawPassStart = function(){};
+    this.onDrawPassEnd = function(){};
+    this.onBeautyPassStart = function(){};
+    this.onBeautyPassEnd = function(){};
 
     // Lights's relative constants
     this.MAX_LIGHTS = 50;
@@ -47,31 +46,19 @@ Renderer = function(){
 
 };
 
-// Renderer Modes Enum
 Renderer.RenderModeEnum = {
     RENDERER_FORWARD: 0,
     RENDERER_DEFFERED: 1
 };
 
-// Renderer Hooks Enum
-Renderer.HookEnum = {
-    RENDERER_HOOK_ONRENDERSTART: 1,
-    RENDERER_HOOK_ONRENDEREND: 1,
-    RENDERER_HOOK_ONDRAWPASSSTART: 1,
-    RENDERER_HOOK_ONDRAWPASSEND: 1,
-    RENDERER_HOOK_ONBEAUTYPASSSTART:1,
-    RENDERER_HOOK_ONBEAUTYPASSEND:1
-};
-
 // Iterates through draw passes then uses the beauty pass
-Renderer.prototype.render = function(elapsedTime){
+Renderer.prototype.render = function(){
     // Callback
-    this.callbacks.executeCallbacks('RENDERER_HOOK_ONRENDERSTART', elapsedTime);
+    this.onRenderStart();
 
     // Use Multipass only in Forward Rendering Mode
     if (this.renderMode == Renderer.RenderModeEnum.RENDERER_FORWARD){
         /**
-         * IF DYNAMIC LIGHT RANGE IS ENABLED:
          * Here goes the distance calculations to determine which lights will be activated
          * 4 closest lights are per-pixel lights
          * 4 other lights are vertex-lit
@@ -82,40 +69,28 @@ Renderer.prototype.render = function(elapsedTime){
         if (this.isMultipassRenderingEnabled){
             for (var i = 0; i < this.drawPasses.length; ++i){
                 if (this.drawPasses[i].isEnabled){
-                    // Set Current Draw Pass for out-of-scope calls
-                    this.currentDrawpass = this.drawPasses[i];
-                  
-                    // Set Program to use
-                    this.currentProgram = this.drawPasses[i].program;
-                  
                     // Callback
-                    this.callbacks.executeCallbacks('RENDERER_HOOK_ONDRAWPASSSTART', elapsedTime);
+                    this.onDrawPassStart();
                     
                     // Draw Pass Render
-                    this.drawPasses[i].draw(elapsedTime);
+                    this.drawPasses[i].draw();
                     
                     // Callback
-                    this.callbacks.executeCallbacks('RENDERER_HOOK_ONDRAWPASSEND', elapsedTime);
+                    this.onDrawPassEnd();
                 }
             }
         }
-        // Set Program to use
-        this.currentProgram = this.beautyPass.program;
-        // Set Current Draw Pass for out-of-scope calls
-        this.currentDrawpass = this.beautyPass;
-        
         // Callback
-        this.callbacks.executeCallbacks('RENDERER_HOOK_ONBEAUTYPASSSTART', elapsedTime);
+        this.onBeautyPassStart();
 
         // Beauty Pass
-        this.beautyPass.draw(elapsedTime);
+        this.beautyPass.draw();
 
         // Callback
-        this.callbacks.executeCallbacks('RENDERER_HOOK_ONBEAUTYPASSEND', elapsedTime);
+        this.onBeautyPassEnd();
     }
 
-    // Callback
-    this.callbacks.executeCallbacks('RENDERER_HOOK_ONRENDEREND', elapsedTime);
+    this.onRenderEnd();
 };
 
 // Generates and sets a default beauty pass
@@ -130,35 +105,11 @@ Renderer.prototype.getDefaultProgram = function() {
   return this.defaultProgram;
 };
 
-// Returns currently in use program
-Renderer.prototype.getCurrentProgram = function() {
-  return this.currentProgram;
-};
-
-// Returns currently in use draw pass
-Renderer.prototype.getCurrentDrawPass = function() {
-  return this.currentDrawpass;
-};
-
-
 // Checks availability of multipass rendering
 Renderer.prototype.isMultipassRenderingEnabled = function(){
-    if (this.multipassRendering == true) {
-      return true;
-    }
-    else {
-      return false;
-    }
-}
-
-// Checks if DLR is enabled
-Renderer.prototype.isDynamicLightRangeEnabled = function(){
-    if (this.dynamicLightRange == true) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    if (this.multipassRendering == true)
+    return true;
+    return false;
 }
 
 // Enables the usage of multiple draw passes to render a scene
@@ -183,9 +134,7 @@ Renderer.prototype.addDrawPass = function(drawPass){
             return true;
         }
     }
-    else {
-      return false;
-    }
+    return false;
 };
 
 // Removes a draw pass from the render process
@@ -237,7 +186,6 @@ Renderer.prototype.removeLight = function(name){
 // Activates a light (meaning one draw pass may be added for this particular light if Shadow Mapping is ON)
 // Return true if succesfully activated
 Renderer.prototype.activateLight = function(name){
-  if (this.dynamicLightRange == false) {
     if (this.activeLights.length <= this.MAX_ACTIVE_LIGHTS){
         for (var i = 0; i < this.lights.length; ++i){
             if (this.lights[i].name == name){
@@ -247,20 +195,17 @@ Renderer.prototype.activateLight = function(name){
             }
         }
     }
-  }
     return false;
 };
 
 // Disables a previously activated light
 Renderer.prototype.disableLight = function(name){
-   if (this.dynamicLightRange == false) {
     for (var i = 0; i < this.activeLights.length; ++i){
         if (this.activeLights[i].name == name){
             this.lights.push(this.activeLights.splice(i, 1));
             // REMOVE OR DISABLE LIGHTING PASS
             return true;
         }
-    }
     }
     return false;
 };
@@ -271,7 +216,6 @@ Renderer.prototype.disableLight = function(name){
  */
 
 // Enables built-in Light Rendering
-// This basically changes the default shader to support multiple light sources
 Renderer.prototype.enableLightRendering = function(){
 
     };
