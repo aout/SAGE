@@ -12,15 +12,13 @@ include("Texture.js");
  * @param {Mesh} mesh Meshes
  * @param {TextureArray} textures Textures
  */
-AnimatableEntity = function(name, meshes, skeletons) {
+AnimatableEntity = function(name, geometry, skeletons) {
 
   this.webGL = Root.getInstance().getWebGL();
   this.name = name;
-  this.upAxis = upAxis;
   this.geometry = geometry;
-  this.skeleton = skeleton;
-  this.materials = materials;
-  
+  this.skeleton = skeletons;
+
   this.meshes = [];
   this.textures = [];
   

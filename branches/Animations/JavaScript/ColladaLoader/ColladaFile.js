@@ -250,16 +250,32 @@ ColladaLoader_ColladaFile.prototype.parseAnimationClips = function() {
 };
 
 ColladaLoader_ColladaFile.prototype.generateEntity = function() {
+
+  for (var i = 0; i < this.libraryMaterials.length; ++i) {
+    this.libraryMaterials[i].sageMaterial = new Material(this.libraryMaterials[i].attributes.id);
+    this.libraryMaterials[i].sageMaterial.load(this.libraryMaterials[i].effect.shadedSurface);
+  }
+  
+  var ents = [];
+
+	//DEBUG
+	var rootTransform    = Transform.getTransform("root");
+	var amahaniTransform  = rootTransform.addChild("Amahani");
+	//FIN DEBUG
 	
 	for (var i = 0; i < this.libraryControllers.length; ++i) {
 		var skeleton = this.libraryControllers[i].skeleton;
 		if (skeleton.hasAnimations) {
 			var skeletons = skeleton.generateSkeletons(1.0 / 30.0);
+			//ents.push(new AnimatableEntity(params));
+		}
+		else {
+			var ent = new Entity('kikoo');
+			ent.generate(this.libraryControllers[i].geometry);
+			ents.push(ent);
+			//DEBUG
+			amahaniTransform.addEntity(ent);
+			//FIN DEBUG
 		}
 	}
-	
-  for (var i = 0; i < this.libraryMaterials.length; ++i) {
-    var material = new Material(this.libraryMaterials[i].attributes.id);
-    material.load(this.libraryMaterials[i].effect.shadedSurface);
-  }
 };

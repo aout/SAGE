@@ -13,6 +13,7 @@ ColladaLoader_Material = function(ColladaFile) {
     name: undefined
   };
   
+  this.sageMaterial = undefined;
 };
 
 ColladaLoader_Material.prototype.parse = function(node) {

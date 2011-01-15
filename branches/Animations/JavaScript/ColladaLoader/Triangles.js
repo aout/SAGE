@@ -19,8 +19,7 @@ ColladaLoader_Triangles = function(ColladaFile) {
   
   this.material = undefined;
   
-  this.buffers = {};
-  
+  this.buffers = undefined;
 };
 
 ColladaLoader_Triangles.prototype.parse = function(node, mesh) {
@@ -69,4 +68,55 @@ ColladaLoader_Triangles.prototype.parse = function(node, mesh) {
 	
 	if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="info">Triangles in ' + mesh.attributes.name + ' loaded</span><br />'; }
 	return true;
+};
+
+ColladaLoader_Triangles.prototype.generateBuffers = function() {
+	if (!this.buffers) {
+		this.buffers = [];
+		for (var i = 0; i < this.p.length; i += (this.maxOffset + 1)) {
+			var bufferIndex = 0;
+			for (var j = 0; j < (this.maxOffset + 1); ++j) {
+				var index = this.p[i + j];
+				for (var k = 0; k < this.inputsByOffset[j].length; ++k) {
+					if (this.buffers[bufferIndex] == undefined) {
+						this.buffers.push({
+							stride:	1,
+							name: '',
+							data: [] });
+						this.buffers[bufferIndex].stride = this.inputsByOffset[j][k].source.accessor.attributes.stride;
+						this.buffers[bufferIndex].name = this.inputsByOffset[j][k].attributes.semantic;
+					}
+					var source = this.inputsByOffset[j][k].source.dataArray.data;
+					index *= this.buffers[bufferIndex].stride;
+					if (this.buffers[bufferIndex].stride == 3) {
+					  var x = source[index + 0];
+  					var y = source[index + 1];
+						var z = source[index + 2];
+  
+  					switch(this.colladaFile.upAxis) {
+    					case ColladaLoader_ColladaFile.upAxisEnum.X_UP:
+  							var tmp = x;
+  							x = -y;
+  							y = tmp;
+							break;
+							case ColladaLoader_ColladaFile.upAxisEnum.Z_UP:
+              	var tmp = y;
+              	y = z;
+              	z = -tmp;
+            	break;
+          	}
+          	this.buffers[bufferIndex].data.push(x);
+          	this.buffers[bufferIndex].data.push(y);
+          	this.buffers[bufferIndex].data.push(z);
+        	}
+      		else {
+						for (var l = 0; l < this.buffers[bufferIndex].stride; ++l) {
+							this.buffers[bufferIndex].data.push(source[index + l]);
+        		}
+					}
+					++bufferIndex;
+				}
+			}
+		}
+	}
 };
