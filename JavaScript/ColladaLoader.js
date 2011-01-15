@@ -262,11 +262,14 @@ ColladaLoader.prototype.load = function(task, callback) {
   this.xhr.onreadystatechange = function () {
   	if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
   	  
-  	 // var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
-     // test.parse();
-  	  
-      self.xmlFile = self.xhr.responseXML;
-  	  self.parse();
+  	 var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
+     test.parse();
+		 self.task.parsingProgress = 1.0;
+		 if (self.callback) {
+    		self.callback();
+     }
+      //self.xmlFile = self.xhr.responseXML;
+  	  //self.parse();
   	}
   };
 

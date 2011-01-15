@@ -7,10 +7,9 @@ gIncludedFiles.push("Mesh.js");
  * Mesh Class
  * @param {String} name Name
  */
-Mesh = function (name, material) {
+Mesh = function (name) {
 	this.webGL = Root.getInstance().getWebGL();
 	this.name = name;
-	this.material = material
 	this.buffers = [];
 	this.drawingBuffer = null;
 	this.BBox = {
@@ -19,18 +18,6 @@ Mesh = function (name, material) {
 		z: { min: -Infinity, max: Infinity },
 	}
 };
-
-/**
- * Mesh Destructor
- */
-/*
-Mesh.prototype.destroy = function() {
-	for (var i = 0; i < this.buffers.length; ++i) {
-		this.webGL.deleteBuffer(this.buffers[i]);
-		delete this.buffers[i];
-	}
-	delete this.buffers;
-};*/
 
 /**
  * Add a buffer to the mesh
@@ -175,9 +162,9 @@ Mesh.prototype.calcBBox = function(vertices) {
  * Draw the mesh
  * @param {Program} shaderProgram
  */
-Mesh.prototype.draw = function(shaderProgram) {
+Mesh.prototype.draw = function(material, shaderProgram) {
 	if (this.drawingBuffer != null) {
-	  if (!this.material.active(shaderProgram)) {
+	  if (!material.active(shaderProgram)) {
 	    return false;
 	  }
 		if (shaderProgram == undefined) {

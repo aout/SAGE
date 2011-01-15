@@ -10,34 +10,34 @@ include("Mesh.js");
  * @param {String} name Name
  * @param {Mesh} mesh Meshes
  */
-Entity = function(name, meshes) {
+Entity = function(name) {
 	this.name = name;
-	this.meshes = meshes;
+	this.parts = [];
+	this.webGL = Root.getInstance().getWebGL();
 };
 
-/**
- * Destroy
- */
-/*
-Entity.prototype.destroy = function() {
-	for (var i = 0; i < this.meshes.length; ++i) {
-	 this.meshes[i].destroy();
-	 delete this.meshes[i];
+Entity.prototype.generate = function(geometry) {
+	for (var i = 0; i < geometry.primitives.length; ++i) {
+		var primitive = geometry.primitives[i];
+		if (!primitive.buffers) {
+			primitive.generateBuffers();
+		}
+		var mesh = new Mesh('bouh');
+		for (var j = 0; j < primitive.buffers.length; ++j) {
+			mesh.addBuffer(	primitive.buffers[j].name,
+											this.webGL.ARRAY_BUFFER,
+											primitive.buffers[j].data,
+											Math.floor(primitive.buffers[j].data.length / primitive.buffers[j].stride),
+											this.webGL.FLOAT,
+											primitive.buffers[j].stride,
+											this.webGL.STATIC_DRAW);
+		}
+		mesh.setDrawingBuffer('POSITION');
+		this.parts.push({
+			mesh: mesh,
+			material: primitive.material.sageMaterial
+		});
 	}
-	delete this.meshes;
-	for (var i = 0; i < this.textures.length; ++i) {
-		this.textures[i].destroy();
-		delete this.textures[i];
-	}
-	delete this.textures;
-}*/
-
-/**
- * Add a mesh to the Entity
- * @param {Mesh} mesh Mesh Object
- */
-Entity.prototype.addMesh = function(mesh) {
-	this.meshes.push(mesh);
 };
 
 /**
@@ -45,7 +45,7 @@ Entity.prototype.addMesh = function(mesh) {
  * @param {Program} shaderProgram Shader program 
  */
 Entity.prototype.draw = function(shaderProgram) {
-  for (var i = 0; i < this.meshes.length; ++i) {
-    this.meshes[i].draw(shaderProgram);
+  for (var i = 0; i < this.parts.length; ++i) {
+    this.parts[i].mesh.draw(this.parts[i].material, shaderProgram);
   }
 };
