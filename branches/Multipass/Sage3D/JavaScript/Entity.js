@@ -15,6 +15,7 @@ include("Texture.js");
 Entity = function(name, meshes, textures) {
 	this.name = name;
 	this.meshes = meshes;
+	this.isPickable = true;
 	this.textures = textures;
 };
 

@@ -26,7 +26,7 @@ function initScene()
 {
   var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
-	var im = new InputManager();
+	var im = root.registerModule("InputManager", new InputManager());
 	
 	var rootTransform    = Transform.getTransform("root");
 	
@@ -44,13 +44,13 @@ function initScene()
 	
 	im.bindKey('Z', function(elapsed){
 	  var transform = Transform.getTransform("camera");
-    var move = 1.5 * (elapsed / 1000.0);
+    var move = 2 * (elapsed / 1000.0);
     transform.translate([0.0, 0.0, -move]);
 	});
 	
 	im.bindKey('S', function(elapsed){
     var transform = Transform.getTransform("camera");
-    var move = 1.5 * (elapsed / 1000.0);
+    var move = 2 * (elapsed / 1000.0);
     transform.translate([0.0, 0.0, move]);
   });
   
@@ -66,28 +66,27 @@ function initScene()
     transform.rotate(-rot, [0.0, 1.0, 0.0]);
   });
 	
+	im.bindMouse('MOUSE_LEFT', function(elapsed){
+    var root = Root.getInstance();
+    var input = root.getModule('INPUT_MANAGER');
+    var renderer = root.getRenderer();
+    document.getElementById("MOUSE").innerHTML = "MousePos x:"+input.mousePos.x+" y:"+input.mousePos.y;
+    var pickedElement = renderer.pick(input.mousePos.x, input.mousePos.y);
+    if (pickedElement != null) {
+      document.getElementById("PICKED").innerHTML = pickedElement.name;
+    }
+    else {
+      document.getElementById("PICKED").innerHTML = "null";
+    }
+  });
+  
+	
 	root.callbacks.addCallback('DRAW_SCENE', drawScene, 'ROOT_HOOK_ONRENDERSTART');
 	
-	createNewDrawPass();
-	
+	root.getRenderer().enablePicking();
+
 	root.startRendering();
 }
-
-function createNewDrawPass() {
-  var renderer = Root.getInstance().getRenderer();
-  var amahaniTransform = Transform.getTransform("Amahani");
-  var amahaniTransform2 = Transform.getTransform("Amahani2");
-
-  renderer.beautyPass.RenderTreeRoot = amahaniTransform;
-  
-  var pass = new DrawPass("DEPTH_PASS", 0);
-  pass.setDefaultBuffers();
-  pass.RenderTreeRoot = amahaniTransform2;
-  pass.program = new Program("depth", "Resources/Shaders/default/default.vs", "Resources/Shaders/depth/depth.fs", null);
-  pass.validate();
-  
-  renderer.addDrawPass(pass);
-};
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();		
@@ -98,7 +97,7 @@ function loadResources() {
 function main() {  
   document.getElementById("go").style.visibility = 'hidden';
 	var root = Root.getInstance();
-	root.init("viewport", loadResources, {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
+	root.init("viewport", loadResources, {R: 1, G: 1, B: 1, A: 1.0});
 }
 
 function clearLight() {

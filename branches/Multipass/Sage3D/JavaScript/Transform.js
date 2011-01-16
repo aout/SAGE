@@ -236,10 +236,13 @@ Transform.prototype.render = function() {
 		hasChanged = true;
 	}
  if (this.shaderProgram == undefined) {
-    this.shaderProgram = root.getCurrentProgram();
+    var shaderProgram = root.getCurrentProgram();
+  }
+  else {
+    var shaderProgram = this.shaderProgram();
   }
 
-  this.shaderProgram.use();
+  shaderProgram.use();
   
 
 /**
@@ -339,10 +342,10 @@ Transform.prototype.render = function() {
      numberOfElements: 1,
      value0: root.getLightsIntensities()}*/
   ];
-	this.shaderProgram.setUniforms(uniforms);
+	shaderProgram.setUniforms(uniforms);
 
 	for (var i = 0; i < this.entities.length; ++i) {
-		this.entities[i].draw(this.shaderProgram);
+		this.entities[i].draw(shaderProgram);
 	}
 	
 	//Call render() on the children Transform
