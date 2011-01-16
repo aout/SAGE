@@ -29,6 +29,7 @@ function initScene()
 	var rootTransform    = Transform.getTransform("root");
 	var cameraTransform  = rootTransform.addChild("camera");
 	cameraTransform.translate([0.0, -30.0, 250.0]);
+	//cameraTransform.translate([0.0, 1.0, 5.0]);
 	root.getCamera().attach(cameraTransform);
 	
 	im.bindKey('Z', function(elapsed){

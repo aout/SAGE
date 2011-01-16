@@ -16,6 +16,7 @@ include("ResourceManager.js");
 include("Texture.js");
 include("Transform.js");
 include("Renderer.js");
+include("Skeleton.js");
 
 Root = function(){
     this.viewPort = undefined;
