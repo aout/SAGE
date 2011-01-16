@@ -16,6 +16,8 @@ ColladaLoader_Geometry = function(ColladaFile) {
   };
   this.primitives = [];
   
+  this.controller = undefined;
+  
   this.attributes = {
     id: undefined,
     name: undefined
@@ -69,7 +71,7 @@ ColladaLoader_Geometry.prototype.parse = function(node) {
   	var primitive = undefined;
   	switch (primitiveNodes.snapshotItem(i).tagName) {
   		case 'triangles':
-  			primitive = new ColladaLoader_Triangles(this.colladaFile);
+  			primitive = new ColladaLoader_Triangles(this.colladaFile, this);
   			break;
   		default:
   			if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Primitives ' + primitiveNodes.snapshotItem(i).tagName + ' is not implemented yet</span><br />'; }

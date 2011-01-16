@@ -58,9 +58,9 @@ ColladaLoader_ColladaFile.prototype.parse = function() {
   	return false;
   }
   if (this.parseControllers()) {
-	  if (this.parseAnimations()) {
+	  //if (this.parseAnimations()) {
 	  	//this.parseAnimationClips();
-	  }
+	  //}
   }
   this.generateEntity();
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Parsing file done</span><br />'; }
@@ -263,19 +263,18 @@ ColladaLoader_ColladaFile.prototype.generateEntity = function() {
 	var amahaniTransform  = rootTransform.addChild("Amahani");
 	//FIN DEBUG
 	
-	for (var i = 0; i < this.libraryControllers.length; ++i) {
-		var skeleton = this.libraryControllers[i].skeleton;
-		if (skeleton.hasAnimations) {
-			var skeletons = skeleton.generateSkeletons(1.0 / 30.0);
-			//ents.push(new AnimatableEntity(params));
+	for (var i = 0; i < this.libraryGeometries.length; ++i) {
+		var geometry = this.libraryGeometries[i];
+		if (geometry.controller != undefined && geometry.controller.skeleton.hasAnimations) {
+			//Generate animatable entity
 		}
 		else {
-			var ent = new Entity('kikoo');
-			ent.generate(this.libraryControllers[i].geometry);
+			var ent = new Entity(geometry.attributes.id);
+			ent.generate(geometry);
 			ents.push(ent);
 			//DEBUG
 			amahaniTransform.addEntity(ent);
 			//FIN DEBUG
 		}
-	}
+	}	
 };

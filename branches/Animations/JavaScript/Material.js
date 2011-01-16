@@ -136,11 +136,6 @@ Material.prototype.active = function(shaderProgram) {
   }
   for (var item in this.components) {
     if (this.components[item] instanceof Texture) {
-    	//DEBUG
-    	if (item != 'diffuse') {
-    		continue;
-    	}
-    	//FIN DEBUG
       if (!this.components[item].active(shaderProgram)) {
       	return false;
       }

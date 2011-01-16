@@ -6,25 +6,13 @@ gIncludedFiles.push("ColladaLoader/Rotate.js");
 ColladaLoader_Rotate = function(ColladaFile) {
 	this.colladaFile = ColladaFile;
 	
-	this.X = {
-		value: 0,
-		animation: undefined
-	};
+	this.X = 0;
 	
-	this.Y = {
-		value: 0,
-		animation: undefined
-	};
+	this.Y = 0;
 	
-	this.Z = {
-		value: 0,
-		animation: undefined
-	};
+	this.Z = 0;
 	
-	this.ANGLE = {
-		value: 0,
-		animation: undefined
-	};
+	this.ANGLE = 0;
 	
 	this.attributes = {
 		sid: undefined
@@ -38,13 +26,9 @@ ColladaLoader_Rotate.prototype.parse = function(node) {
 	if (tab.length != 4) {
 		return false;
 	}
-	this.X.value = tab[0];
-	this.Y.value = tab[1];
-	this.Z.value = tab[2];
-	this.ANGLE.value = tab[3];
+	this.X = tab[0];
+	this.Y = tab[1];
+	this.Z = tab[2];
+	this.ANGLE = tab[3];
 	return true;
-};
-
-ColladaLoader_Matrix.prototype.generateTransformation = function(time) {
-	
 };

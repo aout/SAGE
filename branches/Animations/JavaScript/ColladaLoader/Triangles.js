@@ -3,9 +3,11 @@ if (gIncludedFiles == undefined)
   
 gIncludedFiles.push("ColladaLoader/Triangles.js");
 
-ColladaLoader_Triangles = function(ColladaFile) {
+ColladaLoader_Triangles = function(ColladaFile, geometry) {
   
   this.colladaFile = ColladaFile;
+  this.geometry = geometry;
+  
   this.maxOffset = 0;
   this.inputsByOffset = undefined;
   
@@ -72,23 +74,79 @@ ColladaLoader_Triangles.prototype.parse = function(node, mesh) {
 
 ColladaLoader_Triangles.prototype.generateBuffers = function() {
 	if (!this.buffers) {
-		this.buffers = [];
+		
+		//Create Buffers Object
+		this.buffers = {};
+
+		//Get Skeleton
+		if (this.geometry.controller != undefined && this.geometry.controller.skeleton.hasAnimations) {
+			var skeleton = this.geometry.controller.skeleton;
+		} else {
+			var skeleton = undefined;
+		}
+		
 		for (var i = 0; i < this.p.length; i += (this.maxOffset + 1)) {
-			var bufferIndex = 0;
+
 			for (var j = 0; j < (this.maxOffset + 1); ++j) {
+
+				//Get the p index
 				var index = this.p[i + j];
+
 				for (var k = 0; k < this.inputsByOffset[j].length; ++k) {
-					if (this.buffers[bufferIndex] == undefined) {
-						this.buffers.push({
-							stride:	1,
-							name: '',
-							data: [] });
-						this.buffers[bufferIndex].stride = this.inputsByOffset[j][k].source.accessor.attributes.stride;
-						this.buffers[bufferIndex].name = this.inputsByOffset[j][k].attributes.semantic;
+					
+					//Get buffer name
+					var bufferName = this.inputsByOffset[j][k].attributes.semantic;
+					
+					// Create the buffer if doesn't exist
+					if (!this.buffers[bufferName]) {
+						this.buffers[bufferName] = {
+							stride	: this.inputsByOffset[j][k].source.accessor.attributes.stride,
+							data		: []
+						};
 					}
+					
+					//Vertex Weight
+					if (bufferName === 'POSITION' && skeleton) {
+
+						//Get vertex weight info
+						var info = skeleton.vertexWeights[index];
+
+						for (var weightI = 0; weightI < 4; ++weightI) {
+							
+							//Create buffers if they don't exist
+							if (!this.buffers['aVertexWeight_' + weightI]) {
+								this.buffers['aVertexWeight_' + weightI] = {
+									stride	: 2,
+									data		: []
+								};								
+							}
+							
+							if (weightI < info.length) {
+								
+								//Push the joint
+								this.buffers['aVertexWeight_' + weightI].data.push(info[weightI].jointIndex);
+								
+								//Push the weight corresponding
+								this.buffers['aVertexWeight_' + weightI].data.push(info[weightI].weight);
+								
+							} else {
+								
+								//Push the default value for joint
+								this.buffers['aVertexWeight_' + weightI].data.push(0.0);
+								
+								//Push the default value for weight
+								this.buffers['aVertexWeight_' + weightI].data.push(0.0);								
+							}
+						}
+					}
+					
+					//Get the source array
 					var source = this.inputsByOffset[j][k].source.dataArray.data;
-					index *= this.buffers[bufferIndex].stride;
-					if (this.buffers[bufferIndex].stride == 3) {
+					
+					//Compute the p index with the data stride
+					index *= this.buffers[bufferName].stride;
+					
+					if (bufferName != 'TEXCOORD') {
 					  var x = source[index + 0];
   					var y = source[index + 1];
 						var z = source[index + 2];
@@ -105,16 +163,15 @@ ColladaLoader_Triangles.prototype.generateBuffers = function() {
               	z = -tmp;
             	break;
           	}
-          	this.buffers[bufferIndex].data.push(x);
-          	this.buffers[bufferIndex].data.push(y);
-          	this.buffers[bufferIndex].data.push(z);
+          	this.buffers[bufferName].data.push(x);
+          	this.buffers[bufferName].data.push(y);
+          	this.buffers[bufferName].data.push(z);
         	}
       		else {
-						for (var l = 0; l < this.buffers[bufferIndex].stride; ++l) {
-							this.buffers[bufferIndex].data.push(source[index + l]);
+						for (var l = 0; l < this.buffers[bufferName].stride; ++l) {
+							this.buffers[bufferName].data.push(source[index + l]);
         		}
 					}
-					++bufferIndex;
 				}
 			}
 		}
