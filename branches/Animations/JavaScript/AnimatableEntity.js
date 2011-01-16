@@ -66,10 +66,10 @@ AnimatableEntity.prototype.draw = function(shaderProgram) {
 		isMatrix: true,
 		numberOfElements: 4,
 		value0: this.shaderMatrices},
-		/*{name: "uhasSkeleton",
+		{name: "uhasSkeleton",
 		type: "Int",
 		numberOfElements: 1,
-		value0: 0}*/];
+		value0: 1}];
 	
 	shaderProgram.setUniforms(uniforms);
 	
