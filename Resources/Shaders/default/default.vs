@@ -1,13 +1,62 @@
+/** 
+ *  Basic vertex attributes
+ */
+
+// Vertex Position. Required
 attribute vec3 POSITION;
+
+// Vertex Normal. Required if lighting enabled
 attribute vec3 NORMAL;
+
+// Vertex Texture Coordinates. Required if diffuse component is a texture
 attribute vec2 TEXCOORD;
+
+/**
+ *  Vertex Attributes for advanced rendering technique
+ */
 attribute vec3 TEXTANGENT;
 attribute vec3 TEXBINORMAL;
 
+/**
+ *  Animation variables
+ */
+
+// Do 'entity' have a skeleton
+uniform bool uhasSkeleton;
+
+// Maximum number of joints
+const int MAX_JOINTS = 60;
+
+// The joints of the entity
+uniform mat4 uJoints[MAX_JOINTS];
+
+// Association of the vertex and his joint(s)
+// aVertexWeight_n.x: indice in uJoints array
+// aVertexWeight_n.y: corresponding weight. 0 to ignore
+attribute vec2 aVertexWeight_0;
+attribute vec2 aVertexWeight_1;
+attribute vec2 aVertexWeight_2;
+attribute vec2 aVertexWeight_3;
+
+/**
+ *  Matrices
+ */
+ 
+ // ModelView (or World) matrix
 uniform mat4 uMVMatrix;
+
+// Eye matrix. Could be a camera or a light
 uniform mat4 uEMatrix;
+
+// Projection matrix
 uniform mat4 uPMatrix;
+
+// Normal matrix
 uniform mat4 uNMatrix;
+
+/**
+ *  Lighting variables
+ */
 
 uniform int uLightingEnabled;
 

@@ -14,6 +14,7 @@ ColladaLoader_Joint = function() {
   this.transformations = [];
 };
 
+/*
 ColladaLoader_Joint.prototype.generateLocalMatrix = function(time) {
 	var ret = mat4.create();
 	mat4.identity(ret);
@@ -31,3 +32,4 @@ ColladaLoader_Joint.prototype.generateLocalMatrix = function(time) {
 	
 	return ret;
 };
+*/

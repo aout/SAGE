@@ -22,14 +22,14 @@ Entity.prototype.generate = function(geometry) {
 		if (!primitive.buffers) {
 			primitive.generateBuffers();
 		}
-		var mesh = new Mesh('bouh');
-		for (var j = 0; j < primitive.buffers.length; ++j) {
-			mesh.addBuffer(	primitive.buffers[j].name,
+		var mesh = new Mesh(geometry.attributes.id + '_primitive_' + primitive.attributes.name);
+		for (var bufferName in primitive.buffers) {
+			mesh.addBuffer(	bufferName,
 											this.webGL.ARRAY_BUFFER,
-											primitive.buffers[j].data,
-											Math.floor(primitive.buffers[j].data.length / primitive.buffers[j].stride),
+											primitive.buffers[bufferName].data,
+											Math.floor(primitive.buffers[bufferName].data.length / primitive.buffers[bufferName].stride),
 											this.webGL.FLOAT,
-											primitive.buffers[j].stride,
+											primitive.buffers[bufferName].stride,
 											this.webGL.STATIC_DRAW);
 		}
 		mesh.setDrawingBuffer('POSITION');

@@ -141,6 +141,8 @@ ColladaLoader_Controller.prototype.parse = function(node) {
 		return false;
 	}
 	
+	this.geometry.controller = this;
+	
 	if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="info">Controller ' + this.attributes.id + ' loaded</span><br />'; }
 	return true;
 };

@@ -102,6 +102,7 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 
     //Set a viewport into the canvas
     this.viewPort = document.getElementById(canvasId);
+    
     this.width = this.viewPort.offsetWidth;
     this.height = this.viewPort.offsetHeight;
 
@@ -131,7 +132,11 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
     if (projection != undefined)
     this.projectionMatrix = mat4.perspective(projection.fovy, projection.aspect, projection.znear, projection.zfar);
     else
-    this.projectionMatrix = mat4.perspective(45, this.width / this.height, 0.1, 100.0);
+    //Test Avatar
+    //DEBUG
+    this.projectionMatrix = mat4.perspective(45, this.width / this.height, 0.1, 1000.0);
+    //FIN DEBUG
+    //this.projectionMatrix = mat4.perspective(45, this.width / this.height, 0.1, 100.0);
 
     this.webGL.enable(this.webGL.DEPTH_TEST);
     this.webGL.depthFunc(this.webGL.LEQUAL);

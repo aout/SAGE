@@ -24,11 +24,34 @@ function initScene()
 {
 	var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
+	var im = new InputManager();
 	
 	var rootTransform    = Transform.getTransform("root");
 	var cameraTransform  = rootTransform.addChild("camera");
-	cameraTransform.translate([0.0, 1.0, 5.0]);
+	cameraTransform.translate([0.0, -30.0, 250.0]);
 	root.getCamera().attach(cameraTransform);
+	
+	im.bindKey('Z', function(elapsed){
+	  var transform = Transform.getTransform("camera");
+    transform.translate([0.0, 0.0, -(15.0 * (elapsed / 1000.0))]);
+	});
+	
+	im.bindKey('S', function(elapsed){
+    var transform = Transform.getTransform("camera");
+    transform.translate([0.0, 0.0, (15.0 * (elapsed / 1000.0))]);
+  });
+  
+	im.bindKey('Q', function(elapsed){
+    var transform = Transform.getTransform("camera");
+    var rot = 90 * (elapsed / 1000.0);
+    transform.rotate(rot, [0.0, 1.0, 0.0]);
+  });
+  
+	im.bindKey('D', function(elapsed){
+    var transform = Transform.getTransform("camera");
+    var rot = 90 * (elapsed / 1000.0);
+    transform.rotate(-rot, [0.0, 1.0, 0.0]);
+  });
 	
 	root.addCallbackToCallbackArray("DRAW_SCENE", drawScene, Root.HookEnum.ROOT_HOOK_ONRENDERSTART);
 	root.startRendering();
@@ -36,7 +59,7 @@ function initScene()
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();		
-	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
+	rm.prepareCollada("Amahani", "Resources/Meshs/avatar.dae");
 	rm.doLoad(initScene);
 }
 
