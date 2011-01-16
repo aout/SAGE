@@ -266,15 +266,16 @@ ColladaLoader_ColladaFile.prototype.generateEntity = function() {
 	for (var i = 0; i < this.libraryGeometries.length; ++i) {
 		var geometry = this.libraryGeometries[i];
 		if (geometry.controller != undefined && geometry.controller.skeleton.hasAnimations) {
-			//Generate animatable entity
+			var ent = new AnimatableEntity(geometry.attributes.id);
+			ent.generate(geometry);
 		}
 		else {
 			var ent = new Entity(geometry.attributes.id);
 			ent.generate(geometry);
-			ents.push(ent);
-			//DEBUG
-			amahaniTransform.addEntity(ent);
-			//FIN DEBUG
 		}
+		ents.push(ent);
+		//DEBUG
+		amahaniTransform.addEntity(ent);
+		//FIN DEBUG
 	}	
 };

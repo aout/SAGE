@@ -22,3 +22,7 @@ ColladaLoader_Matrix.prototype.parse = function(node) {
 	}
 	return true;
 };
+
+ColladaLoader_Matrix.prototype.generateTransformation = function(time) {
+	
+}
