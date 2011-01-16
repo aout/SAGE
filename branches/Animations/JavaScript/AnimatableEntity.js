@@ -60,12 +60,16 @@ AnimatableEntity.prototype.draw = function(shaderProgram) {
 		shaderProgram = Root.getInstance().getCurrentProgram();
 	}
 	
-	var uniforms = [{
-		name: "uJoints",
+	var uniforms = [
+		{name: "uJoints",
 		type: "Float",
 		isMatrix: true,
 		numberOfElements: 4,
-		value0: this.shaderMatrices}];
+		value0: this.shaderMatrices},
+		/*{name: "uhasSkeleton",
+		type: "Int",
+		numberOfElements: 1,
+		value0: 0}*/];
 	
 	shaderProgram.setUniforms(uniforms);
 	

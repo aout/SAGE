@@ -22,7 +22,7 @@ attribute vec3 TEXBINORMAL;
  */
 
 // Do 'entity' have a skeleton
-uniform bool uhasSkeleton;
+uniform int uhasSkeleton;
 
 // Maximum number of joints
 const int MAX_JOINTS = 60;
@@ -69,7 +69,26 @@ varying vec2 vTextureCoord;
 varying vec3 vLightWeighting;
 
 void	main(void) {
-	gl_Position = uPMatrix * uEMatrix * uMVMatrix * vec4(POSITION, 1.0);
+	vec4 pos = vec4(POSITION, 1.0);
+	
+	if (uhasSkeleton == 1) {
+		vec4 outv = vec4(0.0, 0.0, 0.0, 0.0);
+		if (aVertexWeight_0.y != 0.0) {
+			outv += uJoints[int(aVertexWeight_0.x)] * pos * aVertexWeight_0.y;
+		}
+		if (aVertexWeight_1.y != 0.0) {
+			outv += uJoints[int(aVertexWeight_1.x)] * pos * aVertexWeight_1.y;
+		}
+		if (aVertexWeight_2.y != 0.0) {
+			outv += uJoints[int(aVertexWeight_2.x)] * pos * aVertexWeight_2.y;
+		}
+		if (aVertexWeight_3.y != 0.0) {
+			outv += uJoints[int(aVertexWeight_3.x)] * pos * aVertexWeight_3.y;
+		}
+		//pos = outv;
+	}
+	
+	gl_Position = uPMatrix * uEMatrix * uMVMatrix * pos;
 	vTextureCoord = TEXCOORD;
   if (uLightingEnabled == 0) {
     vLightWeighting = vec3(1.0, 1.0, 1.0);

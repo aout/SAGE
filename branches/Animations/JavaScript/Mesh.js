@@ -171,8 +171,21 @@ Mesh.prototype.draw = function(material, shaderProgram) {
 			shaderProgram = Root.getInstance().getCurrentProgram();
 		}
 		shaderProgram.use();
+		
+		if (shaderProgram.isUsing() == false) {
+			return;
+		}
+		
 		shaderProgram.setAttributes(this.buffers);
 		this.webGL.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
+		
+		//DEBUG
+		this.webGL.validateProgram(shaderProgram.program);
+		if (!this.webGL.getProgramParameter(shaderProgram.program, this.webGL.VALIDATE_STATUS)) {
+			alert(this.webGL.getProgramInfoLog(shaderProgram.program));
+    }
+		//FIN DEBUG
+		
 		if (this.drawingBuffer.bufferType == this.webGL.ELEMENT_ARRAY_BUFFER) {
 			this.webGL.drawElements(this.webGL.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
 		}
