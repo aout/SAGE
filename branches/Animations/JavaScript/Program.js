@@ -80,14 +80,95 @@ Program.prototype.compile = function(callback) {
 	}
 
 	this.status = Program.StatusEnum.PROGRAM_COMPILING;
-		
+	
+	//DEBUG
+	/*---------------------------------------------------------------------------------------------*/
+	this.vertexShaderString =  'const int MAX_JOINTS = 60;' + "\n";
+
+	this.vertexShaderString += 'attribute vec3 POSITION;' + "\n";
+	this.vertexShaderString += 'attribute vec3 NORMAL;' + "\n";
+	this.vertexShaderString += 'attribute vec2 TEXCOORD;' + "\n";
+	this.vertexShaderString += 'attribute vec3 TEXTANGENT;' + "\n";
+	this.vertexShaderString += 'attribute vec3 TEXBINORMAL;' + "\n";
+
+	this.vertexShaderString += 'attribute vec2 aVertexWeight_0;' + "\n";
+	this.vertexShaderString += 'attribute vec2 aVertexWeight_1;' + "\n";
+	this.vertexShaderString += 'attribute vec2 aVertexWeight_2;' + "\n";
+	this.vertexShaderString += 'attribute vec2 aVertexWeight_3;' + "\n";
+
+	this.vertexShaderString += 'uniform int uhasSkeleton;' + "\n";
+	this.vertexShaderString += 'uniform mat4 uJoints[MAX_JOINTS];' + "\n";
+
+	this.vertexShaderString += 'uniform mat4 uMVMatrix;' + "\n";
+	this.vertexShaderString += 'uniform mat4 uEMatrix;' + "\n";
+	this.vertexShaderString += 'uniform mat4 uPMatrix;' + "\n";
+	this.vertexShaderString += 'uniform mat4 uNMatrix;' + "\n";
+
+	this.vertexShaderString += 'uniform int uLightingEnabled;' + "\n";
+	this.vertexShaderString += 'uniform vec3 uLightingDirection;' + "\n";
+	this.vertexShaderString += 'uniform vec3 uAmbientColor;' + "\n";
+	this.vertexShaderString += 'uniform vec3 uDirectionalColor;' + "\n";
+ 
+	this.vertexShaderString += 'varying vec2 vTextureCoord;' + "\n";
+	this.vertexShaderString += 'varying vec3 vLightWeighting;' + "\n";
+
+	this.vertexShaderString += 'void	main(void) {' + "\n";
+	this.vertexShaderString += '	vec4 pos = vec4(POSITION, 1.0);' + "\n";
+	
+	this.vertexShaderString += '	if (uhasSkeleton == 1) {' + "\n";
+	this.vertexShaderString += '		vec4 outv = vec4(0.0, 0.0, 0.0, 0.0);' + "\n";
+	this.vertexShaderString += '		if (aVertexWeight_0.y != 0.0) {' + "\n";
+	this.vertexShaderString += '			outv += uJoints[int(aVertexWeight_0.x)] * pos * aVertexWeight_0.y;' + "\n";
+	this.vertexShaderString += '		}' + "\n";
+	this.vertexShaderString += '		if (aVertexWeight_1.y != 0.0) {' + "\n";
+	this.vertexShaderString += '			outv += uJoints[int(aVertexWeight_1.x)] * pos * aVertexWeight_1.y;' + "\n";
+	this.vertexShaderString += '		}' + "\n";
+	this.vertexShaderString += '		if (aVertexWeight_2.y != 0.0) {' + "\n";
+	this.vertexShaderString += '			outv += uJoints[int(aVertexWeight_2.x)] * pos * aVertexWeight_2.y;' + "\n";
+	this.vertexShaderString += '		}' + "\n";
+	this.vertexShaderString += '		if (aVertexWeight_3.y != 0.0) {' + "\n";
+	this.vertexShaderString += '			outv += uJoints[int(aVertexWeight_3.x)] * pos * aVertexWeight_3.y;' + "\n";
+	this.vertexShaderString += '		}' + "\n";
+	this.vertexShaderString += '		//pos = outv;' + "\n";
+	this.vertexShaderString += '	}' + "\n";
+	
+	this.vertexShaderString += '	gl_Position = uPMatrix * uEMatrix * uMVMatrix * pos;' + "\n";
+	this.vertexShaderString += '	vTextureCoord = TEXCOORD;' + "\n";
+	this.vertexShaderString += '  if (uLightingEnabled == 0) {' + "\n";
+	this.vertexShaderString += '    vLightWeighting = vec3(1.0, 1.0, 1.0);' + "\n";
+	this.vertexShaderString += '  }' + "\n";
+	this.vertexShaderString += '  else {' + "\n";
+	this.vertexShaderString += '    vec4 transformedNormal = uNMatrix * vec4(NORMAL, 1.0);' + "\n";
+	this.vertexShaderString += '    vec4 tmp = vec4(uLightingDirection, 1.0);' + "\n";
+	this.vertexShaderString += '    float directionalLightWeighting = max(dot(transformedNormal.xyz, tmp.xyz), 0.0);' + "\n";
+	this.vertexShaderString += '    vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;' + "\n";
+	this.vertexShaderString += '  }' + "\n";
+	this.vertexShaderString += '}' + "\n";
+
+	/*--------------------------------------------------------------------------------------------*/
+
+	this.fragmentShaderString =  '#ifdef GL_ES' + "\n";
+	this.fragmentShaderString += 'precision highp float;' + "\n";
+	this.fragmentShaderString += '#endif' + "\n";
+
+	this.fragmentShaderString += 'varying vec2 vTextureCoord;' + "\n";
+	this.fragmentShaderString += 'varying vec3 vLightWeighting;' + "\n";
+
+	this.fragmentShaderString += 'uniform sampler2D uSampler0;' + "\n";
+
+	this.fragmentShaderString += 'void	main(void) {' + "\n";
+	this.fragmentShaderString += '    vec4 textureColor = texture2D(uSampler0, vec2(vTextureCoord.s, vTextureCoord.t));' + "\n";
+	this.fragmentShaderString += '    gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);' + "\n";
+	this.fragmentShaderString += '}' + "\n";
+	//FIN DEBUG
+	
 	this.vertexShader = this.webGL.createShader(this.webGL.VERTEX_SHADER);
 	this.fragmentShader = this.webGL.createShader(this.webGL.FRAGMENT_SHADER);
 	
 	this.webGL.shaderSource(this.vertexShader, this.vertexShaderString);
 	this.webGL.shaderSource(this.fragmentShader, this.fragmentShaderString);
 	
-    this.webGL.compileShader(this.vertexShader);
+  this.webGL.compileShader(this.vertexShader);
 	this.webGL.compileShader(this.fragmentShader);
 	
 	if (!this.webGL.getShaderParameter(this.vertexShader, this.webGL.COMPILE_STATUS)) {

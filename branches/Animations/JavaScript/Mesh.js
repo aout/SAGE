@@ -180,10 +180,10 @@ Mesh.prototype.draw = function(material, shaderProgram) {
 		this.webGL.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
 		
 		//DEBUG
-		this.webGL.validateProgram(shaderProgram.program);
-		if (!this.webGL.getProgramParameter(shaderProgram.program, this.webGL.VALIDATE_STATUS)) {
-			alert(this.webGL.getProgramInfoLog(shaderProgram.program));
-    }
+		//this.webGL.validateProgram(shaderProgram.program);
+		//if (!this.webGL.getProgramParameter(shaderProgram.program, this.webGL.VALIDATE_STATUS)) {
+			//alert(this.webGL.getProgramInfoLog(shaderProgram.program));
+    //}
 		//FIN DEBUG
 		
 		if (this.drawingBuffer.bufferType == this.webGL.ELEMENT_ARRAY_BUFFER) {
