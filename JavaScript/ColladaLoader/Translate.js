@@ -29,3 +29,7 @@ ColladaLoader_Translate.prototype.parse = function(node) {
 	this.Z = tab[2];
 	return true;
 };
+
+ColladaLoader_Translate.prototype.vector = function() {
+  return ([this.X, this.Y, this.Z]);
+};
