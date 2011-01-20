@@ -82,10 +82,10 @@ ColladaLoader_Skeleton.prototype.parse = function() {
 					break;
 				case 'INV_BIND_MATRIX':
 					var tab = this.controller.jointsInputs[j].source.dataArray.data.slice(i * 16, i * 16 + 16);
-					joint.inverseBindMatrix = mat4.create([	tab[ 0], tab[ 1], tab[ 2], tab[ 3],
-																									tab[ 4], tab[ 5], tab[ 6], tab[ 7],
-																									tab[ 8], tab[ 9], tab[10], tab[11],
-																									tab[12], tab[13], tab[14], tab[15]	]);
+					joint.inverseBindMatrix = mat4.create([	tab[ 0], tab[ 4], tab[ 8], tab[12],
+																									tab[ 1], tab[ 5], tab[ 9], tab[13],
+																									tab[ 2], tab[ 6], tab[10], tab[14],
+																									tab[ 3], tab[ 7], tab[11], tab[15]	]);
 					break;				
 			}
 		}

@@ -18,6 +18,8 @@ include("InputManager.js");
 
 function drawScene(elapsedTime) {
   document.getElementById("FPS").innerHTML = Root.getInstance().actualFps.toString()+" fps";
+  var amahaniTransform = Transform.getTransform("Amahani");
+  amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
 }
 
 function initScene()
@@ -28,8 +30,8 @@ function initScene()
 	
 	var rootTransform    = Transform.getTransform("root");
 	var cameraTransform  = rootTransform.addChild("camera");
-	cameraTransform.translate([0.0, -30.0, 250.0]);
-	//cameraTransform.translate([0.0, 1.0, 5.0]);
+	//cameraTransform.translate([0.0, 5.0, 20.0]);
+	cameraTransform.translate([0.0, 1.0, 5.0]);
 	root.getCamera().attach(cameraTransform);
 	
 	im.bindKey('Z', function(elapsed){
@@ -60,7 +62,7 @@ function initScene()
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();		
-	rm.prepareCollada("Amahani", "Resources/Meshs/avatar.dae");
+	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
 	rm.doLoad(initScene);
 }
 

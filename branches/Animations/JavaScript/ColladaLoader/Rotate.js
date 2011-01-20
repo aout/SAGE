@@ -32,3 +32,7 @@ ColladaLoader_Rotate.prototype.parse = function(node) {
 	this.ANGLE = tab[3];
 	return true;
 };
+
+ColladaLoader_Rotate.prototype.vector = function() {
+  return ([this.X, this.Y, this.Z, this.ANGLE]);
+};

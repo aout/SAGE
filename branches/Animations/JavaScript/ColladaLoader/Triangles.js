@@ -125,9 +125,12 @@ ColladaLoader_Triangles.prototype.generateBuffers = function() {
 								
 								//Push the joint
 								this.buffers['aVertexWeight_' + weightI].data.push(info[weightI].jointIndex);
+								//this.buffers['aVertexWeight_' + weightI].data.push(0.0);
 								
 								//Push the weight corresponding
 								this.buffers['aVertexWeight_' + weightI].data.push(info[weightI].weight);
+								//this.buffers['aVertexWeight_' + weightI].data.push(1.0);
+								
 								
 							} else {
 								

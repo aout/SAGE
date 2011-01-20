@@ -21,12 +21,12 @@ ColladaLoader_Joint.prototype.generateBindShapeLocalMatrix = function() {
 	for (var i = 0; i < this.transformations.length; ++i) {
 		if (this.transformations[i] instanceof ColladaLoader_Matrix) {
 			mat4.multiply(ret, this.transformations[i].matrix);
-		}/* else if (this.transformations[i] instanceof ColladaLoader_Translate) {
-			mat4.translate(ret, this.transformations[i].generateTransformation());		
+		} else if (this.transformations[i] instanceof ColladaLoader_Translate) {
+			mat4.translate(ret, this.transformations[i].vector());		
 		} else if (this.transformations[i] instanceof ColladaLoader_Rotate) {
-			var rotate = this.transformations[i].generateTransformation();
-			mat4.rotate(ret, rotate[3], rotate);		
-		}*/		
+			var rotate = this.transformations[i].vector();
+			mat4.rotate(ret, rotate[3], rotate);
+		}
 	}
 	
 	return ret;
