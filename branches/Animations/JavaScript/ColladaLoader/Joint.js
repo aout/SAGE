@@ -25,7 +25,7 @@ ColladaLoader_Joint.prototype.generateBindShapeLocalMatrix = function() {
 			mat4.translate(ret, this.transformations[i].vector());		
 		} else if (this.transformations[i] instanceof ColladaLoader_Rotate) {
 			var rotate = this.transformations[i].vector();
-			mat4.rotate(ret, rotate[3], rotate);
+			mat4.rotate(ret, Math.PI * (rotate[3] / 180.0), rotate);
 		}
 	}
 	
