@@ -112,12 +112,15 @@ Program.prototype.compile = function(callback) {
 	this.vertexShaderString += 'varying vec2 vTextureCoord;' + "\n";
 	this.vertexShaderString += 'varying vec3 vLightWeighting;' + "\n";
 
+	this.vertexShaderString += 'mat4 tests[1];' + "\n";
+
 	this.vertexShaderString += 'void	main(void) {' + "\n";
 	this.vertexShaderString += '	vec4 pos = vec4(POSITION, 1.0);' + "\n";
 	
 	this.vertexShaderString += '	if (uhasSkeleton == 1) {' + "\n";
 	this.vertexShaderString += '		vec4 outv = vec4(0.0, 0.0, 0.0, 0.0);' + "\n";
-	this.vertexShaderString += '		if (aVertexWeight_0.y != 0.0) {' + "\n";
+	this.vertexShaderString += '		tests[0] = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);' + "\n";
+	this.vertexShaderString += '		/*if (aVertexWeight_0.y != 0.0) {' + "\n";
 	this.vertexShaderString += '			outv += uJoints[int(aVertexWeight_0.x)] * pos * aVertexWeight_0.y;' + "\n";
 	this.vertexShaderString += '		}' + "\n";
 	this.vertexShaderString += '		if (aVertexWeight_1.y != 0.0) {' + "\n";
@@ -128,8 +131,10 @@ Program.prototype.compile = function(callback) {
 	this.vertexShaderString += '		}' + "\n";
 	this.vertexShaderString += '		if (aVertexWeight_3.y != 0.0) {' + "\n";
 	this.vertexShaderString += '			outv += uJoints[int(aVertexWeight_3.x)] * pos * aVertexWeight_3.y;' + "\n";
-	this.vertexShaderString += '		}' + "\n";
-	this.vertexShaderString += '		//pos = outv;' + "\n";
+	this.vertexShaderString += '		}*/' + "\n";
+	this.vertexShaderString += '		outv += tests[0] * pos * 0.5;' + "\n";
+	this.vertexShaderString += '		outv += tests[0] * pos * 0.5;' + "\n";
+	this.vertexShaderString += '		pos = outv;' + "\n";
 	this.vertexShaderString += '	}' + "\n";
 	
 	this.vertexShaderString += '	gl_Position = uPMatrix * uEMatrix * uMVMatrix * pos;' + "\n";
