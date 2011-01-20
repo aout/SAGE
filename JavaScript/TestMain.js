@@ -30,8 +30,8 @@ function initScene()
 	
 	var rootTransform    = Transform.getTransform("root");
 	var cameraTransform  = rootTransform.addChild("camera");
-	//cameraTransform.translate([0.0, 5.0, 20.0]);
-	cameraTransform.translate([0.0, 1.0, 5.0]);
+	cameraTransform.translate([0.0, 5.0, 20.0]);
+	//cameraTransform.translate([0.0, 1.0, 5.0]);
 	root.getCamera().attach(cameraTransform);
 	
 	im.bindKey('Z', function(elapsed){
@@ -62,7 +62,7 @@ function initScene()
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();		
-	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
+	rm.prepareCollada("Amahani", "Resources/Meshs/Seymour_triangulate.dae");
 	rm.doLoad(initScene);
 }
 
