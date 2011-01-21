@@ -180,7 +180,8 @@ Program.prototype.compile = function(callback) {
   this.vertexShaderString += '}' + "\n";
 
 	this.vertexShaderString += 'void	main(void) {' + "\n";
-	this.vertexShaderString += '	vec4 pos = vec4(POSITION, 1.0);' + "\n";	
+	this.vertexShaderString += '	vec4 pos = vec4(POSITION, 1.0);' + "\n";
+	this.vertexShaderString += '  vec4 normal = vec4(NORMAL, 1.0);' + "\n";	
 	this.vertexShaderString += '	if (uhasSkeleton == 1) {' + "\n";
 	this.vertexShaderString += '		vec4 outv = vec4(0.0);' + "\n";
 	this.vertexShaderString += '    outv += calc(pos, int(aVertexWeight_0.x), aVertexWeight_0.y);' + "\n";
@@ -188,6 +189,13 @@ Program.prototype.compile = function(callback) {
 	this.vertexShaderString += '    outv += calc(pos, int(aVertexWeight_2.x), aVertexWeight_2.y);' + "\n";
 	this.vertexShaderString += '    outv += calc(pos, int(aVertexWeight_3.x), aVertexWeight_3.y);' + "\n";
 	this.vertexShaderString += '		pos = outv;' + "\n";
+	this.vertexShaderString += '   //mat4 outm = mat4(0.0);' + "\n";
+  this.vertexShaderString += '    //outm += calcM(uMVMatrix, int(aVertexWeight_0.x), aVertexWeight_0.y);' + "\n";
+  this.vertexShaderString += '    //outm += calcM(uMVMatrix, int(aVertexWeight_1.x), aVertexWeight_1.y);' + "\n";
+  this.vertexShaderString += '    //outm += calcM(uMVMatrix, int(aVertexWeight_2.x), aVertexWeight_2.y);' + "\n";
+  this.vertexShaderString += '    //outm += calcM(uMVMatrix, int(aVertexWeight_3.x), aVertexWeight_3.y);' + "\n";
+  this.vertexShaderString += '    //outm = inverse(outm);' + "\n";
+  this.vertexShaderString += '    //outm = transpose(outm);' + "\n";
 	this.vertexShaderString += '	}' + "\n";
 	
 	this.vertexShaderString += '	gl_Position = uPMatrix * uEMatrix * uMVMatrix * pos;' + "\n";
@@ -196,7 +204,8 @@ Program.prototype.compile = function(callback) {
 	this.vertexShaderString += '    vLightWeighting = vec3(1.0, 1.0, 1.0);' + "\n";
 	this.vertexShaderString += '  }' + "\n";
 	this.vertexShaderString += '  else {' + "\n";
-	this.vertexShaderString += '    vec4 transformedNormal = uNMatrix * vec4(NORMAL, 1.0);' + "\n";
+	this.vertexShaderString += '    vec4 transformedNormal = uNMatrix * normal;' + "\n";
+	this.vertexShaderString += '    transformedNormal = normalize(transformedNormal);' + "\n";
 	this.vertexShaderString += '    vec4 tmp = vec4(uLightingDirection, 1.0);' + "\n";
 	this.vertexShaderString += '    float directionalLightWeighting = max(dot(transformedNormal.xyz, tmp.xyz), 0.0);' + "\n";
 	this.vertexShaderString += '    vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;' + "\n";
@@ -232,6 +241,7 @@ Program.prototype.compile = function(callback) {
 	if (!this.webGL.getShaderParameter(this.vertexShader, this.webGL.COMPILE_STATUS)) {
 		this.status = Program.StatusEnum.PROGRAM_ERROR;
 		this.error = this.webGL.getShaderInfoLog(this.vertexShader);
+		alert(this.error);
 	}
 
 	if (!this.webGL.getShaderParameter(this.fragmentShader, this.webGL.COMPILE_STATUS)) {

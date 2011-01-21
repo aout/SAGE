@@ -48,16 +48,6 @@ AnimatableEntity.prototype.generate = function(geometry) {
 	
 	this.skeleton = geometry.controller.skeleton.generateBindShape();
 	this.shaderMatrices = this.skeleton.getShaderMatrices();
-	/*this.shaderMatrices = [];
-	var mat = mat4.create();
-	mat4.identity(mat);
-	for (var i = 0; i < 58; ++i)
-	{
-	  for (var j = 0; j < 16; ++j)
-	  {
-	    this.shaderMatrices.push(mat[j]);
-	  }
-	}*/
 };
 
 /**

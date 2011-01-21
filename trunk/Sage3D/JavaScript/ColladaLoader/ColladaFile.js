@@ -260,7 +260,7 @@ ColladaLoader_ColladaFile.prototype.generateEntity = function() {
 
 	//DEBUG
 	var rootTransform    = Transform.getTransform("root");
-	var amahaniTransform  = rootTransform.addChild("Amahani");
+	var entTransform  = rootTransform.addChild("Seymour");
 	//FIN DEBUG
 	
 	for (var i = 0; i < this.libraryGeometries.length; ++i) {
@@ -275,7 +275,7 @@ ColladaLoader_ColladaFile.prototype.generateEntity = function() {
 		}
 		ents.push(ent);
 		//DEBUG
-		amahaniTransform.addEntity(ent);
+		entTransform.addEntity(ent);
 		//FIN DEBUG
 	}	
 };
