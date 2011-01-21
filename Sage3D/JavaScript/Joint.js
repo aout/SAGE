@@ -8,132 +8,74 @@ gIncludedFiles.push("Joint.js");
  * @param {Object} object required object to construct the class  
  */
  
-Joint = function(object) {
+Joint = function(name, parent, localMatrix, inverseBindMatrix) {
   /**
    * Joint name
    * @type {String}
    */
-  this.name = object.name;
+  this.name = name;
 
   /**
    * Joint parent
    * @type {Joint} 
    */
-  this.parent = object.parent;
+  this.parent = parent;
 
   /**
    * Children Joint
    * @type {JointArray}
    */
-  this.children = object.children;
+  this.children = [];
 
   /**
    * Matrix of the current Joint
    * @type {Matrix}
    */
-  this.localMatrix = object.localMatrix;
+  this.localMatrix = localMatrix;
 
    /**
    * Inverse bind matrix of the current Joint
    * @type {Matrix}
    */
-  this.inverseBindMatrix = object.inverseBindMatrix;
+  this.inverseBindMatrix = inverseBindMatrix;
   
   /**
-   * World matrix
+   * Skeleton matrix
    * @type {Matrix}
    */
-  this.worldMatrix = object.worldMatrix;
+  this.skeletonMatrix = mat4.create();
+  mat4.identity(this.skeletonMatrix);
 
-  /**
-   * Determines if the local matrix has changed
-   * @type {Bool}
-   */ 
-  this.isLocalMatrixChanged = false;
-
-  /**
-   * Determines if the parent's matrix has changed
-   * @type {Bool}
-   */ 
-  this.isParentMatrixChanged = false;
-  
+	/**
+	 * Shader matrix
+	 * @type {Matrix}
+	 */
+  this.shaderMatrix = mat4.create();
+  mat4.identity(this.shaderMatrix);
 };
 
 /**
- * Joint destructor
- */
-Joint.prototype.destroy = function() {
-  for (var i = 0; i < this.children.length; ++i) {
-    this.children[i].destroy();
-  }
-};
-
-/**
- * Translate
- * @param {FloatArray} Vector
- */
-Joint.prototype.translate = function(v) {
-  this.isLocalMatrixChanged = true;
-  //this.localMatrix = this.localMatrix.x(Matrix.Translation($V([v[0],v[1],v[2]])).ensure4x4());
-  this.localMatrix = this.localMatrix.x(mat4.translate(this.localMatrix, $V([v[0], v[1], v[2]])).ensure4x4());
-  return this;
-};
-
-/**
- * Rotate
- * @param {Float}     Angle of rotation (in degrees)
- * @param {FloatArray}  Vector
- */
-Joint.prototype.rotate = function(ang, v) {
-  this.isLocalMatrixChanged = true;
-  var arad = ang * Math.PI / 180.0;
- // this.localMatrix = this.localMatrix.x(Matrix.Rotation(arad, $V([v[0], v[1], v[2]])).ensure4x4());
-  this.localMatrix = this.localMatrix.x(mat4.rotate(this.localMatrix, arad, $V([v[0], v[1], v[2]])).ensure4x4());
-  return this;
-};
-
-/**
- * Scale
- * @param {FloatArray} Vector
- */
-Joint.prototype.scale = function(v) {
-  this.isLocalMatrixChanged = true;
-  //this.localMatrix = this.localMatrix.x(Matrix.Diagonal([v[0], v[1], v[2], 1]));
-  this.localMatrix = this.localMatrix.x(mat4.transpose([v[0], v[1], v[2], 1]));
-  return this;
-};
-
-/**
- * Invert
- */
-Joint.prototype.invert = function() {
-  this.isLocalMatrixChanged = true;
-  //this.localMatrix = this.localMatrix.inv();
-  this.localMatrix = this.localMatrix.inverse(this.localMatrix);
-};
-
-/**
- * Render
+ * update
  */
 Joint.prototype.update = function() {
-  var hasChanged = false;
   
-  //First, recompute the matrix if necessary
-  if (this.isLocalMatrixChanged === true || this.isParentMatrixChanged === true) {
-    if (this.parent != undefined) {
-      this.computedMatrix = this.parent.computedMatrix.x(this.localMatrix);
-    }
-    else {
-      this.computedMatrix = this.localMatrix;
-    }
-    this.isLocalMatrixChanged = false;
-    this.isParentMatrixChanged = false;
-    hasChanged = true;
+  if (this.parent) {
+  	mat4.multiply(this.parent.skeletonMatrix, this.localMatrix, this.skeletonMatrix);
+  } else {
+  	this.skeletonMatrix = this.localMatrix;
   }
+  mat4.multiply(this.skeletonMatrix, this.inverseBindMatrix, this.shaderMatrix);
   
   //Call update() on the children Transform
   for (var i = 0; i < this.children.length; ++i) {
-    this.children[i].isParentMatrixChanged = hasChanged;
     this.children[i].update();
   }
+};
+
+Joint.prototype.addChild = function(joint) {
+	this.children.push(joint);
+}
+
+Joint.prototype.getShaderMatrix = function() {
+	return this.shaderMatrix;
 };

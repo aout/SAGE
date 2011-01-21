@@ -16,6 +16,7 @@ ColladaLoader_ColladaFile = function(task, xml, callback, debugDivId, verbose) {
   this.libraryGeometries = [];
   this.libraryImages = [];
   this.libraryMaterials = [];
+  this.entities = [];
   
   this.upAxis = undefined;
   
@@ -57,9 +58,9 @@ ColladaLoader_ColladaFile.prototype.parse = function() {
   	return false;
   }
   if (this.parseControllers()) {
-	  if (this.parseAnimations()) {
+	  //if (this.parseAnimations()) {
 	  	//this.parseAnimationClips();
-	  }
+	  //}
   }
   this.generateEntity();
   if (this.debug && this.verbose) { this.debug.innerHTML += '<span class="info">Parsing file done</span><br />'; }
@@ -249,8 +250,32 @@ ColladaLoader_ColladaFile.prototype.parseAnimationClips = function() {
 };
 
 ColladaLoader_ColladaFile.prototype.generateEntity = function() {
+
   for (var i = 0; i < this.libraryMaterials.length; ++i) {
-    var material = new Material(this.libraryMaterials[i].attributes.id);
-    material.load(this.libraryMaterials[i].effect.shadedSurface);
+    this.libraryMaterials[i].sageMaterial = new Material(this.libraryMaterials[i].attributes.id);
+    this.libraryMaterials[i].sageMaterial.load(this.libraryMaterials[i].effect.shadedSurface);
   }
+  
+  var ents = [];
+
+	//DEBUG
+	var rootTransform    = Transform.getTransform("root");
+	var amahaniTransform  = rootTransform.addChild("Amahani");
+	//FIN DEBUG
+	
+	for (var i = 0; i < this.libraryGeometries.length; ++i) {
+		var geometry = this.libraryGeometries[i];
+		if (geometry.controller != undefined && geometry.controller.skeleton.hasAnimations) {
+			var ent = new AnimatableEntity(geometry.attributes.id);
+			ent.generate(geometry);
+		}
+		else {
+			var ent = new Entity(geometry.attributes.id);
+			ent.generate(geometry);
+		}
+		ents.push(ent);
+		//DEBUG
+		amahaniTransform.addEntity(ent);
+		//FIN DEBUG
+	}	
 };

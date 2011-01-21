@@ -20,17 +20,6 @@ Mesh = function (name) {
 };
 
 /**
- * Mesh Destructor
- */
-Mesh.prototype.destroy = function() {
-	for (var i = 0; i < this.buffers.length; ++i) {
-		this.webGL.deleteBuffer(this.buffers[i]);
-		delete this.buffers[i];
-	}
-	delete this.buffers;
-};
-
-/**
  * Add a buffer to the mesh
  * @param {String} bufferName Name of the new buffer
  * @param {Int} bufferType Buffer type: gl.ELEMENT_ARRAY_BUFFER | gl.ARRAY_BUFFER
@@ -173,19 +162,35 @@ Mesh.prototype.calcBBox = function(vertices) {
  * Draw the mesh
  * @param {Program} shaderProgram
  */
-Mesh.prototype.draw = function(shaderProgram) {
+Mesh.prototype.draw = function(material, shaderProgram) {
 	if (this.drawingBuffer != null) {
-		var gl = Root.getInstance().getWebGL();
-		if (shaderProgram == undefined)
-			shaderProgram = Root.getInstance().getCurrentprogram();
-		shaderProgram.use();
-		shaderProgram.setAttributes(this.buffers);
-		gl.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
-		if (this.drawingBuffer.bufferType == gl.ELEMENT_ARRAY_BUFFER) {
-			gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
+	  if (!material.active(shaderProgram)) {
+	    return false;
+	  }
+		if (shaderProgram == undefined) {
+			shaderProgram = Root.getInstance().getCurrentProgram();
 		}
-		else if (this.drawingBuffer.bufferType == gl.ARRAY_BUFFER) {
-			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
+		shaderProgram.use();
+		
+		if (shaderProgram.isUsing() == false) {
+			return;
+		}
+		
+		shaderProgram.setAttributes(this.buffers);
+		this.webGL.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
+		
+		//DEBUG
+		//this.webGL.validateProgram(shaderProgram.program);
+		//if (!this.webGL.getProgramParameter(shaderProgram.program, this.webGL.VALIDATE_STATUS)) {
+			//alert(this.webGL.getProgramInfoLog(shaderProgram.program));
+    //}
+		//FIN DEBUG
+		
+		if (this.drawingBuffer.bufferType == this.webGL.ELEMENT_ARRAY_BUFFER) {
+			this.webGL.drawElements(this.webGL.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
+		}
+		else if (this.drawingBuffer.bufferType == this.webGL.ARRAY_BUFFER) {
+			this.webGL.drawArrays(this.webGL.TRIANGLES, 0, this.drawingBuffer.numItems);
 		}
 	}
 };

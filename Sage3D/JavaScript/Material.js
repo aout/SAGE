@@ -136,7 +136,9 @@ Material.prototype.active = function(shaderProgram) {
   }
   for (var item in this.components) {
     if (this.components[item] instanceof Texture) {
-      this.components[item].active(shaderProgram);
+      if (!this.components[item].active(shaderProgram)) {
+      	return false;
+      }
     }
   }
   return true;

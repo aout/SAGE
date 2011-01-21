@@ -163,10 +163,10 @@ ColladaLoader.parseMatrixString = function(s) {
   if (tab.length != 16) {
     return null;
   }  
-  return mat4.create([tab[ 0], tab[ 1], tab[ 2], tab[ 3],
-                      tab[ 4], tab[ 5], tab[ 6], tab[ 7],
-                      tab[ 8], tab[ 9], tab[10], tab[11],
-                      tab[12], tab[13], tab[14], tab[15]]);
+  return mat4.create([tab[ 0], tab[ 4], tab[ 8], tab[12],
+                      tab[ 1], tab[ 5], tab[ 9], tab[13],
+                      tab[ 2], tab[ 6], tab[10], tab[14],
+                      tab[ 3], tab[ 7], tab[11], tab[15]]);
 }
 
 ColladaLoader.parseMatricesString = function(s) {
@@ -177,10 +177,10 @@ ColladaLoader.parseMatricesString = function(s) {
   
   var res = new Array(tab.length / 16);
   for (var i = 0; i < tab.length / 16; ++i) {
-    res[i] = mat4.create([ tab[i * 16 +  0], tab[i * 16 +  1], tab[i * 16 +  2], tab[i * 16 +  3],
-                           tab[i * 16 +  4], tab[i * 16 +  5], tab[i * 16 +  6], tab[i * 16 +  7],
-                           tab[i * 16 +  8], tab[i * 16 +  9], tab[i * 16 + 10], tab[i * 16 + 11],
-                           tab[i * 16 + 12], tab[i * 16 + 13], tab[i * 16 + 14], tab[i * 16 + 15]]);
+    res[i] = mat4.create([ tab[i * 16 +  0], tab[i * 16 +  4], tab[i * 16 +  8], tab[i * 16 + 12],
+                           tab[i * 16 +  1], tab[i * 16 +  5], tab[i * 16 +  9], tab[i * 16 + 13],
+                           tab[i * 16 +  2], tab[i * 16 +  6], tab[i * 16 + 10], tab[i * 16 + 14],
+                           tab[i * 16 +  3], tab[i * 16 +  7], tab[i * 16 + 11], tab[i * 16 + 15]]);
   }
   return res;
 }
@@ -262,11 +262,14 @@ ColladaLoader.prototype.load = function(task, callback) {
   this.xhr.onreadystatechange = function () {
   	if (self.xhr.readyState == 4 && (self.xhr.status == 200 || self.xhr.status == 0)) {
   	  
-  	 // var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
-     // test.parse();
-  	  
-      self.xmlFile = self.xhr.responseXML;
-  	  self.parse();
+  	 var test = new ColladaLoader_ColladaFile(undefined, self.xhr.responseXML, undefined, 'debugDiv', true);
+     test.parse();
+		 self.task.parsingProgress = 1.0;
+		 if (self.callback) {
+    		self.callback();
+     }
+      //self.xmlFile = self.xhr.responseXML;
+  	  //self.parse();
   	}
   };
 

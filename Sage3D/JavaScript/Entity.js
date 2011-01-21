@@ -10,45 +10,36 @@ include("Texture.js");
  * Entity Class
  * @param {String} name Name
  * @param {Mesh} mesh Meshes
- * @param {TextureArray} textures Textures
  */
-Entity = function(name, meshes, textures) {
+Entity = function(name) {
 	this.name = name;
-	this.meshes = meshes;
+	this.parts = [];
+	this.webGL = Root.getInstance().getWebGL();
 	this.isPickable = true;
-	this.textures = textures;
 };
 
-/**
- * Destroy
- */
-Entity.prototype.destroy = function() {
-	for (var i = 0; i < this.meshes.length; ++i) {
-	 this.meshes[i].destroy();
-	 delete this.meshes[i];
+Entity.prototype.generate = function(geometry) {
+	for (var i = 0; i < geometry.primitives.length; ++i) {
+		var primitive = geometry.primitives[i];
+		if (!primitive.buffers) {
+			primitive.generateBuffers();
+		}
+		var mesh = new Mesh(geometry.attributes.id + '_primitive_' + primitive.attributes.name);
+		for (var bufferName in primitive.buffers) {
+			mesh.addBuffer(	bufferName,
+											this.webGL.ARRAY_BUFFER,
+											primitive.buffers[bufferName].data,
+											Math.floor(primitive.buffers[bufferName].data.length / primitive.buffers[bufferName].stride),
+											this.webGL.FLOAT,
+											primitive.buffers[bufferName].stride,
+											this.webGL.STATIC_DRAW);
+		}
+		mesh.setDrawingBuffer('POSITION');
+		this.parts.push({
+			mesh: mesh,
+			material: primitive.material.sageMaterial
+		});
 	}
-	delete this.meshes;
-	for (var i = 0; i < this.textures.length; ++i) {
-		this.textures[i].destroy();
-		delete this.textures[i];
-	}
-	delete this.textures;
-}
-
-/**
- * Add a texture to the entity
- * @param {Texture} texture Texture Object
- */
-Entity.prototype.addTexture = function(texture) {
-	this.textures.push(texture);
-};
-
-/**
- * Add a mesh to the Entity
- * @param {Mesh} mesh Mesh Object
- */
-Entity.prototype.addMesh = function(mesh) {
-	this.meshes.push(mesh);
 };
 
 /**
@@ -56,11 +47,7 @@ Entity.prototype.addMesh = function(mesh) {
  * @param {Program} shaderProgram Shader program 
  */
 Entity.prototype.draw = function(shaderProgram) {
-	for (var i = 0; i < this.textures.length; ++i) {
-		this.textures[i].active(shaderProgram);
-	}
-
-  for (var i = 0; i < this.meshes.length; ++i) {
-    this.meshes[i].draw(shaderProgram);
+  for (var i = 0; i < this.parts.length; ++i) {
+    this.parts[i].mesh.draw(this.parts[i].material, shaderProgram);
   }
 };

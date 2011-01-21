@@ -6,10 +6,7 @@ gIncludedFiles.push("ColladaLoader/Matrix.js");
 ColladaLoader_Matrix = function(ColladaFile) {
 	this.colladaFile = ColladaFile;
 	
-	this.matrix = {
-		value: undefined,
-		animations: []
-	};
+	this.matrix = undefined;
 	
 	this.attributes = {
 		sid: undefined
@@ -19,9 +16,13 @@ ColladaLoader_Matrix = function(ColladaFile) {
 ColladaLoader_Matrix.prototype.parse = function(node) {
 	ColladaLoader.parseAttributes(this, node);
 	
-	this.matrix.value = ColladaLoader.parseMatrixString(ColladaLoader.nodeText(node));
-	if (!this.matrix.value) {
+	this.matrix = ColladaLoader.parseMatrixString(ColladaLoader.nodeText(node));
+	if (!this.matrix) {
 		return false;
 	}
 	return true;
 };
+
+ColladaLoader_Matrix.prototype.generateTransformation = function(time) {
+	
+}

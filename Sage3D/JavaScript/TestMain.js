@@ -16,31 +16,28 @@ function include(fileName) {
 include("Root.js");
 include("InputManager.js");
 
-var isRotating = false;
-
 function drawScene(elapsedTime) {
-  document.getElementById("FPS").innerHTML = Root.getInstance().getFps()+" fps";
+  var amahaniTransform = Transform.getTransform("Amahani");
+  amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
+}
+
+function updateFps() {
+  document.getElementById("FPS").innerHTML = Root.getInstance().getFps().toString()+" fps";
 }
 
 function initScene()
 {
-  var root = Root.getInstance();
+	var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
-	var im = root.registerModule("InputManager", new InputManager());
+	var im = new InputManager();
 	
 	var rootTransform    = Transform.getTransform("root");
-	
 	var cameraTransform  = rootTransform.addChild("camera");
-	
-	var amahaniTransform = Transform.getTransform("Amahani");
-	
-	var amahaniTransform2 = rootTransform.addChild("Amahani2");
-	amahaniTransform2.entities = amahaniTransform.entities;
-	
-	amahaniTransform.translate([-1.0, -1.0, -5.0]);
-	amahaniTransform2.translate([1.0, -1.0, -5.0]);
-	
+	cameraTransform.translate([0.0, 5.0, 20.0]);
+	//cameraTransform.translate([0.0, 1.0, 5.0]);
 	root.getCamera().attach(cameraTransform);
+	
+	setInterval(updateFps, 1000);
 	
 	im.bindKey('Z', function(elapsed){
 	  var transform = Transform.getTransform("camera");
@@ -90,7 +87,7 @@ function initScene()
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();		
-	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
+	rm.prepareCollada("Amahani", "Resources/Meshs/Seymour_triangulate.dae");
 	rm.doLoad(initScene);
 }
 
