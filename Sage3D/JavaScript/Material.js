@@ -35,7 +35,7 @@ Material.StatusEnum = {
 		MATERIAL_ERROR		: 3
 };
 
-Material.prototype.load = function(emission, ambient, diffuse, specular, shininess) {
+Material.prototype.manualLoad = function(emission, ambient, diffuse, specular, shininess) {
   this.status = Material.StatusEnum.MATERIAL_LOADING;
   var textureUnit = 0;
   var nameArray = ['emission', 'ambient', 'diffuse', 'specular', 'shininess'];
@@ -43,9 +43,9 @@ Material.prototype.load = function(emission, ambient, diffuse, specular, shinine
     if (!arguments[i]) {
       continue;
     }
-    if (Array.isArray(arguments[i])) {
-      this.components[nameArray[i]] = new this.webGL.Float32Array(arguments[i]);
-    } else if (name in arguments[i] && url in arguments[i] && minFilter in arguments[i] && magFilter in arguments[i]) {
+    //if (Array.isArray(arguments[i])) {
+      //this.components[nameArray[i]] = new this.webGL.Float32Array(arguments[i]);
+    /*} else*/ if ('name' in arguments[i] && 'url' in arguments[i] && 'minFilter' in arguments[i] && 'magFilter' in arguments[i]) {
       var self = this;
       this.components[nameArray[i]] = new Texture(arguments[i].name);
       this.components[nameArray[i]].load(textureUnit++, arguments[i].url,
@@ -78,7 +78,7 @@ Material.prototype.load = function(emission, ambient, diffuse, specular, shinine
   if (!textureUnit) {
     this.status = Material.StatusEnum.MATERIAL_READY;
     var debug = document.evaluate('//div[@id="debugDiv"]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-    debug.innerHTML += '<span class="success">Material '+ self.name + ' created successfuly</span><br />';
+    debug.innerHTML += '<span class="success">Material '+ this.name + ' created successfuly</span><br />';
   }
 };
 

@@ -16,26 +16,49 @@ function include(fileName) {
 include("Root.js");
 include("InputManager.js");
 
+var pickedElem = undefined;
+
 function drawScene(elapsedTime) {
-  var amahaniTransform = Transform.getTransform("Amahani");
-  amahaniTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
+  var seymourTransform = Transform.getTransform("Seymour");
+  seymourTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
+
+  var skeletonTransform = Transform.getTransform("skeleton");
+  skeletonTransform.rotate((90 * elapsedTime) / 1000.0, [0.0, 1.0, 0.0]);
 }
 
 function updateFps() {
   document.getElementById("FPS").innerHTML = Root.getInstance().getFps().toString()+" fps";
 }
 
+
+function affSkeleton(sceneNode, actualJoint, cubeEntity) {
+  var newTransform = sceneNode.addChild(actualJoint.name);
+  newTransform.addEntity(cubeEntity);
+  newTransform.localMatrix = actualJoint.localMatrix;
+  newTransform.isLocalMatrixChanged = true;
+  for (var i = 0; i < actualJoint.children.length; ++i) {
+    affSkeleton(newTransform, actualJoint.children[i], cubeEntity);
+  }
+}
+
 function initScene()
 {
+  var cube = Primitives.cube('cube', 0.2, 'Resources/Textures/nehe.gif');
+  
 	var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
 	var im = new InputManager();
 	
-	var rootTransform    = Transform.getTransform("root");
-	var cameraTransform  = rootTransform.addChild("camera");
+	var rootTransform      = Transform.getTransform("root");
+	var skeletonTransform  = rootTransform.addChild("skeleton");
+	var cameraTransform    = rootTransform.addChild("camera");
 	cameraTransform.translate([0.0, 5.0, 20.0]);
-	//cameraTransform.translate([0.0, 1.0, 5.0]);
 	root.getCamera().attach(cameraTransform);
+	
+	affSkeleton(skeletonTransform, Transform.getTransform("Seymour").entities[0].skeleton.root, cube);
+	
+	Transform.getTransform("Seymour").translate([-5.0, 0.0, 0.0]);
+	Transform.getTransform("skeleton").translate([5.0, 0.0, 0.0]);
 	
 	setInterval(updateFps, 1000);
 	
@@ -71,6 +94,7 @@ function initScene()
     var pickedElement = renderer.pick(input.mousePos.x, input.mousePos.y);
     if (pickedElement != null) {
       document.getElementById("PICKED").innerHTML = pickedElement.name;
+      pickedElem = pickedElement;
     }
     else {
       document.getElementById("PICKED").innerHTML = "null";
@@ -87,7 +111,7 @@ function initScene()
 
 function loadResources() {
 	var rm = ResourceManager.getInstance();		
-	rm.prepareCollada("Amahani", "Resources/Meshs/Seymour_triangulate.dae");
+	rm.prepareCollada("Seymour", "Resources/Meshs/Seymour_triangulate.dae");
 	rm.doLoad(initScene);
 }
 
@@ -142,4 +166,55 @@ function toggleRotation() {
 }
 function toggleSkeleton() {
 
+}
+
+function Rotate_X() {
+  if (pickedElem) {
+    pickedElem.rotate(10, [1.0, 0.0, 0.0]);
+    var entity = Transform.getTransform("Seymour").entities[0];
+    var skeleton = entity.skeleton;
+    var joints = skeleton.joints;
+    for (var i = 0; i < joints.length; ++i) {
+      if (joints[i].name == pickedElem.name) {
+        joints[i].localMatrix = pickedElem.localMatrix;
+        skeleton.root.update();
+        entity.shaderMatrices = skeleton.getShaderMatrices();
+        break;
+      }
+    }
+  }
+}
+
+function Rotate_Y() {
+  if (pickedElem) {
+    pickedElem.rotate(10, [0.0, 1.0, 0.0]);
+    var entity = Transform.getTransform("Seymour").entities[0];
+    var skeleton = entity.skeleton;
+    var joints = skeleton.joints;
+    for (var i = 0; i < joints.length; ++i) {
+      if (joints[i].name == pickedElem.name) {
+        joints[i].localMatrix = pickedElem.localMatrix;
+        skeleton.root.update();
+        entity.shaderMatrices = skeleton.getShaderMatrices();
+        break;
+      }
+    }
+  }
+}
+
+function Rotate_Z() {
+  if (pickedElem) {
+    pickedElem.rotate(10, [0.0, 0.0, 1.0]);
+    var entity = Transform.getTransform("Seymour").entities[0];
+    var skeleton = entity.skeleton;
+    var joints = skeleton.joints;
+    for (var i = 0; i < joints.length; ++i) {
+      if (joints[i].name == pickedElem.name) {
+        joints[i].localMatrix = pickedElem.localMatrix;
+        skeleton.root.update();
+        entity.shaderMatrices = skeleton.getShaderMatrices();
+        break;
+      }
+    }
+  }
 }

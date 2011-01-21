@@ -13,7 +13,7 @@ Primitives = {};
 /**
  * make a cube
  */
-Primitives.cube = function(name, scale, callback) {
+Primitives.cube = function(name, scale, textureUrl/*callback*/) {
 
 	var gl = Root.getInstance().getWebGL();
 	if (gl == null)
@@ -144,7 +144,7 @@ Primitives.cube = function(name, scale, callback) {
     ]
 
   
-	var mesh = new Mesh(name);
+	var mesh = new Mesh(name + '_mesh');
 	
 	mesh.calcBBox(vertices);
 	mesh.addBuffer("POSITION", gl.ARRAY_BUFFER, vertices, 24, gl.FLOAT, 3, gl.STATIC_DRAW);
@@ -153,7 +153,17 @@ Primitives.cube = function(name, scale, callback) {
 	mesh.addBuffer("indices", gl.ELEMENT_ARRAY_BUFFER, indices, 36, gl.UNSIGNED_SHORT, 1, gl.STATIC_DRAW);
 	mesh.setDrawingBuffer("indices");
 	
-	callback(mesh);
+	var material = new Material(name + '_material');
+	material.manualLoad(undefined, undefined, {name: 'nehe_texture', url: textureUrl, minFilter: undefined, magFilter: undefined}, undefined, undefined);
+	
+	var ent = new Entity(name);
+	ent.parts.push({
+      mesh: mesh,
+      material: material
+    });
+	
+	//callback(ent);
+	return (ent);
 };
 
 /**

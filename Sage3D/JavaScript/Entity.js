@@ -47,6 +47,15 @@ Entity.prototype.generate = function(geometry) {
  * @param {Program} shaderProgram Shader program 
  */
 Entity.prototype.draw = function(shaderProgram) {
+  
+    var uniforms = [
+    {name: "uhasSkeleton",
+    type: "Int",
+    numberOfElements: 1,
+    value0: 0}];
+  
+  shaderProgram.setUniforms(uniforms);
+  
   for (var i = 0; i < this.parts.length; ++i) {
     this.parts[i].mesh.draw(this.parts[i].material, shaderProgram);
   }
