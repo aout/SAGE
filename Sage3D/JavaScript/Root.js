@@ -9,7 +9,7 @@ include("Entity.js");
 include("Joint.js");
 include("Light.js");
 include("Mesh.js");
-include("Material.js");
+//include("Material.js");
 include("Primitives.js");
 include("Program.js");
 include("ResourceManager.js");
@@ -25,7 +25,14 @@ Root = function(){
     this.version = "SAGE V0.6 Alpha 3";
     
     this.modules = {};
+    
     this.renderer = undefined;
+    this.clearColor = {
+        R : 1,
+        G : 1,
+        B : 1,
+        A : 1
+      }
     
     this.callbacks = new CallbackHooks(Root.HookEnum);
     
@@ -40,9 +47,9 @@ Root = function(){
 
     this.maxFps = 60;
     this.actualFps = 0.0;
-    this.drawInterval = undefined;
     this.lastRender = undefined;
-
+    this.canDraw = undefined;
+    this.drawLoop = undefined;
 
     // GOING AWAY IN THE NEXT RELEASE
     this.isLightingEnabled = true;
@@ -108,10 +115,10 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
     this.webGL.viewport(0, 0, this.width, this.height);
 
     //clear color
-    if (clearColor != undefined)
-    this.webGL.clearColor(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
-    else
-    this.webGL.clearColor(1, 0, 1, 1);
+    if (clearColor != undefined) {
+      this.clearColor = clearColor;
+    }
+    this.webGL.clearColor(this.clearColor.R, this.clearColor.G, this.clearColor.B, this.clearColor.A);
 
     //clear depth
     this.webGL.clearDepth((clearDepth != undefined) ? (clearDepth) : (1.0));
@@ -131,7 +138,7 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
     this.rootTransform = new Transform(undefined, "root");
     this.camera = new Camera("Camera", this.rootTransform);
 
-    //set status to LOADED
+    // Set status to LOADED
     this.status = Root.StatusEnum.ROOT_LOADED;
 
     //WebGL	initialization!
@@ -218,14 +225,33 @@ Root.prototype.isWebGLEnabled = function(){
     return true;
 };
 
-/**
- * Start the Render Loop
- * @param {Array} callbacks Array of callback functions to be executed
- */
+// Starts the Render Loop
 Root.prototype.startRendering = function(){
     var TimePerFrame = 1000 / this.maxFps;
-    this.drawInterval = setInterval(this.draw, TimePerFrame);
+    this.drawLoop = setInterval(this.draw, TimePerFrame);
+    // Set status to RUNNING
+    this.status = Root.StatusEnum.ROOT_RUNNING;
 };
+
+// Stops the Render Loop
+Root.prototype.stopRendering = function() {
+  clearInterval(this.drawLoop);
+  // Set status to STOPPED
+    this.status = Root.StatusEnum.ROOT_STOPPED;
+};
+
+// Pauses the Render Loop
+// This means the Loop will still run but not draw
+Root.prototype.pauseRendering = function() {
+  this.status = Root.StatusEnum.ROOT_PAUSED;
+};
+
+// Let the rendering continue
+Root.prototype.continueRendering = function() {
+  this.status = Root.StatusEnum.ROOT_RUNNING;
+};
+
+// 
 
 /**
  * Render Loop (draw)
@@ -235,6 +261,9 @@ Root.prototype.startRendering = function(){
 Root.prototype.draw = function(){
     // Get back the scope because setInterval causes us to lose it
     var root = Root.getInstance();
+    
+    // Avoid launching a last and single render if not RUNNING
+    if (root.status == Root.StatusEnum.ROOT_RUNNING) {
     
     // Avoid multiple asynchronous calls
     if (!root.canDraw){
@@ -268,6 +297,7 @@ Root.prototype.draw = function(){
     // Save Timestamp for next render
     root.lastRender = new Date().getTime();
     root.canDraw = true;
+    }
 };
 
 // Returns current FPS
@@ -282,8 +312,8 @@ Root.prototype.registerModule = function(name, toAddModule) {
   if (this.modules.hasOwnProperty(name) == false) {
     this.modules[name] = {};
     this.modules[name].module = toAddModule;
-    addedModule = this.modules[name];
   }
+  addedModule = this.modules[name].module;
   return addedModule;
 };
 
@@ -291,7 +321,7 @@ Root.prototype.registerModule = function(name, toAddModule) {
 Root.prototype.unregisterModule = function(name) {
   var module = null;
   if (this.modules.hasOwnProperty(name)) {
-    module = this.modules[name];
+    module = this.modules[name].module;
     this.modules[name].module = null;
     this.modules[name]= null;
   }

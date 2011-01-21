@@ -7,10 +7,9 @@ gIncludedFiles.push("Mesh.js");
  * Mesh Class
  * @param {String} name Name
  */
-Mesh = function (name, material) {
+Mesh = function (name) {
 	this.webGL = Root.getInstance().getWebGL();
 	this.name = name;
-	this.material = material
 	this.buffers = [];
 	this.drawingBuffer = null;
 	this.BBox = {
@@ -23,14 +22,13 @@ Mesh = function (name, material) {
 /**
  * Mesh Destructor
  */
-/*
 Mesh.prototype.destroy = function() {
 	for (var i = 0; i < this.buffers.length; ++i) {
 		this.webGL.deleteBuffer(this.buffers[i]);
 		delete this.buffers[i];
 	}
 	delete this.buffers;
-};*/
+};
 
 /**
  * Add a buffer to the mesh
@@ -177,20 +175,17 @@ Mesh.prototype.calcBBox = function(vertices) {
  */
 Mesh.prototype.draw = function(shaderProgram) {
 	if (this.drawingBuffer != null) {
-	  if (!this.material.active(shaderProgram)) {
-	    return false;
-	  }
-		if (shaderProgram == undefined) {
-			shaderProgram = Root.getInstance().getCurrentProgram();
-		}
+		var gl = Root.getInstance().getWebGL();
+		if (shaderProgram == undefined)
+			shaderProgram = Root.getInstance().getCurrentprogram();
 		shaderProgram.use();
 		shaderProgram.setAttributes(this.buffers);
-		this.webGL.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
-		if (this.drawingBuffer.bufferType == this.webGL.ELEMENT_ARRAY_BUFFER) {
-			this.webGL.drawElements(this.webGL.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
+		gl.bindBuffer(this.drawingBuffer.bufferType, this.drawingBuffer);
+		if (this.drawingBuffer.bufferType == gl.ELEMENT_ARRAY_BUFFER) {
+			gl.drawElements(gl.TRIANGLES, this.drawingBuffer.numItems, this.drawingBuffer.itemType, 0);
 		}
-		else if (this.drawingBuffer.bufferType == this.webGL.ARRAY_BUFFER) {
-			this.webGL.drawArrays(this.webGL.TRIANGLES, 0, this.drawingBuffer.numItems);
+		else if (this.drawingBuffer.bufferType == gl.ARRAY_BUFFER) {
+			gl.drawArrays(gl.TRIANGLES, 0, this.drawingBuffer.numItems);
 		}
 	}
 };
