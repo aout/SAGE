@@ -3,9 +3,11 @@ if (gIncludedFiles == undefined)
   
 gIncludedFiles.push("ColladaLoader/Triangles.js");
 
-ColladaLoader_Triangles = function(ColladaFile) {
+ColladaLoader_Triangles = function(ColladaFile, geometry) {
   
   this.colladaFile = ColladaFile;
+  this.geometry = geometry;
+  
   this.maxOffset = 0;
   this.inputsByOffset = undefined;
   
@@ -19,8 +21,7 @@ ColladaLoader_Triangles = function(ColladaFile) {
   
   this.material = undefined;
   
-  this.buffers = {};
-  
+  this.buffers = undefined;
 };
 
 ColladaLoader_Triangles.prototype.parse = function(node, mesh) {
@@ -69,4 +70,113 @@ ColladaLoader_Triangles.prototype.parse = function(node, mesh) {
 	
 	if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="info">Triangles in ' + mesh.attributes.name + ' loaded</span><br />'; }
 	return true;
+};
+
+ColladaLoader_Triangles.prototype.generateBuffers = function() {
+	if (!this.buffers) {
+		
+		//Create Buffers Object
+		this.buffers = {};
+
+		//Get Skeleton
+		if (this.geometry.controller != undefined && this.geometry.controller.skeleton.hasAnimations) {
+			var skeleton = this.geometry.controller.skeleton;
+		} else {
+			var skeleton = undefined;
+		}
+		
+		for (var i = 0; i < this.p.length; i += (this.maxOffset + 1)) {
+
+			for (var j = 0; j < (this.maxOffset + 1); ++j) {
+
+				//Get the p index
+				var index = this.p[i + j];
+
+				for (var k = 0; k < this.inputsByOffset[j].length; ++k) {
+					
+					//Get buffer name
+					var bufferName = this.inputsByOffset[j][k].attributes.semantic;
+					
+					// Create the buffer if doesn't exist
+					if (!this.buffers[bufferName]) {
+						this.buffers[bufferName] = {
+							stride	: this.inputsByOffset[j][k].source.accessor.attributes.stride,
+							data		: []
+						};
+					}
+					
+					//Vertex Weight
+					if (bufferName === 'POSITION' && skeleton) {
+
+						//Get vertex weight info
+						var info = skeleton.vertexWeights[index];
+
+						for (var weightI = 0; weightI < 4; ++weightI) {
+							
+							//Create buffers if they don't exist
+							if (!this.buffers['aVertexWeight_' + weightI]) {
+								this.buffers['aVertexWeight_' + weightI] = {
+									stride	: 2,
+									data		: []
+								};								
+							}
+							
+							if (weightI < info.length) {
+								
+								//Push the joint
+								this.buffers['aVertexWeight_' + weightI].data.push(info[weightI].jointIndex);
+								//this.buffers['aVertexWeight_' + weightI].data.push(0.0);
+								
+								//Push the weight corresponding
+								this.buffers['aVertexWeight_' + weightI].data.push(info[weightI].weight);
+								//this.buffers['aVertexWeight_' + weightI].data.push(1.0);
+								
+								
+							} else {
+								
+								//Push the default value for joint
+								this.buffers['aVertexWeight_' + weightI].data.push(0.0);
+								
+								//Push the default value for weight
+								this.buffers['aVertexWeight_' + weightI].data.push(0.0);								
+							}
+						}
+					}
+					
+					//Get the source array
+					var source = this.inputsByOffset[j][k].source.dataArray.data;
+					
+					//Compute the p index with the data stride
+					index *= this.buffers[bufferName].stride;
+					
+					if (bufferName != 'TEXCOORD') {
+					  var x = source[index + 0];
+  					var y = source[index + 1];
+						var z = source[index + 2];
+  
+  					switch(this.colladaFile.upAxis) {
+    					case ColladaLoader_ColladaFile.upAxisEnum.X_UP:
+  							var tmp = x;
+  							x = -y;
+  							y = tmp;
+							break;
+							case ColladaLoader_ColladaFile.upAxisEnum.Z_UP:
+              	var tmp = y;
+              	y = z;
+              	z = -tmp;
+            	break;
+          	}
+          	this.buffers[bufferName].data.push(x);
+          	this.buffers[bufferName].data.push(y);
+          	this.buffers[bufferName].data.push(z);
+        	}
+      		else {
+						for (var l = 0; l < this.buffers[bufferName].stride; ++l) {
+							this.buffers[bufferName].data.push(source[index + l]);
+        		}
+					}
+				}
+			}
+		}
+	}
 };

@@ -114,7 +114,7 @@ Texture.prototype.load = function(unitTexture, url, callback, minfilter, magfilt
  */
 Texture.prototype.active = function(shaderProgram) {
 	if (this.status != Texture.StatusEnum.TEXTURE_READY)
-		return this.status;
+		return false;
 	if (shaderProgram == undefined)
 		shaderProgram = Root.getInstance().getCurrentProgram();
 	shaderProgram.use();
@@ -124,4 +124,5 @@ Texture.prototype.active = function(shaderProgram) {
 		 							              type: "1i",
 		 							              value: this.unitTexture
 		 							           }]);
+	return true;
 };

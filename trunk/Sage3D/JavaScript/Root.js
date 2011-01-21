@@ -9,7 +9,7 @@ include("Entity.js");
 include("Joint.js");
 include("Light.js");
 include("Mesh.js");
-//include("Material.js");
+include("Material.js");
 include("Primitives.js");
 include("Program.js");
 include("ResourceManager.js");
@@ -17,6 +17,7 @@ include("Texture.js");
 include("Transform.js");
 include("Renderer.js");
 include("CallbackHooks.js");
+include("Skeleton.js");
 
 Root = function(){
     this.viewPort = undefined;
@@ -45,7 +46,7 @@ Root = function(){
     this.width = null;
     this.height = null;
 
-    this.maxFps = 60;
+    this.maxFps = 100;
     this.actualFps = 0.0;
     this.lastRender = undefined;
     this.canDraw = undefined;
@@ -101,6 +102,7 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
 
     //Set a viewport into the canvas
     this.viewPort = document.getElementById(canvasId);
+    
     this.width = this.viewPort.offsetWidth;
     this.height = this.viewPort.offsetHeight;
 
@@ -130,7 +132,11 @@ Root.prototype.init = function(canvasId, callback, clearColor, clearDepth, proje
     if (projection != undefined)
     this.projectionMatrix = mat4.perspective(projection.fovy, projection.aspect, projection.znear, projection.zfar);
     else
-    this.projectionMatrix = mat4.perspective(45, this.width / this.height, 0.1, 100.0);
+    //Test Avatar
+    //DEBUG
+    this.projectionMatrix = mat4.perspective(45, this.width / this.height, 0.1, 1000.0);
+    //FIN DEBUG
+    //this.projectionMatrix = mat4.perspective(45, this.width / this.height, 0.1, 100.0);
 
     this.webGL.enable(this.webGL.DEPTH_TEST);
     this.webGL.depthFunc(this.webGL.LEQUAL);
@@ -276,9 +282,7 @@ Root.prototype.draw = function(){
     if (elapsedTime == 0) {
       elapsedTime = 1;
     }
-    // Calculate actual FPS
-    root.actualFps = 1000 / elapsedTime;
-    
+        
     // Clear screen for a fresh start
     root.webGL.clear(root.webGL.COLOR_BUFFER_BIT | root.webGL.DEPTH_BUFFER_BIT);
     
@@ -293,7 +297,10 @@ Root.prototype.draw = function(){
 
     // End Callback
     root.callbacks.executeCallbacks('ROOT_HOOK_ONRENDEREND', elapsedTime);
-
+    
+    // Calculate actual FPS
+    root.actualFps = 1000 / elapsedTime;
+    
     // Save Timestamp for next render
     root.lastRender = new Date().getTime();
     root.canDraw = true;

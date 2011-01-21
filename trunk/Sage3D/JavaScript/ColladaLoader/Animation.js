@@ -31,6 +31,30 @@ ColladaLoader_Animation = function(ColladaFile) {
   };
 };
 
+ColladaLoader_Animation.prototype.getMinTime = function() {
+	if (this.sampler.defined) {
+		for (var i = 0; i < this.sampler.inputs.length; ++i) {
+			if (this.sampler.inputs[i].attributes.semantic == "INPUT") {
+				return this.sampler.inputs[i].source.dataArray.data[0];
+			}
+		}
+	}
+	return 0;
+};
+
+ColladaLoader_Animation.prototype.getMaxTime = function() {
+	if (this.sampler.defined) {
+		for (var i = 0; i < this.sampler.inputs.length; ++i) {
+			if (this.sampler.inputs[i].attributes.semantic == "INPUT") {
+				var tab = this.sampler.inputs[i].source.dataArray.data;
+				return tab[tab.length - 1];
+			}
+		}
+	}
+	return 0;
+};
+
+
 ColladaLoader_Animation.prototype.parse = function(node) {
 
 	ColladaLoader.parseAttributes(this, node);
@@ -116,14 +140,18 @@ ColladaLoader_Animation.prototype.parse = function(node) {
 					if (transformation.attributes.sid == target[1]) {
 						sidFound = true;
 						if (target.length == 2 && transformation instanceof ColladaLoader_Matrix) {
-							transformation.matrix.animations.push(this);
+							transformation.matrix.animation = this;
 							skeleton.hasAnimation = true;
+							skeleton.minTime = Math.min(skeleton.minTime, this.getMinTime);
+							skeleton.maxTime = Math.max(skeleton.maxTime, this.getMaxTime);
 							animationAdded = true;
 						}
 						else if (target.length == 3 && target[2] in transformation) {
-							transformation[target[2]].animations.push(this);
-							animationAdded = true;
+							transformation[target[2]].animation = this;
 							skeleton.hasAnimation = true;
+							skeleton.minTime = Math.min(skeleton.minTime, this.getMinTime);
+							skeleton.maxTime = Math.max(skeleton.maxTime, this.getMaxTime);
+							animationAdded = true;
 						}
 					}
 				}
@@ -141,8 +169,6 @@ ColladaLoader_Animation.prototype.parse = function(node) {
 		if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="error">Bad channel target attribute: attribute "' + target[2] + '" not found in ' + this.attributes.id + '</span><br />'; }		
 		return false;
 	}
-	
-	
 	
 	if (this.colladaFile.debug && this.colladaFile.verbose) { this.colladaFile.debug.innerHTML +=  '<span class="info">Animation ' + this.attributes.id + ' loaded</span><br />'; }
 	return true;

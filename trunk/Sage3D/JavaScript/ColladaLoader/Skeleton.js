@@ -7,11 +7,13 @@ ColladaLoader_Skeleton = function(controller) {
 	this.colladaFile = controller.colladaFile;
 	this.controller = controller;
 	
-  this.root = undefined;
+  this.roots = [];
 	this.joints = [];
 	this.vertexWeights = [];
 	
-	this.hasAnimations = false;
+	this.hasAnimations = true;
+	this.minTime = 0;
+	this.maxTime = 0;
 };
 
 ColladaLoader_Skeleton.prototype.organizeJoints  = function(currentNode, parent) {
@@ -22,7 +24,7 @@ ColladaLoader_Skeleton.prototype.organizeJoints  = function(currentNode, parent)
     for (var i = 0; i < this.joints.length; ++i) {
       if (this.joints[i].name == sid) {
         if (!parent) {
-        	this.root = this.joints[i];
+        	this.roots.push(this.joints[i]);
           switch (this.colladaFile.upAxis) {
           	case ColladaLoader_ColladaFile.upAxisEnum.X_UP:
           		break;
@@ -80,10 +82,10 @@ ColladaLoader_Skeleton.prototype.parse = function() {
 					break;
 				case 'INV_BIND_MATRIX':
 					var tab = this.controller.jointsInputs[j].source.dataArray.data.slice(i * 16, i * 16 + 16);
-					joint.inverseBindMatrix = mat4.create([	tab[ 0], tab[ 1], tab[ 2], tab[ 3],
-																									tab[ 4], tab[ 5], tab[ 6], tab[ 7],
-																									tab[ 8], tab[ 9], tab[10], tab[11],
-																									tab[12], tab[13], tab[14], tab[15]	]);
+					joint.inverseBindMatrix = mat4.create([	tab[ 0], tab[ 4], tab[ 8], tab[12],
+																									tab[ 1], tab[ 5], tab[ 9], tab[13],
+																									tab[ 2], tab[ 6], tab[10], tab[14],
+																									tab[ 3], tab[ 7], tab[11], tab[15]	]);
 					break;				
 			}
 		}
@@ -115,14 +117,17 @@ ColladaLoader_Skeleton.prototype.parse = function() {
 		return false;
 	}
 	
-	var skeletonNode = ColladaLoader.getNode(this.colladaFile.xml, 'c:skeleton', instanceNode);
-	if (!skeletonNode) {
+	var skeletonNodes = ColladaLoader.getNodes(this.colladaFile.xml, 'c:skeleton', instanceNode);
+	if (!skeletonNodes || skeletonNodes.snapshotLength == 0) {
 		if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Couldn\'t find &lt;skeleton&gt; in &lt;instance_controller url="#' + this.controller.attributes.id + '"&gt;</span><br />'; }
 		return false;
 	}
 
-	var rootNodeId = ColladaLoader.nodeText(skeletonNode);
-	rootNodeId = rootNodeId.substr(1, rootNodeId.length - 1);
+	var rootNodeIds = [] 
+	for (var i = 0; i < skeletonNodes.snapshotLength; ++i) {
+		var rootNodeId = ColladaLoader.nodeText(skeletonNodes.snapshotItem(i));
+		rootNodeIds.push(rootNodeId.substr(1, rootNodeId.length - 1));
+	}
 	
 	//verification des materials
 	var instanceMaterialNodes = ColladaLoader.getNodes(this.colladaFile.xml, 'c:bind_material/c:technique_common/c:instance_material', instanceNode);
@@ -162,19 +167,65 @@ ColladaLoader_Skeleton.prototype.parse = function() {
 		}
 	}
 	
-	var rootNodeNode = ColladaLoader.getNode(this.colladaFile.xml, '//c:node[@id="' + rootNodeId + '"]', libraryVisualScenesNode);
-	if (!rootNodeNode) {
-		if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Couldn\'t find &lt;node id="' + rootNodeId + '"&gt;</span><br />'; }
-		return false;
-	}
-	
-	this.organizeJoints(rootNodeNode, null);
-	for (var i = 0; i < this.joints.lenth; ++i) {
-		if (this.joints[i].parent == null && this.joints[i] != this.root) {
-			if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Error in the joint\'s hierarchy</span><br />'; }
-			return false;			
+	for (var i = 0; i < rootNodeIds.length; ++i) {
+		var rootNodeNode = ColladaLoader.getNode(this.colladaFile.xml, '//c:node[@id="' + rootNodeIds[i] + '"]', libraryVisualScenesNode);
+		if (!rootNodeNode) {
+			if (this.colladaFile.debug) { this.colladaFile.debug.innerHTML +=  '<span class="error">Couldn\'t find &lt;node id="' + rootNodeIds[i] + '"&gt;</span><br />'; }
+			return false;
 		}
+		
+		this.organizeJoints(rootNodeNode, null);		
 	}
 	
 	return true;
+};
+
+ColladaLoader_Skeleton.prototype.findJoint = function(array, name) {
+	for (var i = 0; i < array.length; ++i) {
+		if (array[i].name === name) {
+			return array[i];
+		}
+	}
+	return undefined;
+};
+
+ColladaLoader_Skeleton.prototype.generateBindShape = function() {
+	var sageJoints = new Array(this.joints.length);
+	
+	//First create all sage joint
+	for (var i = 0; i < this.joints.length; ++i) {
+		sageJoints[i] = new Joint(this.joints[i].name, undefined, this.joints[i].generateBindShapeLocalMatrix(), this.joints[i].inverseBindMatrix);
+	}
+	
+	//Then organize them
+	for (var i = 0; i < this.joints.length; ++i) {
+		//set the parent if exists
+		if (this.joints[i].parent) {
+			sageJoints[i].parent = this.findJoint(sageJoints, this.joints[i].parent.name);
+		}
+		//set the children is exist
+		for (var j = 0; j < this.joints[i].children.length; ++j) {
+			sageJoints[i].addChild(this.findJoint(sageJoints, this.joints[i].children[j].name));
+		}
+	}
+	
+	if (this.roots.length == 1) {
+		var root = this.findJoint(sageJoints, this.roots[0].name);
+	}	else {
+		var local = mat4.create();
+		var ibm = mat4.create();
+		mat4.identity(local);
+		mat4.identity(ibm);
+		var root = new Joint('NoMultiRoot', undefined, local, ibm);
+		for (var i = 0; i < this.roots.length; ++i) {
+			var joint = this.findJoint(sageJoints, this.roots[i].name)
+			root.addChild(joint);
+			joint.parent = root;
+		}
+	} 
+	
+	//Compute All matrix in joint tree
+	root.update();
+	
+	return new Skeleton(sageJoints, root, this.controller.bindShapeMatrix);
 };
