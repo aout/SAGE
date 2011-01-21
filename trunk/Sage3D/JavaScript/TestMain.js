@@ -24,28 +24,80 @@ function drawScene(elapsedTime) {
 
 function initScene()
 {
-  
-	var root = Root.getInstance();
+  var root = Root.getInstance();
 	var rm   = ResourceManager.getInstance();
-	var im = new InputManager();
+	var im = root.registerModule("InputManager", new InputManager());
 	
 	var rootTransform    = Transform.getTransform("root");
 	
 	var cameraTransform  = rootTransform.addChild("camera");
 	
+	var amahaniTransform = Transform.getTransform("Amahani");
+	
+	var amahaniTransform2 = rootTransform.addChild("Amahani2");
+	amahaniTransform2.entities = amahaniTransform.entities;
+	
+	amahaniTransform.translate([-1.0, -1.0, -5.0]);
+	amahaniTransform2.translate([1.0, -1.0, -5.0]);
+	
 	root.getCamera().attach(cameraTransform);
 	
+	im.bindKey('Z', function(elapsed){
+	  var transform = Transform.getTransform("camera");
+    var move = 2 * (elapsed / 1000.0);
+    transform.translate([0.0, 0.0, -move]);
+	});
+	
+	im.bindKey('S', function(elapsed){
+    var transform = Transform.getTransform("camera");
+    var move = 2 * (elapsed / 1000.0);
+    transform.translate([0.0, 0.0, move]);
+  });
+  
+	im.bindKey('Q', function(elapsed){
+    var transform = Transform.getTransform("camera");
+    var rot = 90 * (elapsed / 1000.0);
+    transform.rotate(rot, [0.0, 1.0, 0.0]);
+  });
+  
+	im.bindKey('D', function(elapsed){
+    var transform = Transform.getTransform("camera");
+    var rot = 90 * (elapsed / 1000.0);
+    transform.rotate(-rot, [0.0, 1.0, 0.0]);
+  });
+	
+	im.bindMouse('MOUSE_LEFT', function(elapsed){
+    var root = Root.getInstance();
+    var input = root.getModule('INPUT_MANAGER');
+    var renderer = root.getRenderer();
+    document.getElementById("MOUSE").innerHTML = "MousePos x:"+input.mousePos.x+" y:"+input.mousePos.y;
+    var pickedElement = renderer.pick(input.mousePos.x, input.mousePos.y);
+    if (pickedElement != null) {
+      document.getElementById("PICKED").innerHTML = pickedElement.name;
+    }
+    else {
+      document.getElementById("PICKED").innerHTML = "null";
+    }
+  });
+  
+	
 	root.callbacks.addCallback('DRAW_SCENE', drawScene, 'ROOT_HOOK_ONRENDERSTART');
+	
+	root.getRenderer().enablePicking();
+
 	root.startRendering();
 }
 
 function loadResources() {
+	var rm = ResourceManager.getInstance();		
+	rm.prepareCollada("Amahani", "Resources/Meshs/Amahani.dae");
+	rm.doLoad(initScene);
 }
 
 function main() {  
   document.getElementById("go").style.visibility = 'hidden';
 	var root = Root.getInstance();
-	root.init("viewport", initScene, {R: 0.1, G: 0.1, B: 0.1, A: 1.0});
+	root.init("viewport", loadResources, {R: 1, G: 1, B: 1, A: 1.0});
 }
 
 function clearLight() {
