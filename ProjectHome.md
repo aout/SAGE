@@ -1,0 +1,3 @@
+SAGE is an Open Source graphic engine based WebGL API. It allows you to create rich 3D content for your website and provide a more enthusiastic experience to your users with no additionnal plug-in setup.
+
+Basically, all you have to do is code your application in pure JavaScript using SAGE and then embed it on your web page. Your browser does everything else. Check out more examples at Khronos's Community Gallery.
